@@ -26,6 +26,20 @@ class ChapterController extends Controller
             });
         }
 
+        // Filter by Title
+        if ($title = $request->input('title')) {
+            $chapters = $chapters->filter(function ($c) use ($title) {
+                return stripos($c['title'], $title) !== false;
+            });
+        }
+
+        // Filter by Status
+        if ($status = $request->input('status')) {
+            $chapters = $chapters->filter(function ($c) use ($status) {
+                return $c['status'] === $status;
+            });
+        }
+
         // Calculations
         $totalCount = $chapters->count();
         $draftsCount = $chapters->where('status', 'Draft')->count();
@@ -35,7 +49,9 @@ class ChapterController extends Controller
             'totalCount' => $totalCount,
             'draftsCount' => $draftsCount,
             'filters' => [
-                'course' => $course,
+                'course' => $course ?? '',
+                'title' => $title ?? '',
+                'status' => $status ?? '',
             ]
         ]);
     }

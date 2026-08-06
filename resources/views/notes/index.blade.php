@@ -34,26 +34,34 @@
     </div>
 
     {{-- Filters Card --}}
-    <div class="bg-surface-container-lowest/70 dark:bg-slate-800 rounded-xl p-5 mb-6 shadow-sm border border-outline-variant/30 dark:border-slate-700 flex flex-wrap gap-4 items-end relative overflow-hidden">
+    <form action="{{ route('notes') }}" method="GET" class="bg-surface-container-lowest/70 dark:bg-slate-800 rounded-xl p-5 mb-6 shadow-sm border border-outline-variant/30 dark:border-slate-700 flex flex-wrap gap-4 items-end relative overflow-hidden">
         <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Course / Chapter</label>
-            <select class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all">
-                <option value="">All Courses</option>
-                <option>Physics 101</option>
-                <option>Biology Fundamentals</option>
+            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Chapter</label>
+            <select name="chapter" onchange="this.form.submit()" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all">
+                <option value="">All Chapters</option>
+                <option value="Ch1" {{ ($filters['chapter'] ?? '') == 'Ch1' ? 'selected' : '' }}>Chapter 1: Fundamentals</option>
+                <option value="Ch2" {{ ($filters['chapter'] ?? '') == 'Ch2' ? 'selected' : '' }}>Chapter 2: Advanced</option>
+            </select>
+        </div>
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Topic</label>
+            <select name="topic" onchange="this.form.submit()" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all">
+                <option value="">All Topics</option>
+                <option value="Basics" {{ ($filters['topic'] ?? '') == 'Basics' ? 'selected' : '' }}>Basics</option>
+                <option value="Advanced" {{ ($filters['topic'] ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
             </select>
         </div>
         <div class="flex-2 min-w-[250px]">
             <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Search Notes</label>
-            <input class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all" placeholder="Title, tags..." type="text">
+            <input name="search" value="{{ $filters['search'] ?? '' }}" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all" placeholder="Title, tags..." type="text">
         </div>
         <div class="flex gap-2">
-            <button class="bg-surface hover:bg-surface-variant dark:bg-slate-700 border border-outline-variant/30 text-on-surface-variant rounded-lg p-2 transition-colors shadow-sm" title="Clear Filters">
+            <a href="{{ route('notes') }}" class="bg-surface hover:bg-surface-variant dark:bg-slate-700 border border-outline-variant/30 text-on-surface-variant rounded-lg p-2 transition-colors shadow-sm" title="Clear Filters">
                 <i class="fa-solid fa-filter-circle-xmark"></i>
-            </button>
+            </a>
         </div>
-    </div>
+    </form>
 
     {{-- Notes Grid --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -11,6 +11,8 @@ class FlashcardController extends Controller
      */
     public function index(Request $request)
     {
+        $filters = $request->all();
+
         // Dummy data for presentation
         $flashcards = collect([
             ['id' => 1, 'title' => 'Physics 101 Basics', 'chapter' => 'Physics 101', 'topic' => 'Kinematics', 'cards_count' => 45, 'updated_at' => 'Oct 24, 2023'],
@@ -19,7 +21,14 @@ class FlashcardController extends Controller
             ['id' => 4, 'title' => 'Intro to Psychology: Encoding', 'chapter' => 'Intro to Psychology', 'topic' => 'Memory', 'cards_count' => 30, 'updated_at' => 'Oct 18, 2023'],
         ]);
 
-        return view('flashcards.index', compact('flashcards'));
+        // Filter by Title
+        if ($title = $request->input('title')) {
+            $flashcards = $flashcards->filter(function ($f) use ($title) {
+                return stripos($f['title'], $title) !== false;
+            });
+        }
+
+        return view('flashcards.index', compact('flashcards', 'filters'));
     }
 
     /**

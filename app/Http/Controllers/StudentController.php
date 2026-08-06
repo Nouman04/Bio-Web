@@ -34,6 +34,26 @@ class StudentController extends Controller
             });
         }
 
+        // Filter by Course
+        if ($course = $request->input('course')) {
+            $students = $students->filter(function ($s) use ($course) {
+                return stripos($s['courses'], $course) !== false;
+            });
+        }
+
+        // Filter by Date Range
+        if ($dateFrom = $request->input('date_from')) {
+            $students = $students->filter(function ($s) use ($dateFrom) {
+                return $s['date'] >= $dateFrom;
+            });
+        }
+
+        if ($dateTo = $request->input('date_to')) {
+            $students = $students->filter(function ($s) use ($dateTo) {
+                return $s['date'] <= $dateTo;
+            });
+        }
+
         // Filter by Batch
         if ($batch = $request->input('batch')) {
             $students = $students->filter(function ($s) use ($batch) {
@@ -78,9 +98,12 @@ class StudentController extends Controller
             'totalPages' => $totalPages,
             'perPage' => $perPage,
             'filters' => [
-                'search' => $search,
-                'batch' => $batch,
-                'status' => $status,
+                'search' => $search ?? '',
+                'course' => $course ?? '',
+                'date_from' => $dateFrom ?? '',
+                'date_to' => $dateTo ?? '',
+                'batch' => $batch ?? '',
+                'status' => $status ?? '',
                 'sort' => $sortBy,
                 'direction' => $sortDir,
             ]

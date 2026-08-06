@@ -43,26 +43,42 @@
     {{-- Content Area - Glass Card --}}
     <div class="glass-card dark:bg-slate-800/80 rounded-xl p-6 shadow-sm flex flex-col min-h-[60vh] border-outline-variant/30 dark:border-slate-700">
         {{-- Filters --}}
-        <div class="flex flex-wrap gap-4 mb-6 pb-6 border-b border-outline-variant/20 dark:border-slate-700">
+        <form action="{{ route('summaries') }}" method="GET" class="flex flex-wrap gap-4 mb-6 pb-6 border-b border-outline-variant/20 dark:border-slate-700">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
+                <select name="course" onchange="this.form.submit()" class="bg-white dark:bg-slate-900 border border-outline-variant/50 text-on-surface dark:text-slate-200 text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer min-w-[200px] shadow-sm">
+                    <option value="">All Courses</option>
+                    <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
+                    <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
+                    <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Organic Chemistry</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search Title</label>
+                <input name="title" value="{{ $filters['title'] ?? '' }}" class="bg-white dark:bg-slate-900 border border-outline-variant/50 text-on-surface dark:text-slate-200 text-sm rounded-lg pl-4 pr-4 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[200px] shadow-sm" placeholder="Search summaries..." type="text">
+            </div>
             <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
-                <select class="bg-white dark:bg-slate-900 border border-outline-variant/50 text-on-surface dark:text-slate-200 text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer min-w-[200px] shadow-sm">
-                    <option>All Chapters</option>
-                    <option>Physics 101</option>
-                    <option>Calculus Fundamentals</option>
-                    <option>Organic Chemistry</option>
+                <select name="chapter" onchange="this.form.submit()" class="bg-white dark:bg-slate-900 border border-outline-variant/50 text-on-surface dark:text-slate-200 text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer min-w-[200px] shadow-sm">
+                    <option value="">All Chapters</option>
+                    <option value="Ch1" {{ ($filters['chapter'] ?? '') == 'Ch1' ? 'selected' : '' }}>Chapter 1: Fundamentals</option>
+                    <option value="Ch2" {{ ($filters['chapter'] ?? '') == 'Ch2' ? 'selected' : '' }}>Chapter 2: Advanced</option>
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic</label>
-                <select class="bg-white dark:bg-slate-900 border border-outline-variant/50 text-on-surface dark:text-slate-200 text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer min-w-[200px] shadow-sm">
-                    <option>All Topics</option>
-                    <option>Mechanics</option>
-                    <option>Integration</option>
-                    <option>Molecular Bonds</option>
+                <select name="topic" onchange="this.form.submit()" class="bg-white dark:bg-slate-900 border border-outline-variant/50 text-on-surface dark:text-slate-200 text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer min-w-[200px] shadow-sm">
+                    <option value="">All Topics</option>
+                    <option value="Basics" {{ ($filters['topic'] ?? '') == 'Basics' ? 'selected' : '' }}>Basics</option>
+                    <option value="Advanced" {{ ($filters['topic'] ?? '') == 'Advanced' ? 'selected' : '' }}>Advanced</option>
                 </select>
             </div>
-        </div>
+            <div class="flex items-end">
+                <a href="{{ route('summaries') }}" class="p-2.5 text-on-surface-variant border border-outline-variant rounded-lg hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors flex items-center justify-center" title="Reset Filters">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </a>
+            </div>
+        </form>
 
         {{-- Table --}}
         <div class="flex-1 overflow-auto rounded-lg border border-outline-variant/20 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50">

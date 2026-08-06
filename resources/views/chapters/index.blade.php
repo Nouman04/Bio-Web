@@ -26,16 +26,28 @@
     {{-- Filters & Action Row --}}
     <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center mb-6 border border-outline-variant/30 dark:border-slate-700">
         <form action="{{ route('chapters') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 justify-between items-center">
-            
-            <div class="relative w-full md:w-56">
-                <select name="course" onchange="this.form.submit()"
-                    class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 pl-4 pr-10 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer">
-                    <option value="">All Courses</option>
-                    <option value="Computer Science 101" {{ $filters['course'] == 'Computer Science 101' ? 'selected' : '' }}>Computer Science 101</option>
-                    <option value="Advanced Biology" {{ $filters['course'] == 'Advanced Biology' ? 'selected' : '' }}>Advanced Biology</option>
-                    <option value="UX/UI Design Principles" {{ $filters['course'] == 'UX/UI Design Principles' ? 'selected' : '' }}>UX/UI Design Principles</option>
-                </select>
+
+            <div class="w-full md:w-auto flex-1 max-w-md relative group">
+                <span class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors"></span>
+                <input name="title" value="{{ $filters['title'] ?? '' }}"
+                    class="w-full pl-10 pr-4 py-2.5 bg-surface-container-low dark:bg-slate-900 rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all"
+                    placeholder="Search by title..." type="text">
             </div>
+
+            <select name="course" onchange="this.form.submit()"
+                class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+                <option value="">All Courses</option>
+                <option value="Computer Science 101" {{ ($filters['course'] ?? '') == 'Computer Science 101' ? 'selected' : '' }}>Computer Science 101</option>
+                <option value="Advanced Biology" {{ ($filters['course'] ?? '') == 'Advanced Biology' ? 'selected' : '' }}>Advanced Biology</option>
+                <option value="UX/UI Design Principles" {{ ($filters['course'] ?? '') == 'UX/UI Design Principles' ? 'selected' : '' }}>UX/UI Design Principles</option>
+            </select>
+
+            <select name="status" onchange="this.form.submit()"
+                class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
+                <option value="">All Status</option>
+                <option value="Published" {{ ($filters['status'] ?? '') == 'Published' ? 'selected' : '' }}>Published</option>
+                <option value="Draft" {{ ($filters['status'] ?? '') == 'Draft' ? 'selected' : '' }}>Draft</option>
+            </select>
 
             <div class="flex items-center gap-3 w-full md:w-auto">
                 <a href="{{ route('chapters') }}"

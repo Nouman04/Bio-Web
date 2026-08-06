@@ -36,39 +36,45 @@
     </div>
 
     {{-- Filter Bar (Glass Panel) --}}
-    <div class="glass-panel dark:bg-slate-800/80 rounded-xl p-4 flex flex-wrap gap-4 items-end shadow-sm mb-6 border-outline-variant/30 dark:border-slate-700">
+    <form action="{{ route('videos') }}" method="GET" class="glass-panel dark:bg-slate-800/80 rounded-xl p-4 flex flex-wrap gap-4 items-end shadow-sm mb-6 border-outline-variant/30 dark:border-slate-700">
         <div class="flex-1 min-w-[200px]">
             <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Search by Title</label>
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                <input class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 outline-none" placeholder="Lesson title..." type="text">
+                <input name="search" value="{{ $filters['search'] ?? '' }}" class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 outline-none" placeholder="Lesson title..." type="text">
             </div>
         </div>
         <div class="w-full sm:w-auto min-w-[140px]">
             <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Chapter</label>
-            <select class="w-full py-2 pl-3 pr-8 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 appearance-none cursor-pointer outline-none">
-                <option>All Chapters</option>
-                <option>Chapter 1: Intro</option>
-                <option>Chapter 2: Basics</option>
+            <select name="chapter" class="w-full py-2 pl-3 pr-8 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 appearance-none cursor-pointer outline-none">
+                <option value="">All Chapters</option>
+                <option value="Chapter 1: Intro" {{ ($filters['chapter'] ?? '') == 'Chapter 1: Intro' ? 'selected' : '' }}>Chapter 1: Intro</option>
+                <option value="Chapter 2: Basics" {{ ($filters['chapter'] ?? '') == 'Chapter 2: Basics' ? 'selected' : '' }}>Chapter 2: Basics</option>
             </select>
         </div>
         <div class="w-full sm:w-auto min-w-[140px]">
             <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Topic</label>
-            <select class="w-full py-2 pl-3 pr-8 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 appearance-none cursor-pointer outline-none">
-                <option>All Topics</option>
-                <option>Mathematics</option>
-                <option>Science</option>
+            <select name="topic" class="w-full py-2 pl-3 pr-8 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 appearance-none cursor-pointer outline-none">
+                <option value="">All Topics</option>
+                <option value="Mathematics" {{ ($filters['topic'] ?? '') == 'Mathematics' ? 'selected' : '' }}>Mathematics</option>
+                <option value="Science" {{ ($filters['topic'] ?? '') == 'Science' ? 'selected' : '' }}>Science</option>
             </select>
         </div>
-        <div class="w-full sm:w-auto min-w-[140px]">
-            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Date</label>
-            <input class="w-full py-2 px-3 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 outline-none" type="date">
+        <div class="w-full sm:w-auto min-w-[180px]">
+            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Date Range</label>
+            <div class="relative">
+                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
+                <input id="videos-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest dark:bg-slate-900 rounded-lg border border-outline-variant/30 dark:border-slate-700 shadow-inner focus:ring-1 focus:ring-primary focus:border-primary text-sm text-on-surface dark:text-slate-200 outline-none" placeholder="Select date range" readonly>
+            </div>
         </div>
-        <button class="bg-surface-variant dark:bg-slate-700 text-on-surface-variant dark:text-slate-300 py-2 px-4 rounded-lg text-sm font-semibold hover:bg-outline-variant transition-colors flex items-center gap-2">
+        <button type="submit" class="bg-surface-variant dark:bg-slate-700 text-on-surface-variant dark:text-slate-300 py-2 px-4 rounded-lg text-sm font-semibold hover:bg-outline-variant transition-colors flex items-center gap-2">
             <i class="fa-solid fa-filter text-sm"></i>
             Filter
         </button>
-    </div>
+        <a href="{{ route('videos') }}" class="text-on-surface-variant dark:text-slate-300 py-2 px-3 rounded-lg text-sm hover:bg-surface-variant dark:hover:bg-slate-700 transition-colors" title="Reset Filters">
+            <i class="fa-solid fa-arrow-rotate-left"></i>
+        </a>
+    </form>
 
     {{-- Grid Layout for Video Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -135,4 +141,32 @@
             </button>
         </nav>
     </div>
+
+    @push('scripts')
+    <script>
+        flatpickr("#videos-date-range", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    const form = instance.input.closest('form');
+                    form.querySelectorAll('input[name="date_from"], input[name="date_to"]').forEach(el => el.remove());
+
+                    const dateFromInput = document.createElement('input');
+                    dateFromInput.type = 'hidden';
+                    dateFromInput.name = 'date_from';
+                    dateFromInput.value = flatpickr.formatDate(selectedDates[0], 'Y-m-d');
+
+                    const dateToInput = document.createElement('input');
+                    dateToInput.type = 'hidden';
+                    dateToInput.name = 'date_to';
+                    dateToInput.value = flatpickr.formatDate(selectedDates[1], 'Y-m-d');
+
+                    form.appendChild(dateFromInput);
+                    form.appendChild(dateToInput);
+                }
+            }
+        });
+    </script>
+    @endpush
 @endsection

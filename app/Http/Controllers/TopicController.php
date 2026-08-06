@@ -19,6 +19,13 @@ class TopicController extends Controller
             ['id' => 4, 'chapter' => 'Ch 2. Advanced', 'name' => 'Data Normalization Strategies', 'questions' => 31]
         ]);
 
+        // Filter by Title
+        if ($title = $request->input('title')) {
+            $topics = $topics->filter(function ($t) use ($title) {
+                return stripos($t['name'], $title) !== false;
+            });
+        }
+
         // Filter by Chapter
         if ($chapter = $request->input('chapter')) {
             $topics = $topics->filter(function ($t) use ($chapter) {
@@ -29,7 +36,8 @@ class TopicController extends Controller
         return view('topics.index', [
             'topics' => $topics,
             'filters' => [
-                'chapter' => $chapter,
+                'title' => $title ?? '',
+                'chapter' => $chapter ?? '',
             ]
         ]);
     }

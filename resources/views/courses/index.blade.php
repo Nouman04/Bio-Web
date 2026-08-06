@@ -33,16 +33,17 @@
                 <select name="category" onchange="this.form.submit()"
                     class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
                     <option value="">All Categories</option>
-                    <option value="Development" {{ $filters['category'] == 'Development' ? 'selected' : '' }}>Development</option>
-                    <option value="Business" {{ $filters['category'] == 'Business' ? 'selected' : '' }}>Business</option>
-                    <option value="Design" {{ $filters['category'] == 'Design' ? 'selected' : '' }}>Design</option>
+                    <option value="Development" {{ ($filters['category'] ?? '') == 'Development' ? 'selected' : '' }}>Development</option>
+                    <option value="Business" {{ ($filters['category'] ?? '') == 'Business' ? 'selected' : '' }}>Business</option>
+                    <option value="Design" {{ ($filters['category'] ?? '') == 'Design' ? 'selected' : '' }}>Design</option>
                 </select>
 
-                <select name="status" onchange="this.form.submit()"
+                <select name="created_by" onchange="this.form.submit()"
                     class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-                    <option value="">All Statuses</option>
-                    <option value="Published" {{ $filters['status'] == 'Published' ? 'selected' : '' }}>Published</option>
-                    <option value="Draft" {{ $filters['status'] == 'Draft' ? 'selected' : '' }}>Draft</option>
+                    <option value="">All Instructors</option>
+                    <option value="John Doe" {{ ($filters['created_by'] ?? '') == 'John Doe' ? 'selected' : '' }}>John Doe</option>
+                    <option value="Jane Smith" {{ ($filters['created_by'] ?? '') == 'Jane Smith' ? 'selected' : '' }}>Jane Smith</option>
+                    <option value="Mike Johnson" {{ ($filters['created_by'] ?? '') == 'Mike Johnson' ? 'selected' : '' }}>Mike Johnson</option>
                 </select>
 
                 <a href="{{ route('courses') }}"

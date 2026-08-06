@@ -11,6 +11,8 @@ class GuideController extends Controller
      */
     public function index(Request $request)
     {
+        $filters = $request->all();
+
         // Dummy data for presentation
         $guides = collect([
             [
@@ -23,7 +25,10 @@ class GuideController extends Controller
                 'status_color' => 'bg-tertiary-container/20 text-tertiary font-medium',
                 'views' => 1245,
                 'rating' => 4.8,
-                'last_updated' => 'Oct 24, 2023'
+                'last_updated' => 'Oct 24, 2023',
+                'chapter' => '1',
+                'topic' => 'math',
+                'type' => 'theory'
             ],
             [
                 'id' => 2,
@@ -35,11 +40,35 @@ class GuideController extends Controller
                 'status_color' => 'bg-secondary-container/20 text-secondary font-medium',
                 'views' => 0,
                 'rating' => 0.0,
-                'last_updated' => 'Oct 25, 2023'
+                'last_updated' => 'Oct 25, 2023',
+                'chapter' => '2',
+                'topic' => 'sci',
+                'type' => 'practical'
             ],
         ]);
 
-        return view('guides.index', compact('guides'));
+        // Filter by Chapter
+        if ($chapter = $request->input('chapter')) {
+            $guides = $guides->filter(function ($g) use ($chapter) {
+                return $g['chapter'] === $chapter;
+            });
+        }
+
+        // Filter by Topic
+        if ($topic = $request->input('topic')) {
+            $guides = $guides->filter(function ($g) use ($topic) {
+                return $g['topic'] === $topic;
+            });
+        }
+
+        // Filter by Type
+        if ($type = $request->input('type')) {
+            $guides = $guides->filter(function ($g) use ($type) {
+                return $g['type'] === $type;
+            });
+        }
+
+        return view('guides.index', compact('guides', 'filters'));
     }
 
     /**

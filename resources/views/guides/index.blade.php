@@ -38,42 +38,50 @@
     </div>
 
     {{-- Filter Bar --}}
-    <div class="glass-panel dark:bg-slate-800/80 rounded-xl p-6 hover-ambient-shadow transition-shadow duration-300 mb-6 dark:border-slate-700 border-outline-variant/30">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <form action="{{ route('guides') }}" method="GET" class="glass-panel dark:bg-slate-800/80 rounded-xl p-6 hover-ambient-shadow transition-shadow duration-300 mb-6 dark:border-slate-700 border-outline-variant/30">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div class="relative w-full">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none" placeholder="Search Title..." type="text">
+                <input name="search" value="{{ $filters['search'] ?? '' }}" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none" placeholder="Search Title..." type="text">
             </div>
             <div class="relative w-full">
-                <select class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
+                <select name="chapter" class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
                     <option value="">All Chapters</option>
-                    <option value="1">Chapter 1: Foundations</option>
-                    <option value="2">Chapter 2: Advanced Topics</option>
+                    <option value="1" {{ ($filters['chapter'] ?? '') == '1' ? 'selected' : '' }}>Chapter 1: Foundations</option>
+                    <option value="2" {{ ($filters['chapter'] ?? '') == '2' ? 'selected' : '' }}>Chapter 2: Advanced Topics</option>
                 </select>
                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xs"></i>
             </div>
             <div class="relative w-full">
-                <select class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
+                <select name="topic" class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
                     <option value="">All Topics</option>
-                    <option value="math">Mathematics</option>
-                    <option value="sci">Science</option>
+                    <option value="math" {{ ($filters['topic'] ?? '') == 'math' ? 'selected' : '' }}>Mathematics</option>
+                    <option value="sci" {{ ($filters['topic'] ?? '') == 'sci' ? 'selected' : '' }}>Science</option>
                 </select>
                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xs"></i>
             </div>
             <div class="relative w-full">
-                <select class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
+                <select name="type" class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
                     <option value="">All Types</option>
-                    <option value="theory">Theory Guide</option>
-                    <option value="atp">ATP Guide</option>
+                    <option value="theory" {{ ($filters['type'] ?? '') == 'theory' ? 'selected' : '' }}>Theory Guide</option>
+                    <option value="practical" {{ ($filters['type'] ?? '') == 'practical' ? 'selected' : '' }}>Practical Guide</option>
                 </select>
                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xs"></i>
-            </div>
-            <div class="relative w-full">
-                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                <input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none text-on-surface-variant" type="date">
             </div>
         </div>
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="relative w-full">
+                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
+                <input id="guides-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none" placeholder="Select date range" readonly>
+            </div>
+            <div class="flex gap-2 lg:col-span-3">
+                <button type="submit" class="flex-1 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:bg-primary-container transition-colors">Filter</button>
+                <a href="{{ route('guides') }}" class="px-4 py-2 bg-surface hover:bg-surface-variant dark:bg-slate-700 border border-outline-variant/30 text-on-surface-variant rounded-lg text-sm transition-colors" title="Clear Filters">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </a>
+            </div>
+        </div>
+    </form>
 
     {{-- Data Table --}}
     <div class="glass-panel dark:bg-slate-800/80 rounded-xl overflow-hidden hover-ambient-shadow transition-shadow duration-300 dark:border-slate-700 border-outline-variant/30 bg-white/50 dark:bg-slate-900/50">
@@ -140,4 +148,32 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        flatpickr("#guides-date-range", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    const form = instance.input.closest('form');
+                    form.querySelectorAll('input[name="date_from"], input[name="date_to"]').forEach(el => el.remove());
+
+                    const dateFromInput = document.createElement('input');
+                    dateFromInput.type = 'hidden';
+                    dateFromInput.name = 'date_from';
+                    dateFromInput.value = flatpickr.formatDate(selectedDates[0], 'Y-m-d');
+
+                    const dateToInput = document.createElement('input');
+                    dateToInput.type = 'hidden';
+                    dateToInput.name = 'date_to';
+                    dateToInput.value = flatpickr.formatDate(selectedDates[1], 'Y-m-d');
+
+                    form.appendChild(dateFromInput);
+                    form.appendChild(dateToInput);
+                }
+            }
+        });
+    </script>
+    @endpush
 @endsection

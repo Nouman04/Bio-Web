@@ -42,20 +42,25 @@
                     placeholder="Search by name or email..." type="text">
             </div>
 
-            <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto">
-                <select name="batch" onchange="this.form.submit()"
+            <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto flex-wrap">
+                <select name="course" onchange="this.form.submit()"
                     class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-                    <option value="">All Batches</option>
-                    <option value="fall24" {{ $filters['batch'] == 'fall24' ? 'selected' : '' }}>Fall 2024</option>
-                    <option value="spring24" {{ $filters['batch'] == 'spring24' ? 'selected' : '' }}>Spring 2024</option>
-                    <option value="fall23" {{ $filters['batch'] == 'fall23' ? 'selected' : '' }}>Fall 2023</option>
+                    <option value="">All Courses</option>
+                    <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
+                    <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
+                    <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Chemistry 101</option>
                 </select>
+
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none z-10"></i>
+                    <input id="students-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 pl-10 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Select date range" readonly>
+                </div>
 
                 <select name="status" onchange="this.form.submit()"
                     class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
                     <option value="">All Statuses</option>
-                    <option value="active" {{ $filters['status'] == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ $filters['status'] == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <option value="active" {{ ($filters['status'] ?? '') == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ ($filters['status'] ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
 
                 <a href="{{ route('students') }}"
@@ -180,4 +185,31 @@
         @endif
     </div>
 
+    @push('scripts')
+    <script>
+        flatpickr("#students-date-range", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    const form = instance.input.closest('form');
+                    form.querySelectorAll('input[name="date_from"], input[name="date_to"]').forEach(el => el.remove());
+
+                    const dateFromInput = document.createElement('input');
+                    dateFromInput.type = 'hidden';
+                    dateFromInput.name = 'date_from';
+                    dateFromInput.value = flatpickr.formatDate(selectedDates[0], 'Y-m-d');
+
+                    const dateToInput = document.createElement('input');
+                    dateToInput.type = 'hidden';
+                    dateToInput.name = 'date_to';
+                    dateToInput.value = flatpickr.formatDate(selectedDates[1], 'Y-m-d');
+
+                    form.appendChild(dateFromInput);
+                    form.appendChild(dateToInput);
+                }
+            }
+        });
+    </script>
+    @endpush
 @endsection

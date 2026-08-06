@@ -39,12 +39,20 @@ class CourseController extends Controller
             });
         }
 
+        // Filter by Created By (Instructor)
+        if ($createdBy = $request->input('created_by')) {
+            $courses = $courses->filter(function ($c) use ($createdBy) {
+                return $c['instructor'] === $createdBy;
+            });
+        }
+
         return view('courses.index', [
             'courses' => $courses,
             'filters' => [
                 'search' => $search,
                 'category' => $category,
                 'status' => $status,
+                'created_by' => $createdBy ?? '',
             ]
         ]);
     }

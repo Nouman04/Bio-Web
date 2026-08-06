@@ -11,6 +11,8 @@ class QuizController extends Controller
      */
     public function index(Request $request)
     {
+        $filters = $request->all();
+
         $quizzes = collect([
             [
                 'id' => 1,
@@ -44,7 +46,14 @@ class QuizController extends Controller
             ]
         ]);
 
-        return view('quizzes.index', compact('quizzes'));
+        // Filter by Status
+        if ($status = $request->input('status')) {
+            $quizzes = $quizzes->filter(function ($q) use ($status) {
+                return $q['status'] === $status;
+            });
+        }
+
+        return view('quizzes.index', compact('quizzes', 'filters'));
     }
 
     /**
