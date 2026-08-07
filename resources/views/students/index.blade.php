@@ -6,7 +6,49 @@
 @section('page-title', 'Students')
 @section('page-subtitle', 'Manage and view all enrolled students.')
 
+@push('styles')
+<style>
+    .filter-card-wrapper {
+        display: grid;
+        grid-template-rows: 0fr;
+        margin-bottom: 0;
+        opacity: 0;
+        transition: grid-template-rows 0.35s ease, margin-bottom 0.35s ease, opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open {
+        grid-template-rows: 1fr;
+        margin-bottom: 1.5rem;
+        opacity: 1;
+    }
+    .filter-card-inner {
+        overflow: hidden;
+        min-height: 0;
+    }
+    .filter-card-panel {
+        transform: translateY(-10px) scale(0.98);
+        opacity: 0;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open .filter-card-panel {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    #filterToggle.is-active {
+        color: var(--tw-color-primary, #4648d4);
+        border-color: rgba(70, 72, 212, 0.35);
+        background: rgba(70, 72, 212, 0.08);
+    }
+</style>
+@endpush
+
 @section('content')
+
+    {{-- Breadcrumbs --}}
+    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
+        <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span class="text-primary dark:text-primary-fixed-dim font-semibold">Students</span>
+    </div>
 
     {{-- Stats Row --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -28,48 +70,72 @@
         </div>
     </div>
 
-    {{-- Filters & Search Section --}}
-    <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center mb-6 border border-outline-variant/30 dark:border-slate-700">
-        <form action="{{ route('students') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 justify-between items-center">
-            <!-- Retain current sorts -->
-            <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
-            <input type="hidden" name="direction" value="{{ $filters['direction'] }}">
+    @php
+        $filtersOpen = request()->hasAny(['search', 'course', 'status', 'date_from', 'date_to']);
+    @endphp
 
-            <div class="w-full md:w-auto flex-1 max-w-md relative group">
-                <span class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors"></span>
-                <input name="search" value="{{ $filters['search'] }}"
-                    class="w-full pl-10 pr-4 py-2.5 bg-surface-container-low dark:bg-slate-900 rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all"
-                    placeholder="Search by name or email..." type="text">
+    {{-- Toolbar: Filter toggle --}}
+    <div class="flex justify-end items-center gap-3 mb-4">
+        <button type="button" id="filterToggle"
+            class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/30 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors shadow-sm {{ $filtersOpen ? 'is-active' : '' }}"
+            title="Toggle Filters">
+            <i class="fa-solid fa-filter text-sm"></i>
+        </button>
+    </div>
+
+    {{-- Filters Card (toggleable) --}}
+    <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
+        <div class="filter-card-inner">
+            <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
+                <form action="{{ route('students') }}" method="GET">
+                    <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
+                    <input type="hidden" name="direction" value="{{ $filters['direction'] }}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
+                            <div class="relative group">
+                                <span class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-sm"></span>
+                                <input name="search" value="{{ $filters['search'] ?? '' }}"
+                                    class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none"
+                                    placeholder="Search by name or email..." type="text">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
+                            <select name="course" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Courses</option>
+                                <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
+                                <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
+                                <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Chemistry 101</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Date Range</label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none z-10 text-sm"></i>
+                                <input id="students-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Select date range" readonly>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Status</label>
+                            <select name="status" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Statuses</option>
+                                <option value="active" {{ ($filters['status'] ?? '') == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ ($filters['status'] ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
+                        <a href="{{ route('students') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
+                        </a>
+                        <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto flex-wrap">
-                <select name="course" onchange="this.form.submit()"
-                    class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-                    <option value="">All Courses</option>
-                    <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
-                    <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
-                    <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Chemistry 101</option>
-                </select>
-
-                <div class="relative w-full sm:w-64">
-                    <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none z-10"></i>
-                    <input id="students-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 pl-10 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Select date range" readonly>
-                </div>
-
-                <select name="status" onchange="this.form.submit()"
-                    class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-                    <option value="">All Statuses</option>
-                    <option value="active" {{ ($filters['status'] ?? '') == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ ($filters['status'] ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                </select>
-
-                <a href="{{ route('students') }}"
-                    class="p-2.5 text-on-surface-variant border border-outline-variant rounded-xl hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
-                    title="Reset Filters">
-                    <span class="fa-solid fa-arrow-rotate-left"></span>
-                </a>
-            </div>
-        </form>
+        </div>
     </div>
 
     {{-- Data Table --}}
@@ -187,7 +253,16 @@
 
     @push('scripts')
     <script>
-        flatpickr("#students-date-range", {
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterToggle = document.getElementById('filterToggle');
+            const filterCardWrapper = document.getElementById('filterCardWrapper');
+
+            filterToggle?.addEventListener('click', () => {
+                const isOpen = filterCardWrapper?.classList.toggle('is-open');
+                filterToggle.classList.toggle('is-active', isOpen);
+            });
+
+            flatpickr("#students-date-range", {
             mode: "range",
             dateFormat: "Y-m-d",
             onChange: function(selectedDates, dateStr, instance) {
@@ -209,6 +284,7 @@
                     form.appendChild(dateToInput);
                 }
             }
+        });
         });
     </script>
     @endpush

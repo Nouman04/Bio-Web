@@ -6,6 +6,41 @@
 @section('page-title', 'Topics Management')
 @section('page-subtitle', 'Manage and organize instructional content structure.')
 
+@push('styles')
+<style>
+    .filter-card-wrapper {
+        display: grid;
+        grid-template-rows: 0fr;
+        margin-bottom: 0;
+        opacity: 0;
+        transition: grid-template-rows 0.35s ease, margin-bottom 0.35s ease, opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open {
+        grid-template-rows: 1fr;
+        margin-bottom: 1.5rem;
+        opacity: 1;
+    }
+    .filter-card-inner {
+        overflow: hidden;
+        min-height: 0;
+    }
+    .filter-card-panel {
+        transform: translateY(-10px) scale(0.98);
+        opacity: 0;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open .filter-card-panel {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    #filterToggle.is-active {
+        color: var(--tw-color-primary, #4648d4);
+        border-color: rgba(70, 72, 212, 0.35);
+        background: rgba(70, 72, 212, 0.08);
+    }
+</style>
+@endpush
+
 @section('content')
 
     {{-- Breadcrumbs --}}
@@ -17,37 +52,59 @@
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Topics</span>
     </div>
 
-    {{-- Filters & Action Row --}}
-    <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center mb-6 border border-outline-variant/30 dark:border-slate-700">
-        <form action="{{ route('topics') }}" method="GET" class="w-full flex flex-col md:flex-row gap-4 justify-between items-center">
+    @php
+        $filtersOpen = request()->hasAny(['title', 'chapter']);
+    @endphp
 
-            <div class="w-full md:w-auto flex-1 max-w-md relative group">
-                <span class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors"></span>
-                <input name="title" value="{{ $filters['title'] ?? '' }}"
-                    class="w-full pl-10 pr-4 py-2.5 bg-surface-container-low dark:bg-slate-900 rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all"
-                    placeholder="Search by title..." type="text">
+    {{-- Toolbar: Filter toggle + Add button --}}
+    <div class="flex justify-end items-center gap-3 mb-4">
+        <button type="button" id="filterToggle"
+            class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/30 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors shadow-sm {{ $filtersOpen ? 'is-active' : '' }}"
+            title="Toggle Filters">
+            <i class="fa-solid fa-filter text-sm"></i>
+        </button>
+        <button type="button" onclick="openCreateTopicModal()"
+            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            <i class="fa-solid fa-plus text-xs"></i>
+            Add New Topic
+        </button>
+    </div>
+
+    {{-- Filters Card (toggleable) --}}
+    <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
+        <div class="filter-card-inner">
+            <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
+                <form action="{{ route('topics') }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
+                            <div class="relative group">
+                                <span class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-sm"></span>
+                                <input name="title" value="{{ $filters['title'] ?? '' }}"
+                                    class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none"
+                                    placeholder="Search by title..." type="text">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
+                            <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Chapters</option>
+                                <option value="Ch 1. Fundamentals" {{ ($filters['chapter'] ?? '') == 'Ch 1. Fundamentals' ? 'selected' : '' }}>Chapter 1: Fundamentals</option>
+                                <option value="Ch 2. Advanced" {{ ($filters['chapter'] ?? '') == 'Ch 2. Advanced' ? 'selected' : '' }}>Chapter 2: Advanced Mechanics</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
+                        <a href="{{ route('topics') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
+                        </a>
+                        <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <select name="chapter" onchange="this.form.submit()"
-                class="bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none">
-                <option value="">All Chapters</option>
-                <option value="Ch 1. Fundamentals" {{ ($filters['chapter'] ?? '') == 'Ch 1. Fundamentals' ? 'selected' : '' }}>Chapter 1: Fundamentals</option>
-                <option value="Ch 2. Advanced" {{ ($filters['chapter'] ?? '') == 'Ch 2. Advanced' ? 'selected' : '' }}>Chapter 2: Advanced Mechanics</option>
-            </select>
-
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <a href="{{ route('topics') }}"
-                    class="p-2.5 text-on-surface-variant border border-outline-variant rounded-xl hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
-                    title="Reset Filters">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                </a>
-                <button type="button" onclick="openCreateTopicModal()"
-                    class="flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all whitespace-nowrap">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    Add New Topic
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 
     {{-- Main Data Table Card --}}
@@ -140,6 +197,16 @@
 
 @push('scripts')
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterToggle = document.getElementById('filterToggle');
+            const filterCardWrapper = document.getElementById('filterCardWrapper');
+
+            filterToggle?.addEventListener('click', () => {
+                const isOpen = filterCardWrapper?.classList.toggle('is-open');
+                filterToggle.classList.toggle('is-active', isOpen);
+            });
+        });
+
         function openCreateTopicModal() {
             document.getElementById('create-topic-modal-container').classList.remove('hidden');
         }

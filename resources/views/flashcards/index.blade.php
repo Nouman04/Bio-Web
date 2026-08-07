@@ -6,6 +6,41 @@
 @section('page-title', 'Flashcard Management')
 @section('page-subtitle', 'Organize and manage study sets across all curricula.')
 
+@push('styles')
+<style>
+    .filter-card-wrapper {
+        display: grid;
+        grid-template-rows: 0fr;
+        margin-bottom: 0;
+        opacity: 0;
+        transition: grid-template-rows 0.35s ease, margin-bottom 0.35s ease, opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open {
+        grid-template-rows: 1fr;
+        margin-bottom: 1.5rem;
+        opacity: 1;
+    }
+    .filter-card-inner {
+        overflow: hidden;
+        min-height: 0;
+    }
+    .filter-card-panel {
+        transform: translateY(-10px) scale(0.98);
+        opacity: 0;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open .filter-card-panel {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    #filterToggle.is-active {
+        color: var(--tw-color-primary, #4648d4);
+        border-color: rgba(70, 72, 212, 0.35);
+        background: rgba(70, 72, 212, 0.08);
+    }
+</style>
+@endpush
+
 @section('content')
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
@@ -14,59 +49,75 @@
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Flashcard Management</span>
     </div>
 
-    {{-- Page Header & Actions --}}
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-            <h1 class="font-headline-lg text-headline-lg text-on-surface dark:text-white">Flashcard Management</h1>
-            <p class="font-body-md text-body-md text-on-surface-variant dark:text-slate-400 mt-1">Organize and manage study sets across all curricula.</p>
-        </div>
-        <a href="{{ route('flashcards.create') }}" class="bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full py-2.5 px-6 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-plus text-sm"></i>
+    @php
+        $filtersOpen = request()->hasAny(['title', 'course', 'topic', 'date_from', 'date_to']);
+    @endphp
+
+    {{-- Toolbar: Filter toggle + Add button --}}
+    <div class="flex justify-end items-center gap-3 mb-4">
+        <button type="button" id="filterToggle"
+            class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/30 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors shadow-sm {{ $filtersOpen ? 'is-active' : '' }}"
+            title="Toggle Filters">
+            <i class="fa-solid fa-filter text-sm"></i>
+        </button>
+        <a href="{{ route('flashcards.create') }}" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            <i class="fa-solid fa-plus text-xs"></i>
             Create New Set
         </a>
     </div>
 
-    {{-- Filters Card --}}
-    <form action="{{ route('flashcards') }}" method="GET" class="bg-surface-container-lowest/70 dark:bg-slate-800 rounded-xl p-5 mb-6 shadow-sm border border-outline-variant/30 dark:border-slate-700 flex flex-wrap gap-4 items-end relative overflow-hidden">
-        <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Search Title</label>
-            <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                <input name="title" value="{{ $filters['title'] ?? '' }}" class="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all" placeholder="Search flashcards..." type="text">
+    {{-- Filters Card (toggleable) --}}
+    <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
+        <div class="filter-card-inner">
+            <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+                <form action="{{ route('flashcards') }}" method="GET" class="relative">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search Title</label>
+                            <div class="relative group">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
+                                <input name="title" value="{{ $filters['title'] ?? '' }}" class="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Search flashcards..." type="text">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
+                            <select name="course" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Courses</option>
+                                <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
+                                <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
+                                <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Organic Chemistry</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic</label>
+                            <select name="topic" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Topics</option>
+                                <option value="Kinematics" {{ ($filters['topic'] ?? '') == 'Kinematics' ? 'selected' : '' }}>Kinematics</option>
+                                <option value="Nomenclature" {{ ($filters['topic'] ?? '') == 'Nomenclature' ? 'selected' : '' }}>Nomenclature</option>
+                                <option value="Cold War" {{ ($filters['topic'] ?? '') == 'Cold War' ? 'selected' : '' }}>Cold War</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Date Range</label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
+                                <input id="flashcards-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Select date range" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
+                        <a href="{{ route('flashcards') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
+                        </a>
+                        <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Course</label>
-            <select name="course" onchange="this.form.submit()" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all">
-                <option value="">All Courses</option>
-                <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
-                <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
-                <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Organic Chemistry</option>
-            </select>
-        </div>
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Topic</label>
-            <select name="topic" onchange="this.form.submit()" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all">
-                <option value="">All Topics</option>
-                <option value="Kinematics" {{ ($filters['topic'] ?? '') == 'Kinematics' ? 'selected' : '' }}>Kinematics</option>
-                <option value="Nomenclature" {{ ($filters['topic'] ?? '') == 'Nomenclature' ? 'selected' : '' }}>Nomenclature</option>
-                <option value="Cold War" {{ ($filters['topic'] ?? '') == 'Cold War' ? 'selected' : '' }}>Cold War</option>
-            </select>
-        </div>
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-2">Date Range</label>
-            <div class="relative">
-                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
-                <input id="flashcards-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 pl-10 pr-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none transition-all" placeholder="Select date range" readonly>
-            </div>
-        </div>
-        <div class="flex gap-2">
-            <a href="{{ route('flashcards') }}" class="bg-surface hover:bg-surface-variant dark:bg-slate-700 border border-outline-variant/30 text-on-surface-variant rounded-lg p-2 transition-colors shadow-sm" title="Clear Filters">
-                <i class="fa-solid fa-filter-circle-xmark"></i>
-            </a>
-        </div>
-    </form>
+    </div>
 
     {{-- Data Table --}}
     <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700 overflow-hidden">
@@ -143,7 +194,16 @@
 
     @push('scripts')
     <script>
-        flatpickr("#flashcards-date-range", {
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterToggle = document.getElementById('filterToggle');
+            const filterCardWrapper = document.getElementById('filterCardWrapper');
+
+            filterToggle?.addEventListener('click', () => {
+                const isOpen = filterCardWrapper?.classList.toggle('is-open');
+                filterToggle.classList.toggle('is-active', isOpen);
+            });
+
+            flatpickr("#flashcards-date-range", {
             mode: "range",
             dateFormat: "Y-m-d",
             onChange: function(selectedDates, dateStr, instance) {
@@ -166,6 +226,7 @@
                     form.appendChild(dateToInput);
                 }
             }
+        });
         });
     </script>
     @endpush

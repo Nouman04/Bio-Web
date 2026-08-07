@@ -17,71 +17,121 @@
     .hover-ambient-shadow:hover {
         box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
     }
+    .filter-card-wrapper {
+        display: grid;
+        grid-template-rows: 0fr;
+        margin-bottom: 0;
+        opacity: 0;
+        transition: grid-template-rows 0.35s ease, margin-bottom 0.35s ease, opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open {
+        grid-template-rows: 1fr;
+        margin-bottom: 1.5rem;
+        opacity: 1;
+    }
+    .filter-card-inner {
+        overflow: hidden;
+        min-height: 0;
+    }
+    .filter-card-panel {
+        transform: translateY(-10px) scale(0.98);
+        opacity: 0;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    }
+    .filter-card-wrapper.is-open .filter-card-panel {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    #filterToggle.is-active {
+        color: var(--tw-color-primary, #4648d4);
+        border-color: rgba(70, 72, 212, 0.35);
+        background: rgba(70, 72, 212, 0.08);
+    }
 </style>
 @endpush
 
 @section('content')
-    {{-- Breadcrumbs & Header --}}
-    <div class="flex flex-col gap-2 mb-6">
-        <nav class="flex items-center gap-2 text-on-surface-variant text-xs">
-            <a class="hover:text-primary transition-colors" href="#">Curriculum</a>
-            <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <span class="text-on-surface dark:text-slate-200 font-semibold">Guides</span>
-        </nav>
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h1 class="text-2xl md:text-3xl font-bold text-on-surface dark:text-white">Guides</h1>
-            <a href="{{ route('guides.create') }}" class="bg-gradient-to-r from-primary to-primary-container text-white text-sm px-6 py-2.5 rounded-full shadow-sm hover:shadow-md hover:from-primary-container hover:to-primary transition-all duration-300 flex items-center gap-2 active:scale-95">
-                <i class="fa-solid fa-plus text-xs"></i>
-                Add New Guide
-            </a>
-        </div>
+    {{-- Breadcrumbs --}}
+    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
+        <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span class="text-primary dark:text-primary-fixed-dim font-semibold">Guides</span>
     </div>
 
-    {{-- Filter Bar --}}
-    <form action="{{ route('guides') }}" method="GET" class="glass-panel dark:bg-slate-800/80 rounded-xl p-6 hover-ambient-shadow transition-shadow duration-300 mb-6 dark:border-slate-700 border-outline-variant/30">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div class="relative w-full">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                <input name="search" value="{{ $filters['search'] ?? '' }}" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none" placeholder="Search Title..." type="text">
-            </div>
-            <div class="relative w-full">
-                <select name="chapter" class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
-                    <option value="">All Chapters</option>
-                    <option value="1" {{ ($filters['chapter'] ?? '') == '1' ? 'selected' : '' }}>Chapter 1: Foundations</option>
-                    <option value="2" {{ ($filters['chapter'] ?? '') == '2' ? 'selected' : '' }}>Chapter 2: Advanced Topics</option>
-                </select>
-                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xs"></i>
-            </div>
-            <div class="relative w-full">
-                <select name="topic" class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
-                    <option value="">All Topics</option>
-                    <option value="math" {{ ($filters['topic'] ?? '') == 'math' ? 'selected' : '' }}>Mathematics</option>
-                    <option value="sci" {{ ($filters['topic'] ?? '') == 'sci' ? 'selected' : '' }}>Science</option>
-                </select>
-                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xs"></i>
-            </div>
-            <div class="relative w-full">
-                <select name="type" class="w-full pl-4 pr-10 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none appearance-none">
-                    <option value="">All Types</option>
-                    <option value="theory" {{ ($filters['type'] ?? '') == 'theory' ? 'selected' : '' }}>Theory Guide</option>
-                    <option value="practical" {{ ($filters['type'] ?? '') == 'practical' ? 'selected' : '' }}>Practical Guide</option>
-                </select>
-                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xs"></i>
+    @php
+        $filtersOpen = request()->hasAny(['search', 'chapter', 'topic', 'type', 'date_from', 'date_to']);
+    @endphp
+
+    {{-- Toolbar: Filter toggle + Add button --}}
+    <div class="flex justify-end items-center gap-3 mb-4">
+        <button type="button" id="filterToggle"
+            class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/30 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors shadow-sm {{ $filtersOpen ? 'is-active' : '' }}"
+            title="Toggle Filters">
+            <i class="fa-solid fa-filter text-sm"></i>
+        </button>
+        <a href="{{ route('guides.create') }}" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            <i class="fa-solid fa-plus text-xs"></i>
+            Add New Guide
+        </a>
+    </div>
+
+    {{-- Filters Card (toggleable) --}}
+    <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
+        <div class="filter-card-inner">
+            <div class="filter-card-panel glass-panel dark:bg-slate-800/80 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
+                <form action="{{ route('guides') }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
+                            <div class="relative group">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
+                                <input name="search" value="{{ $filters['search'] ?? '' }}" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Search title..." type="text">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
+                            <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Chapters</option>
+                                <option value="1" {{ ($filters['chapter'] ?? '') == '1' ? 'selected' : '' }}>Chapter 1: Foundations</option>
+                                <option value="2" {{ ($filters['chapter'] ?? '') == '2' ? 'selected' : '' }}>Chapter 2: Advanced Topics</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic</label>
+                            <select name="topic" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Topics</option>
+                                <option value="math" {{ ($filters['topic'] ?? '') == 'math' ? 'selected' : '' }}>Mathematics</option>
+                                <option value="sci" {{ ($filters['topic'] ?? '') == 'sci' ? 'selected' : '' }}>Science</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Type</label>
+                            <select name="type" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Types</option>
+                                <option value="theory" {{ ($filters['type'] ?? '') == 'theory' ? 'selected' : '' }}>Theory Guide</option>
+                                <option value="practical" {{ ($filters['type'] ?? '') == 'practical' ? 'selected' : '' }}>Practical Guide</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Date Range</label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
+                                <input id="guides-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Select date range" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
+                        <a href="{{ route('guides') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
+                        </a>
+                        <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="relative w-full">
-                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
-                <input id="guides-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary shadow-inner transition-all outline-none" placeholder="Select date range" readonly>
-            </div>
-            <div class="flex gap-2 lg:col-span-3">
-                <button type="submit" class="flex-1 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:bg-primary-container transition-colors">Filter</button>
-                <a href="{{ route('guides') }}" class="px-4 py-2 bg-surface hover:bg-surface-variant dark:bg-slate-700 border border-outline-variant/30 text-on-surface-variant rounded-lg text-sm transition-colors" title="Clear Filters">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                </a>
-            </div>
-        </div>
-    </form>
+    </div>
 
     {{-- Data Table --}}
     <div class="glass-panel dark:bg-slate-800/80 rounded-xl overflow-hidden hover-ambient-shadow transition-shadow duration-300 dark:border-slate-700 border-outline-variant/30 bg-white/50 dark:bg-slate-900/50">
@@ -151,7 +201,16 @@
 
     @push('scripts')
     <script>
-        flatpickr("#guides-date-range", {
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterToggle = document.getElementById('filterToggle');
+            const filterCardWrapper = document.getElementById('filterCardWrapper');
+
+            filterToggle?.addEventListener('click', () => {
+                const isOpen = filterCardWrapper?.classList.toggle('is-open');
+                filterToggle.classList.toggle('is-active', isOpen);
+            });
+
+            flatpickr("#guides-date-range", {
             mode: "range",
             dateFormat: "Y-m-d",
             onChange: function(selectedDates, dateStr, instance) {
@@ -173,6 +232,7 @@
                     form.appendChild(dateToInput);
                 }
             }
+        });
         });
     </script>
     @endpush
