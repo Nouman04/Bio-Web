@@ -1,0 +1,65 @@
+{{-- BEGIN: Student Sidebar --}}
+<aside id="sidebar"
+    class="w-24 lg:w-64 bg-surface-container-lowest dark:bg-slate-950 border-r border-outline-variant/30 dark:border-slate-800 flex flex-col items-center lg:items-start py-8 rounded-r-3xl z-20 flex-shrink-0 relative shadow-md dark:shadow-none">
+
+    {{-- Toggle Button (Desktop collapse) --}}
+    <button id="sidebarToggle"
+        class="hidden lg:flex absolute -right-4 top-14 w-8 h-8 bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/50 dark:border-slate-700 rounded-full items-center justify-center text-on-surface-variant dark:text-slate-300 hover:text-primary hover:bg-surface-container-low dark:hover:bg-slate-700 shadow-sm z-30 transition-colors cursor-pointer">
+        <i class="fa-solid fa-chevron-left text-sm transition-transform duration-300"></i>
+    </button>
+
+    {{-- Logo --}}
+    <div class="flex items-center w-full px-0 lg:px-8 mb-12 center-on-collapse transition-all duration-300 justify-center lg:justify-start">
+        <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-on-primary shadow-lg flex-shrink-0">
+            <i class="fa-solid fa-graduation-cap text-xl"></i>
+        </div>
+        <div class="hidden lg:block ml-4 hide-on-collapse">
+            <span class="font-bold text-xl text-primary dark:text-primary-fixed-dim">EduStudent</span>
+            <p class="text-xs text-on-surface-variant dark:text-slate-400">Learning Portal</p>
+        </div>
+    </div>
+
+    {{-- Navigation --}}
+    <nav class="flex-1 w-full space-y-1 px-4 lg:px-6">
+
+        {{-- Dashboard --}}
+        <a href="{{ route('student.dashboard') }}"
+            class="sidebar-item {{ request()->routeIs('student.dashboard') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
+            <i class="fa-solid fa-border-all text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
+            <span class="hidden lg:block ml-4 hide-on-collapse">Dashboard</span>
+        </a>
+
+        {{-- Courses --}}
+        <a href="{{ route('student.courses') }}"
+            class="sidebar-item {{ request()->routeIs('student.courses*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
+            <i class="fa-solid fa-graduation-cap text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
+            <span class="hidden lg:block ml-4 hide-on-collapse">My Courses</span>
+        </a>
+
+        {{-- Catalog --}}
+        <a href="{{ route('student.catalog') }}"
+            class="sidebar-item {{ request()->routeIs('student.catalog*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
+            <i class="fa-solid fa-compass text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
+            <span class="hidden lg:block ml-4 hide-on-collapse">Catalog</span>
+        </a>
+
+        {{-- Resources --}}
+        <a href="{{ route('student.resources') }}"
+            class="sidebar-item {{ request()->routeIs('student.resources*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
+            <i class="fa-solid fa-book-open text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
+            <span class="hidden lg:block ml-4 hide-on-collapse">Resources</span>
+        </a>
+
+    </nav>
+
+    {{-- Logout (plain link — auth not active in frontend-only mode) --}}
+    <div class="mt-auto px-4 lg:px-6 w-full pb-4">
+        <a href="{{ route('login') }}"
+            class="w-full flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl text-on-surface-variant dark:text-slate-300 hover:bg-error-container hover:text-on-error-container dark:hover:bg-error-container/20 dark:hover:text-error transition-all duration-300 center-on-collapse">
+            <i class="fa-solid fa-power-off text-xl w-6 text-center flex-shrink-0"></i>
+            <span class="hidden lg:block ml-4 hide-on-collapse">Logout</span>
+        </a>
+    </div>
+
+</aside>
+{{-- END: Student Sidebar --}}
