@@ -36,9 +36,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
 <!-- Hero Section -->
-<section class="mb-8 pt-4">
-    <h2 class="font-display-lg text-display-lg text-on-background mb-2" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">Welcome back, Alex!</h2>
-    <p class="text-body-lg text-on-surface-variant" style="font-size:18px;line-height:28px;">Ready to pick up where you left off?</p>
+<section class="mb-6 sm:mb-8 pt-2 sm:pt-4">
+    <h2 class="font-display-lg text-display-lg text-on-background mb-2" style="font-size:clamp(28px, 6vw, 48px);line-height:clamp(34px, 7vw, 56px);letter-spacing:-0.02em;font-weight:700;">Welcome back, Alex!</h2>
+    <p class="text-body-lg text-on-surface-variant" style="font-size:clamp(15px, 3vw, 18px);line-height:clamp(22px, 4vw, 28px);">Ready to pick up where you left off?</p>
 </section>
 
 <!-- Bento Grid Layout -->
@@ -57,8 +57,8 @@
                             <span class="material-symbols-outlined" style="font-size:14px;">play_circle</span>
                             Recently Accessed
                         </div>
-                        <h3 class="text-on-background mb-2" style="font-size:32px;line-height:40px;letter-spacing:-0.01em;font-weight:600;">Advanced UI/UX Principles</h3>
-                        <p class="text-on-surface-variant mb-6" style="font-size:16px;line-height:24px;">Module 4: Designing for Cognitive Load</p>
+                        <h3 class="text-on-background mb-2" style="font-size:clamp(22px, 4.5vw, 32px);line-height:clamp(28px, 5.5vw, 40px);letter-spacing:-0.01em;font-weight:600;">Advanced UI/UX Principles</h3>
+                        <p class="text-on-surface-variant mb-6" style="font-size:15px;line-height:22px;">Module 4: Designing for Cognitive Load</p>
                     </div>
                     <div class="mt-auto">
                         <div class="flex justify-between items-end mb-2">

@@ -142,9 +142,10 @@
             to { stroke-dashoffset: 0; }
         }
 
-        /* Sidebar collapse */
+        /* Sidebar collapse / mobile drawer */
         #sidebar {
-            transition: width 0.3s ease-in-out, background-color 0.3s ease, border-color 0.3s ease;
+            transition: width 0.3s ease-in-out, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
+            will-change: transform;
         }
         .hide-on-collapse {
             transition: opacity 0.2s ease, width 0.3s ease, margin 0.3s ease;
@@ -170,9 +171,41 @@
             }
         }
 
+        /* Mobile full-screen drawer: staggered fade/rise for nav content on open */
+        @media (max-width: 1023.98px) {
+            #sidebar .mobile-fade,
+            #sidebar .sidebar-item {
+                opacity: 0;
+                transform: translateY(10px);
+                transition: opacity 0.35s ease, transform 0.35s ease;
+            }
+            #sidebar.is-open .mobile-fade,
+            #sidebar.is-open .sidebar-item {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            #sidebar.is-open .mobile-fade { transition-delay: 0.05s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(1) { transition-delay: 0.08s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(2) { transition-delay: 0.11s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(3) { transition-delay: 0.14s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(4) { transition-delay: 0.17s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(5) { transition-delay: 0.2s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(6) { transition-delay: 0.23s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(7) { transition-delay: 0.26s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(8) { transition-delay: 0.29s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(9) { transition-delay: 0.32s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(10) { transition-delay: 0.35s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(11) { transition-delay: 0.38s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(12) { transition-delay: 0.41s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(13) { transition-delay: 0.44s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(14) { transition-delay: 0.47s; }
+        }
+
         /* Mobile sidebar overlay */
         #sidebarOverlay {
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
         /* Custom scrollbar */
@@ -204,7 +237,7 @@
         @include('layouts.partials.header')
 
         {{-- Page Content --}}
-        <div class="flex-1 overflow-y-auto px-8 pb-8 lg:px-12 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto px-4 pb-6 sm:px-8 sm:pb-8 lg:px-12 custom-scrollbar">
             @hasSection('content')
                 @yield('content')
             @elseif(isset($slot))
@@ -248,22 +281,33 @@
 
             // ÔöÇÔöÇ Mobile Sidebar Toggle ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             const mobileToggle = document.getElementById('mobileSidebarToggle');
+            const mobileClose = document.getElementById('mobileSidebarClose');
             const overlay = document.getElementById('sidebarOverlay');
 
             function openMobileSidebar() {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
-                requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
+                requestAnimationFrame(() => {
+                    overlay.classList.remove('opacity-0');
+                    sidebar.classList.add('is-open');
+                });
             }
 
             function closeMobileSidebar() {
                 sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('is-open');
                 overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
+                setTimeout(() => overlay.classList.add('hidden'), 400);
             }
 
             mobileToggle?.addEventListener('click', openMobileSidebar);
+            mobileClose?.addEventListener('click', closeMobileSidebar);
             overlay?.addEventListener('click', closeMobileSidebar);
+
+            // Close the mobile drawer automatically if the viewport grows into the desktop breakpoint
+            window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+                if (e.matches) closeMobileSidebar();
+            });
         });
     </script>
 

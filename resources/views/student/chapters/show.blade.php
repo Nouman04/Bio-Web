@@ -92,29 +92,31 @@
             <h3 class="text-on-surface mb-4" style="font-size:20px;line-height:28px;font-weight:600;">Interactive Resources</h3>
 
             <!-- Tabs -->
-            <div class="flex border-b border-outline-variant/20 mb-6 overflow-x-auto hide-scrollbar gap-0" id="resourceTabs">
-                <button onclick="switchResourceTab(this,'studyNotes')"
-                        class="resource-tab active font-semibold text-sm border-b-2 pb-2 px-4 whitespace-nowrap">
-                    Study Notes
-                </button>
-                <button onclick="switchResourceTab(this,'flashcards')"
-                        class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap transition-colors">
-                    Flashcards
-                </button>
-                <button onclick="switchResourceTab(this,'diagrams')"
-                        class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap transition-colors">
-                    Diagrams
-                </button>
-                <button onclick="switchResourceTab(this,'summaries')"
-                        class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap transition-colors">
-                    Summaries
-                </button>
-                <button onclick="switchResourceTab(this,'videos')"
-                        class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap transition-colors">
-                    Videos
-                </button>
+            <div class="flex flex-col sm:flex-row sm:items-center border-b border-outline-variant/20 mb-6 gap-2 sm:gap-0">
+                <div class="flex overflow-x-auto hide-scrollbar" id="resourceTabs">
+                    <button onclick="switchResourceTab(this,'studyNotes')"
+                            class="resource-tab active font-semibold text-sm border-b-2 pb-2 px-4 whitespace-nowrap shrink-0">
+                        Study Notes
+                    </button>
+                    <button onclick="switchResourceTab(this,'flashcards')"
+                            class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap shrink-0 transition-colors">
+                        Flashcards
+                    </button>
+                    <button onclick="switchResourceTab(this,'diagrams')"
+                            class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap shrink-0 transition-colors">
+                        Diagrams
+                    </button>
+                    <button onclick="switchResourceTab(this,'summaries')"
+                            class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap shrink-0 transition-colors">
+                        Summaries
+                    </button>
+                    <button onclick="switchResourceTab(this,'videos')"
+                            class="resource-tab text-on-surface-variant hover:text-on-surface text-sm border-b-2 border-transparent pb-2 px-4 whitespace-nowrap shrink-0 transition-colors">
+                        Videos
+                    </button>
+                </div>
                 {{-- View All dynamic link --}}
-                <span id="viewAllLink" class="ml-auto pl-4 flex items-center">
+                <span id="viewAllLink" class="sm:ml-auto sm:pl-4 flex items-center justify-end pb-2 sm:pb-2 shrink-0">
                     <a id="viewAllAnchor"
                        href="{{ route('student.chapters.notes', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
                        class="text-primary text-xs font-semibold hover:underline flex items-center gap-1 whitespace-nowrap">
@@ -143,7 +145,7 @@
 
             <!-- Flashcards Panel -->
             <div id="panel-flashcards" class="hidden">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="border border-outline-variant/30 rounded-xl p-5 cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all bg-surface-container-lowest">
                         <h4 class="text-on-surface text-sm font-semibold mb-1">Neural Net Vocab</h4>
                         <p class="text-on-surface-variant text-xs">36 Cards</p>
@@ -157,7 +159,7 @@
 
             <!-- Diagrams Panel -->
             <div id="panel-diagrams" class="hidden">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="border border-outline-variant/30 rounded-xl overflow-hidden cursor-pointer hover:border-primary/40 transition-all bg-surface-container-lowest">
                         <div class="h-28 bg-surface-dim flex items-center justify-center">
                             <span class="material-symbols-outlined text-3xl text-outline-variant">account_tree</span>
@@ -188,7 +190,7 @@
 
             <!-- Videos Panel -->
             <div id="panel-videos" class="hidden">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="border border-outline-variant/30 rounded-xl overflow-hidden cursor-pointer hover:border-primary/40 transition-all bg-surface-container-lowest flex items-center gap-3 p-3">
                         <div class="w-16 h-16 bg-surface-container rounded-md flex items-center justify-center shrink-0">
                             <span class="material-symbols-outlined text-outline-variant text-2xl">play_circle</span>

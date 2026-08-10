@@ -221,7 +221,7 @@
         @include('layouts.partials.header')
 
         {{-- Page Content --}}
-        <div class="flex-1 overflow-y-auto px-8 pb-8 lg:px-12 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto px-4 pb-6 sm:px-8 sm:pb-8 lg:px-12 custom-scrollbar">
             @hasSection('content')
                 @yield('content')
             @elseif(isset($slot))
