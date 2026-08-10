@@ -78,9 +78,9 @@
                     <h1 class="text-2xl font-bold text-on-surface mb-2">Introduction to Neural Networks</h1>
                     <p class="text-sm text-on-surface-variant max-w-3xl">In this foundational lesson, we explore the biological inspiration behind artificial neural networks, deconstruct the architecture of a perceptron, and introduce the concept of activation functions and backpropagation.</p>
                 </div>
-                <button class="flex items-center justify-center gap-2 bg-primary/10 text-primary font-semibold text-sm px-6 py-2 rounded-full hover:bg-primary hover:text-white transition-colors shadow-sm whitespace-nowrap">
+                <button onclick="toggleSaveIcon(this)" class="flex items-center justify-center gap-2 bg-primary/10 text-primary font-semibold text-sm px-6 py-2 rounded-full hover:bg-primary hover:text-white transition-colors shadow-sm whitespace-nowrap">
                     <span class="material-symbols-outlined">bookmark_border</span>
-                    Save Lesson
+                    <span data-save-label="Save Lesson">Save Lesson</span>
                 </button>
             </div>
             <div class="h-px bg-outline-variant/30 w-full my-2"></div>

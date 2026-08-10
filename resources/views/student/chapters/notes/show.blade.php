@@ -51,14 +51,14 @@
             </div>
             
             <!-- Action Bar -->
-            <div class="flex flex-wrap items-center gap-3 pt-4">
-                <button class="primary-gradient text-on-primary text-sm py-2 px-4 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">edit</span>
-                    Edit Note
-                </button>
+            <div class="flex flex-wrap items-right gap-3 pt-4">
                 <button class="bg-surface border border-outline-variant text-on-surface text-sm py-2 px-4 rounded-full hover:bg-surface-container-low transition-colors flex items-center gap-2">
                     <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                     Download PDF
+                </button>
+                <button onclick="toggleSaveIcon(this)" class="bg-surface border border-outline-variant text-on-surface text-sm py-2 px-4 rounded-full hover:bg-surface-container-low transition-colors flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">bookmark_border</span>
+                    <span data-save-label="Save Note">Save Note</span>
                 </button>
             </div>
         </header>

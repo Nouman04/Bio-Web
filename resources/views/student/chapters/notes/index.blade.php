@@ -70,9 +70,14 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
         <div class="flex justify-between items-start mb-4">
             <span class="bg-secondary-container/20 text-secondary text-xs font-semibold px-3 py-1 rounded-full border border-secondary/20">CS101</span>
-            <button class="text-outline hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline hover:text-primary transition-colors" title="Save note">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">Introduction to Data Structures &amp; Algorithms</h3>
         <p class="text-on-surface-variant text-xs mb-4 uppercase tracking-wide font-medium">Chapter {{ $chapterId }}: Arrays &amp; Strings</p>
@@ -94,9 +99,14 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-tertiary/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
         <div class="flex justify-between items-start mb-4">
             <span class="bg-tertiary-container/20 text-tertiary text-xs font-semibold px-3 py-1 rounded-full border border-tertiary/20">ML-401</span>
-            <button class="text-outline hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline hover:text-primary transition-colors" title="Save note">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">Backpropagation &amp; Gradient Descent</h3>
         <p class="text-on-surface-variant text-xs mb-4 uppercase tracking-wide font-medium">Chapter {{ $chapterId }}: Neural Networks</p>
@@ -118,9 +128,14 @@
         <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary/8 rounded-full blur-2xl -z-10"></div>
         <div class="flex justify-between items-start mb-4">
             <span class="bg-secondary-container/20 text-secondary text-xs font-semibold px-3 py-1 rounded-full border border-secondary/20">CS101</span>
-            <button class="text-outline hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline hover:text-primary transition-colors" title="Save note">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">Activation Functions: Sigmoid vs ReLU</h3>
         <p class="text-on-surface-variant text-xs mb-4 uppercase tracking-wide font-medium">Chapter {{ $chapterId }}: Algorithm Analysis</p>
@@ -143,9 +158,14 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
         <div class="flex justify-between items-start mb-4">
             <span class="bg-primary-container/20 text-primary text-xs font-semibold px-3 py-1 rounded-full border border-primary/20">ML-401</span>
-            <button class="text-outline hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline hover:text-primary transition-colors" title="Save note">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">Convolutional Neural Networks Overview</h3>
         <p class="text-on-surface-variant text-xs mb-4 uppercase tracking-wide font-medium">Chapter {{ $chapterId }}: CNN Architecture</p>
@@ -167,9 +187,14 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
         <div class="flex justify-between items-start mb-4">
             <span class="bg-tertiary-container/20 text-tertiary text-xs font-semibold px-3 py-1 rounded-full border border-tertiary/20">Design</span>
-            <button class="text-outline hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline hover:text-primary transition-colors" title="Save note">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">Loss Functions: Cross Entropy vs MSE</h3>
         <p class="text-on-surface-variant text-xs mb-4 uppercase tracking-wide font-medium">Chapter {{ $chapterId }}: Training Objectives</p>

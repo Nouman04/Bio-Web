@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contents', function (Blueprint $table) {
+        Schema::create('saved_contents', function (Blueprint $table) {
             $table->id();
             $table->morphs('contentable');
             $table->timestamps();

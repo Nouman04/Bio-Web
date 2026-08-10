@@ -91,11 +91,15 @@
 @section('content')
 <div class="flex-1 flex flex-col items-center justify-center relative py-8">
     <!-- Breadcrumb back to list -->
-    <div class="w-full max-w-3xl mb-8">
+    <div class="w-full max-w-3xl mb-8 flex items-center justify-between">
         <a href="{{ route('student.chapters.flashcards', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 group w-max">
             <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform text-sm">arrow_back</span>
             <span class="text-sm font-semibold">Exit Study Mode</span>
         </a>
+        <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2" title="Save card">
+            <span class="material-symbols-outlined text-sm">bookmark_border</span>
+            <span class="text-sm font-semibold" data-save-label="Save Card">Save Card</span>
+        </button>
     </div>
 
     <!-- Background decorative elements -->

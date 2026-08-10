@@ -74,6 +74,9 @@
                     <span class="material-symbols-outlined text-[12px]">check_circle</span>
                     Completed
                 </div>
+                <button onclick="event.preventDefault(); toggleSaveIcon(this)" class="absolute top-3 right-3 bg-inverse-surface/80 backdrop-blur-sm text-inverse-on-surface hover:text-primary p-1.5 rounded-md transition-colors" title="Save video">
+                    <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
+                </button>
             </div>
             <div class="p-5 flex flex-col flex-1">
                 <h3 class="text-lg font-semibold text-on-surface mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">Introduction to Neural Networks &amp; Deep Learning</h3>
@@ -109,6 +112,9 @@
                     <span class="material-symbols-outlined text-[12px]">schedule</span>
                     In Progress (45%)
                 </div>
+                <button onclick="event.preventDefault(); toggleSaveIcon(this)" class="absolute top-3 right-3 bg-inverse-surface/80 backdrop-blur-sm text-inverse-on-surface hover:text-primary p-1.5 rounded-md transition-colors z-20" title="Save video">
+                    <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
+                </button>
             </div>
             <div class="p-5 flex flex-col flex-1">
                 <h3 class="text-lg font-semibold text-on-surface mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">Convolutional Neural Networks (CNNs) Explained</h3>

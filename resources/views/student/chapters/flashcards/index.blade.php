@@ -48,9 +48,14 @@
         <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
         <div class="flex justify-between items-start mb-4 relative z-10">
             <div class="bg-primary-container/20 text-primary text-xs font-bold px-3 py-1 rounded-full border border-primary/20">CH{{ $chapterId }}.1</div>
-            <button class="text-outline-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline-variant hover:text-primary transition-colors" title="Save set">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline-variant hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">Arrays &amp; Strings</h3>
         <p class="text-on-surface-variant text-sm mb-6 flex-1 relative z-10">Memory allocation, indexing, and common string manipulation algorithms.</p>
@@ -70,9 +75,14 @@
         <div class="absolute -right-10 -top-10 w-32 h-32 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/10 transition-colors"></div>
         <div class="flex justify-between items-start mb-4 relative z-10">
             <div class="bg-secondary-container/20 text-secondary text-xs font-bold px-3 py-1 rounded-full border border-secondary/20">CH{{ $chapterId }}.2</div>
-            <button class="text-outline-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline-variant hover:text-primary transition-colors" title="Save set">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline-variant hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">Linked Lists</h3>
         <p class="text-on-surface-variant text-sm mb-6 flex-1 relative z-10">Singly, doubly, and circular linked lists. Insertion and deletion logic.</p>
@@ -92,9 +102,14 @@
         <div class="absolute -right-10 -top-10 w-32 h-32 bg-tertiary/5 rounded-full blur-2xl group-hover:bg-tertiary/10 transition-colors"></div>
         <div class="flex justify-between items-start mb-4 relative z-10">
             <div class="bg-tertiary-container/20 text-tertiary text-xs font-bold px-3 py-1 rounded-full border border-tertiary/20">CH{{ $chapterId }}.3</div>
-            <button class="text-outline-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline-variant hover:text-primary transition-colors" title="Save set">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline-variant hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">Stacks &amp; Queues</h3>
         <p class="text-on-surface-variant text-sm mb-6 flex-1 relative z-10">LIFO and FIFO principles, implementation using arrays and lists.</p>
@@ -114,9 +129,14 @@
         <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
         <div class="flex justify-between items-start mb-4 relative z-10">
             <div class="bg-primary-container/20 text-primary text-xs font-bold px-3 py-1 rounded-full border border-primary/20">CH{{ $chapterId }}.4</div>
-            <button class="text-outline-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline-variant hover:text-primary transition-colors" title="Save set">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline-variant hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">Neural Network Vocab</h3>
         <p class="text-on-surface-variant text-sm mb-6 flex-1 relative z-10">Key terms: neurons, weights, biases, epochs, batches, and learning rate schedules.</p>
@@ -136,9 +156,14 @@
         <div class="absolute -right-10 -top-10 w-32 h-32 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/10 transition-colors"></div>
         <div class="flex justify-between items-start mb-4 relative z-10">
             <div class="bg-secondary-container/20 text-secondary text-xs font-bold px-3 py-1 rounded-full border border-secondary/20">CH{{ $chapterId }}.5</div>
-            <button class="text-outline-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleSaveIcon(this)" class="text-outline-variant hover:text-primary transition-colors" title="Save set">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="text-outline-variant hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+            </div>
         </div>
         <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">Math Formulas</h3>
         <p class="text-on-surface-variant text-sm mb-6 flex-1 relative z-10">Core equations: softmax, cross-entropy, MSE, gradient update rule.</p>

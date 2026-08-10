@@ -62,7 +62,7 @@
                 <span class="px-2.5 py-1 bg-tertiary-container/20 text-tertiary rounded text-xs font-bold tracking-wider uppercase">ML-401</span>
                 <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
             </div>
-            <button class="text-on-surface-variant hover:text-primary transition-colors">
+            <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
                 <span class="material-symbols-outlined">bookmark_border</span>
             </button>
         </div>
@@ -88,7 +88,7 @@
                 <span class="px-2.5 py-1 bg-primary-container/20 text-primary rounded text-xs font-bold tracking-wider uppercase">CS101</span>
                 <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
             </div>
-            <button class="text-primary transition-colors">
+            <button onclick="toggleSaveIcon(this)" class="is-saved text-primary transition-colors" title="Save summary">
                 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">bookmark</span>
             </button>
         </div>
@@ -114,7 +114,7 @@
                 <span class="px-2.5 py-1 bg-secondary-container/20 text-secondary rounded text-xs font-bold tracking-wider uppercase">ML-401</span>
                 <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
             </div>
-            <button class="text-on-surface-variant hover:text-primary transition-colors">
+            <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
                 <span class="material-symbols-outlined">bookmark_border</span>
             </button>
         </div>
@@ -141,9 +141,14 @@
                     <span class="px-2.5 py-1 bg-tertiary-container/20 text-tertiary rounded text-xs font-bold tracking-wider uppercase">ML-401</span>
                     <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
                 </div>
-                <span class="px-2 py-1 bg-error-container/50 text-on-error-container rounded text-xs font-semibold flex items-center gap-1">
-                    <span class="material-symbols-outlined" style="font-size:14px;">local_fire_department</span> Trending
-                </span>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 bg-error-container/50 text-on-error-container rounded text-xs font-semibold flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size:14px;">local_fire_department</span> Trending
+                    </span>
+                    <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
+                        <span class="material-symbols-outlined">bookmark_border</span>
+                    </button>
+                </div>
             </div>
             <h3 class="text-on-surface font-semibold text-lg mb-2 group-hover:text-primary transition-colors">Backpropagation: The Full Picture</h3>
             <p class="text-on-surface-variant text-sm mb-6 flex-1">
@@ -179,7 +184,7 @@
                 <span class="px-2.5 py-1 bg-primary-container/20 text-primary rounded text-xs font-bold tracking-wider uppercase">Design</span>
                 <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
             </div>
-            <button class="text-on-surface-variant hover:text-primary transition-colors">
+            <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
                 <span class="material-symbols-outlined">bookmark_border</span>
             </button>
         </div>

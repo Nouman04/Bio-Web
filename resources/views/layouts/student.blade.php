@@ -208,6 +208,23 @@
 
     </main>
 
+    {{-- Save / Bookmark Toggle --}}
+    <script>
+        function toggleSaveIcon(btn) {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const label = btn.querySelector('[data-save-label]');
+            const saved = btn.classList.toggle('is-saved');
+
+            icon.textContent = saved ? 'bookmark' : 'bookmark_border';
+            icon.style.fontVariationSettings = saved ? "'FILL' 1" : "'FILL' 0";
+            icon.style.color = saved ? '#4648d4' : '';
+
+            if (label) {
+                label.textContent = saved ? 'Saved' : label.dataset.saveLabel;
+            }
+        }
+    </script>
+
     {{-- Theme & Sidebar Scripts --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {

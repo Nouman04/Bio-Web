@@ -45,6 +45,9 @@
                 <button class="flex items-center justify-center p-2 rounded-lg bg-surface-container hover:bg-primary/10 hover:text-primary text-on-surface-variant transition-colors group">
                     <span class="material-symbols-outlined group-hover:scale-110 transition-transform">download</span>
                 </button>
+                <button onclick="toggleSaveIcon(this)" class="flex items-center justify-center p-2 rounded-lg bg-surface-container hover:bg-primary/10 hover:text-primary text-on-surface-variant transition-colors group" title="Save summary">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform">bookmark_border</span>
+                </button>
             </div>
         </div>
     </header>

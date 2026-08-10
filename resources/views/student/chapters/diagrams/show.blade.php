@@ -53,6 +53,9 @@
                         <button class="bg-surface-container-lowest text-on-surface p-3 rounded-full shadow-lg hover:text-primary hover:scale-105 transition-all">
                             <span class="material-symbols-outlined">download</span>
                         </button>
+                        <button onclick="toggleSaveIcon(this)" class="bg-surface-container-lowest text-on-surface p-3 rounded-full shadow-lg hover:text-primary hover:scale-105 transition-all" title="Save diagram">
+                            <span class="material-symbols-outlined">bookmark_border</span>
+                        </button>
                     </div>
                 </div>
             </div>

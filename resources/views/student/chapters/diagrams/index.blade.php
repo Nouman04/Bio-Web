@@ -78,6 +78,9 @@
                 <span class="material-symbols-outlined" style="font-size:14px;">account_tree</span>
                 Neural Nets
             </div>
+            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
+                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
+            </button>
         </div>
         <div class="p-5 flex flex-col flex-1">
             <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Network Architecture Diagram</h3>
@@ -101,6 +104,9 @@
                 <span class="material-symbols-outlined" style="font-size:14px;">schema</span>
                 Optimization
             </div>
+            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
+                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
+            </button>
         </div>
         <div class="p-5 flex flex-col flex-1">
             <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Gradient Descent Flow</h3>
@@ -124,6 +130,9 @@
                 <span class="material-symbols-outlined" style="font-size:14px;">device_hub</span>
                 Training
             </div>
+            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
+                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
+            </button>
         </div>
         <div class="p-5 flex flex-col flex-1">
             <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Backpropagation Chain Rule</h3>
@@ -147,6 +156,9 @@
                 <span class="material-symbols-outlined" style="font-size:14px;">functions</span>
                 Math
             </div>
+            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
+                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
+            </button>
         </div>
         <div class="p-5 flex flex-col flex-1">
             <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Activation Functions Comparison</h3>
