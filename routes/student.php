@@ -52,4 +52,7 @@ Route::prefix('student')->name('student.')->group(function () {
     // Resources — study materials, guides, flashcards, videos, notes
     Route::get('/resources', [StudentResourcesController::class, 'index'])->name('resources');
 
+    // Demo — bare sidenav + header shell for layout/responsiveness testing
+    Route::get('/demo', fn () => view('student.demo'))->name('demo');
+
 });

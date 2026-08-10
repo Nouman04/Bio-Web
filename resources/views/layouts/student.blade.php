@@ -136,9 +136,10 @@
         .icon-bg-rose   { background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%); }
         .icon-bg-amber  { background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%); }
 
-        /* Sidebar collapse */
+        /* Sidebar collapse / mobile drawer */
         #sidebar {
-            transition: width 0.3s ease-in-out, background-color 0.3s ease, border-color 0.3s ease;
+            transition: width 0.3s ease-in-out, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
+            will-change: transform;
         }
         .hide-on-collapse {
             transition: opacity 0.2s ease, width 0.3s ease, margin 0.3s ease;
@@ -164,9 +165,31 @@
             }
         }
 
+        /* Mobile full-screen drawer: staggered fade/rise for nav content on open */
+        @media (max-width: 1023.98px) {
+            #sidebar .mobile-fade,
+            #sidebar .sidebar-item {
+                opacity: 0;
+                transform: translateY(10px);
+                transition: opacity 0.35s ease, transform 0.35s ease;
+            }
+            #sidebar.is-open .mobile-fade,
+            #sidebar.is-open .sidebar-item {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            #sidebar.is-open .mobile-fade { transition-delay: 0.05s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(1) { transition-delay: 0.1s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(2) { transition-delay: 0.15s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(3) { transition-delay: 0.2s; }
+            #sidebar.is-open .sidebar-item:nth-of-type(4) { transition-delay: 0.25s; }
+        }
+
         /* Mobile sidebar overlay */
         #sidebarOverlay {
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
         /* Custom scrollbar */
@@ -259,22 +282,33 @@
 
             // ── Mobile Sidebar Toggle ──────────────────────────────────────────────
             const mobileToggle = document.getElementById('mobileSidebarToggle');
+            const mobileClose = document.getElementById('mobileSidebarClose');
             const overlay = document.getElementById('sidebarOverlay');
 
             function openMobileSidebar() {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
-                requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
+                requestAnimationFrame(() => {
+                    overlay.classList.remove('opacity-0');
+                    sidebar.classList.add('is-open');
+                });
             }
 
             function closeMobileSidebar() {
                 sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('is-open');
                 overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
+                setTimeout(() => overlay.classList.add('hidden'), 400);
             }
 
             mobileToggle?.addEventListener('click', openMobileSidebar);
+            mobileClose?.addEventListener('click', closeMobileSidebar);
             overlay?.addEventListener('click', closeMobileSidebar);
+
+            // Close the mobile drawer automatically if the viewport grows into the desktop breakpoint
+            window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+                if (e.matches) closeMobileSidebar();
+            });
         });
     </script>
 
