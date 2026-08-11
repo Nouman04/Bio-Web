@@ -7,52 +7,84 @@ use Illuminate\Http\Request;
 class ChapterController extends Controller
 {
     /**
-     * Display a listing of chapters.
+     * Course titles keyed by id — mirrors CourseController's mock data so
+     * chapters can be scoped to a course without a real courses table yet.
      */
-    public function index(Request $request)
+    private function courses(): array
     {
-        // Simple collection matching chapters list.html
-        $chapters = collect([
-            ['id' => 1, 'num' => 1, 'title' => 'Introduction to Variables', 'desc' => 'Understanding the basics of memory allocation and data types in modern programming languages.', 'course' => 'Computer Science 101', 'status' => 'Published', 'badgeColor' => 'bg-primary-fixed/30 text-on-primary-fixed'],
-            ['id' => 2, 'num' => 2, 'title' => 'Control Structures & Loops', 'desc' => 'Mastering if/else statements, for loops, and while loops to control program flow effectively.', 'course' => 'Computer Science 101', 'status' => 'Published', 'badgeColor' => 'bg-primary-fixed/30 text-on-primary-fixed'],
-            ['id' => 3, 'num' => 1, 'title' => 'Cellular Structures', 'desc' => 'A deep dive into eukaryotic and prokaryotic cells, organelles, and their specific functions.', 'course' => 'Advanced Biology', 'status' => 'Draft', 'badgeColor' => 'bg-secondary-fixed/50 text-on-secondary-fixed'],
-            ['id' => 4, 'num' => 3, 'title' => 'Wireframing Fundamentals', 'desc' => 'Translating user needs into low-fidelity structural layouts before applying visual design.', 'course' => 'UX/UI Design Principles', 'status' => 'Published', 'badgeColor' => 'bg-tertiary-fixed/30 text-on-tertiary-fixed']
-        ]);
+        return [
+            1 => 'Advanced React Patterns',
+            2 => 'Digital Marketing 101',
+            3 => 'UI/UX Principles',
+        ];
+    }
 
-        // Filter by Course
-        if ($course = $request->input('course')) {
-            $chapters = $chapters->filter(function ($c) use ($course) {
-                return $c['course'] === $course;
-            });
-        }
+    /**
+     * Chapters mock data, grouped by course_id.
+     */
+    private function allChapters(): \Illuminate\Support\Collection
+    {
+        return collect([
+            ['id' => 1, 'course_id' => 1, 'num' => 1, 'title' => 'Introduction to Hooks', 'desc' => 'Understanding useState, useEffect, and the rules of hooks in modern React development.', 'status' => 'Published'],
+            ['id' => 2, 'course_id' => 1, 'num' => 2, 'title' => 'Context API Deep Dive', 'desc' => 'Managing global state without prop drilling using React Context and custom providers.', 'status' => 'Published'],
+            ['id' => 3, 'course_id' => 1, 'num' => 3, 'title' => 'Performance Optimization', 'desc' => 'Memoization, code splitting, and profiling techniques for production React apps.', 'status' => 'Draft'],
+            ['id' => 4, 'course_id' => 2, 'num' => 1, 'title' => 'SEO Fundamentals', 'desc' => 'On-page and off-page optimization strategies to improve organic search visibility.', 'status' => 'Published'],
+            ['id' => 5, 'course_id' => 2, 'num' => 2, 'title' => 'Social Media Strategy', 'desc' => 'Building and executing a content calendar across major social platforms.', 'status' => 'Published'],
+            ['id' => 6, 'course_id' => 3, 'num' => 1, 'title' => 'Wireframing Fundamentals', 'desc' => 'Translating user needs into low-fidelity structural layouts before applying visual design.', 'status' => 'Published'],
+            ['id' => 7, 'course_id' => 3, 'num' => 2, 'title' => 'Prototyping & Testing', 'desc' => 'Building interactive prototypes and running usability tests to validate design decisions.', 'status' => 'Draft'],
+        ]);
+    }
+
+    /**
+     * Display the chapters belonging to a single course.
+     */
+    public function index(Request $request, int $course)
+    {
+        $courses = $this->courses();
+        abort_if(! isset($courses[$course]), 404);
+
+        $chapters = $this->allChapters()->where('course_id', $course)->values();
 
         // Filter by Title
         if ($title = $request->input('title')) {
-            $chapters = $chapters->filter(function ($c) use ($title) {
-                return stripos($c['title'], $title) !== false;
-            });
+            $chapters = $chapters->filter(fn ($c) => stripos($c['title'], $title) !== false)->values();
         }
 
         // Filter by Status
         if ($status = $request->input('status')) {
-            $chapters = $chapters->filter(function ($c) use ($status) {
-                return $c['status'] === $status;
-            });
+            $chapters = $chapters->filter(fn ($c) => $c['status'] === $status)->values();
         }
 
-        // Calculations
-        $totalCount = $chapters->count();
-        $draftsCount = $chapters->where('status', 'Draft')->count();
+        $allForCourse = $this->allChapters()->where('course_id', $course);
 
         return view('chapters.index', [
+            'courseId' => $course,
+            'courseTitle' => $courses[$course],
             'chapters' => $chapters,
-            'totalCount' => $totalCount,
-            'draftsCount' => $draftsCount,
+            'totalCount' => $allForCourse->count(),
+            'draftsCount' => $allForCourse->where('status', 'Draft')->count(),
             'filters' => [
-                'course' => $course ?? '',
                 'title' => $title ?? '',
                 'status' => $status ?? '',
-            ]
+            ],
+        ]);
+    }
+
+    /**
+     * Display the management dashboard hub for a single chapter.
+     */
+    public function dashboard(int $course, int $chapter)
+    {
+        $courses = $this->courses();
+        abort_if(! isset($courses[$course]), 404);
+
+        $chapterData = $this->allChapters()->firstWhere('id', $chapter);
+        abort_if(! $chapterData || $chapterData['course_id'] !== $course, 404);
+
+        return view('chapters.dashboard', [
+            'courseId' => $course,
+            'courseTitle' => $courses[$course],
+            'chapter' => $chapterData,
         ]);
     }
 }

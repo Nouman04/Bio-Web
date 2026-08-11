@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Chapters')
+@section('title', 'Chapters — ' . $courseTitle)
 @section('meta-description', 'Manage course chapters and curriculum structure in EduAdmin LMS.')
 
 @section('page-title', 'Chapters')
-@section('page-subtitle', 'Manage and organize instructional content structure.')
+@section('page-subtitle', $courseTitle)
 
 @push('styles')
 <style>
@@ -53,7 +53,9 @@
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-on-surface-variant dark:text-slate-500">Content</span>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span class="text-on-surface-variant dark:text-slate-500">{{ $courseTitle }}</span>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Chapters</span>
     </div>
@@ -80,8 +82,8 @@
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
             <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-                <form action="{{ route('chapters') }}" method="GET">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <form action="{{ route('courses.chapters', $courseId) }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
                             <div class="relative group">
@@ -90,15 +92,6 @@
                                     class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none"
                                     placeholder="Search by title..." type="text">
                             </div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
-                            <select name="course" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
-                                <option value="">All Courses</option>
-                                <option value="Computer Science 101" {{ ($filters['course'] ?? '') == 'Computer Science 101' ? 'selected' : '' }}>Computer Science 101</option>
-                                <option value="Advanced Biology" {{ ($filters['course'] ?? '') == 'Advanced Biology' ? 'selected' : '' }}>Advanced Biology</option>
-                                <option value="UX/UI Design Principles" {{ ($filters['course'] ?? '') == 'UX/UI Design Principles' ? 'selected' : '' }}>UX/UI Design Principles</option>
-                            </select>
                         </div>
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Status</label>
@@ -110,7 +103,7 @@
                         </div>
                     </div>
                     <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
-                        <a href="{{ route('chapters') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                        <a href="{{ route('courses.chapters', $courseId) }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
                             <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
                         </a>
                         <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
@@ -135,11 +128,11 @@
         </div>
         <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 relative overflow-hidden border border-outline-variant/30 dark:border-slate-700 shadow-sm flex flex-col justify-between">
             <div class="flex justify-between items-start mb-2">
-                <h3 class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Avg. Chapters / Course</h3>
-                <span class="fa-solid fa-chart-bar text-secondary bg-secondary-container/20 p-2 rounded-lg text-sm"></span>
+                <h3 class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Published</h3>
+                <span class="fa-solid fa-circle-check text-secondary bg-secondary-container/20 p-2 rounded-lg text-sm"></span>
             </div>
             <div>
-                <span class="text-3xl font-bold text-on-surface dark:text-white">1.3</span>
+                <span class="text-3xl font-bold text-on-surface dark:text-white">{{ $totalCount - $draftsCount }}</span>
             </div>
         </div>
         <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 relative overflow-hidden border border-outline-variant/30 dark:border-slate-700 shadow-sm flex flex-col justify-between">
@@ -161,9 +154,8 @@
                     <tr class="border-b border-outline-variant/20 bg-surface-container-low/40 dark:bg-slate-900/40 text-sm font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">
                         <th class="py-4 px-6 w-20">Chapter</th>
                         <th class="py-4 px-6">Title &amp; Description</th>
-                        <th class="py-4 px-6">Course</th>
                         <th class="py-4 px-6 w-32">Status</th>
-                        <th class="py-4 px-6 text-right w-32">Actions</th>
+                        <th class="py-4 px-6 text-right w-40">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant/10 dark:divide-slate-700 text-sm">
@@ -175,13 +167,8 @@
                                 </div>
                             </td>
                             <td class="py-4 px-6 align-top max-w-md">
-                                <h4 class="font-semibold text-on-surface dark:text-white mb-1">{{ $c['title'] }}</h4>
+                                <a href="{{ route('courses.chapters.dashboard', [$courseId, $c['id']]) }}" class="font-semibold text-on-surface dark:text-white mb-1 hover:text-primary transition-colors block">{{ $c['title'] }}</a>
                                 <p class="text-xs text-on-surface-variant dark:text-slate-400 truncate">{{ $c['desc'] }}</p>
-                            </td>
-                            <td class="py-4 px-6 align-top">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                                    {{ $c['course'] }}
-                                </span>
                             </td>
                             <td class="py-4 px-6 align-top">
                                 @if($c['status'] === 'Published')
@@ -199,7 +186,11 @@
                                     <button type="button" class="action-dropdown-trigger w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant dark:text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Actions">
                                         <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
                                     </button>
-                                    <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
+                                    <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-48 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
+                                        <a href="{{ route('courses.chapters.dashboard', [$courseId, $c['id']]) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
+                                            <i class="fa-solid fa-grip w-4 text-on-surface-variant"></i>
+                                            Open Dashboard
+                                        </a>
                                         <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
                                             <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
                                             Edit
@@ -215,7 +206,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-on-surface-variant">
+                            <td colspan="4" class="py-12 text-center text-on-surface-variant">
                                 No chapters found.
                             </td>
                         </tr>
@@ -239,15 +230,9 @@
             </div>
             <form action="#" method="POST" class="p-6 flex flex-col gap-4">
                 @csrf
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
-                    <select class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
-                        <option>Select a course</option>
-                        <option>Computer Science 101</option>
-                        <option>Advanced Biology</option>
-                        <option>UX/UI Design Principles</option>
-                    </select>
-                </div>
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
+                    Adding to <span class="text-primary">{{ $courseTitle }}</span>
+                </p>
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter Number</label>
                     <input class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. 1" type="number">

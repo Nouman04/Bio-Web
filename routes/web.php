@@ -81,8 +81,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/summaries', [SummaryController::class, 'index'])->name('summaries');
     Route::post('/summaries', [SummaryController::class, 'store'])->name('summaries.store');
 
-    // Chapters
-    Route::get('/chapters', [ChapterController::class, 'index'])->name('chapters');
+    // Chapters — scoped to a course, drilling down to the chapter management dashboard
+    Route::get('/courses/{course}/chapters', [ChapterController::class, 'index'])->name('courses.chapters');
+    Route::get('/courses/{course}/chapters/{chapter}/dashboard', [ChapterController::class, 'dashboard'])->name('courses.chapters.dashboard');
 });
 
 require __DIR__.'/auth.php';
