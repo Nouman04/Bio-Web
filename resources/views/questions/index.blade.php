@@ -253,25 +253,6 @@
                 const isOpen = filterCardWrapper?.classList.toggle('is-open');
                 filterToggle.classList.toggle('is-active', isOpen);
             });
-
-            document.querySelectorAll('.action-dropdown').forEach(dropdown => {
-                const trigger = dropdown.querySelector('.action-dropdown-trigger');
-                const menu = dropdown.querySelector('.action-dropdown-menu');
-
-                trigger?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('.action-dropdown-menu').forEach(m => {
-                        if (m !== menu) m.classList.add('hidden');
-                    });
-                    menu?.classList.toggle('hidden');
-                });
-            });
-
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
         });
     </script>
     @endpush

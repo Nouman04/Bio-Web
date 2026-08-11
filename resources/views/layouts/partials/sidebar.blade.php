@@ -27,14 +27,16 @@
     </div>
 
     {{-- Navigation --}}
-    <nav class="flex-1 w-full flex flex-col justify-center lg:justify-start space-y-2 lg:space-y-1 px-6 overflow-y-auto">
+    <nav class="min-h-0 flex-1 w-full flex flex-col space-y-1 px-6 overflow-y-auto sidebar-nav-scroll custom-scrollbar">
 
+        <p class="sidebar-group-label text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/60 dark:text-slate-500 px-4 pt-4 pb-1 first:pt-0 text-center lg:text-left">Overview</p>
         <a href="{{ route('dashboard') }}"
             class="sidebar-item {{ request()->routeIs('dashboard') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
             <i class="fa-solid fa-border-all text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
             <span class="block ml-4 hide-on-collapse">Dashboard</span>
         </a>
 
+        <p class="sidebar-group-label text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/60 dark:text-slate-500 px-4 pt-4 pb-1 first:pt-0 text-center lg:text-left">Content</p>
         <a href="{{ route('courses') }}"
             class="sidebar-item {{ request()->routeIs('courses*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
             <i class="fa-solid fa-graduation-cap text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
@@ -65,6 +67,7 @@
             <span class="block ml-4 hide-on-collapse">Video Lessons</span>
         </a>
 
+        <p class="sidebar-group-label text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/60 dark:text-slate-500 px-4 pt-4 pb-1 first:pt-0 text-center lg:text-left">Assessments</p>
         <a href="{{ route('questions') }}"
             class="sidebar-item {{ request()->routeIs('questions*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
             <i class="fa-regular fa-circle-question text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
@@ -77,6 +80,7 @@
             <span class="block ml-4 hide-on-collapse">Quizzes</span>
         </a>
 
+        <p class="sidebar-group-label text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/60 dark:text-slate-500 px-4 pt-4 pb-1 first:pt-0 text-center lg:text-left">Study Resources</p>
         <a href="{{ route('flashcards') }}"
             class="sidebar-item {{ request()->routeIs('flashcards*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
             <i class="fa-solid fa-layer-group text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
@@ -107,6 +111,7 @@
             <span class="block ml-4 hide-on-collapse">Summaries</span>
         </a>
 
+        <p class="sidebar-group-label text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/60 dark:text-slate-500 px-4 pt-4 pb-1 first:pt-0 text-center lg:text-left">Users</p>
         <a href="{{ route('students') }}"
             class="sidebar-item {{ request()->routeIs('students*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
             <i class="fa-solid fa-users text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>

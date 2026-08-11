@@ -213,6 +213,31 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(118,117,134,0.3); border-radius: 99px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(118,117,134,0.5); }
+
+        /* Sidebar nav: fade the top/bottom edges as a scroll affordance */
+        .sidebar-nav-scroll {
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+        }
+        .sidebar-nav-scroll::-webkit-scrollbar { width: 5px; }
+        .sidebar-nav-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav-scroll::-webkit-scrollbar-thumb { background: rgba(118,117,134,0.25); border-radius: 99px; }
+        .sidebar-nav-scroll::-webkit-scrollbar-thumb:hover { background: rgba(118,117,134,0.45); }
+
+        /* Section labels above each nav group */
+        .sidebar-group-label {
+            transition: opacity 0.2s ease, height 0.2s ease, padding 0.2s ease, margin 0.2s ease;
+        }
+        @media (min-width: 1024px) {
+            #sidebar.collapsed .sidebar-group-label {
+                opacity: 0;
+                height: 0;
+                margin: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                overflow: hidden;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -307,6 +332,26 @@
             // Close the mobile drawer automatically if the viewport grows into the desktop breakpoint
             window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
                 if (e.matches) closeMobileSidebar();
+            });
+
+            // ── Table Row Action Dropdowns (the "..." menu in Actions columns) ─────
+            document.querySelectorAll('.action-dropdown').forEach(dropdown => {
+                const trigger = dropdown.querySelector('.action-dropdown-trigger');
+                const menu = dropdown.querySelector('.action-dropdown-menu');
+
+                trigger?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.action-dropdown-menu').forEach(m => {
+                        if (m !== menu) m.classList.add('hidden');
+                    });
+                    menu?.classList.toggle('hidden');
+                });
+            });
+
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
             });
         });
     </script>

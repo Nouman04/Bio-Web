@@ -104,14 +104,22 @@
                                 <span class="inline-flex items-center px-2 py-1 rounded {{ $image['topic_color'] }} text-xs font-medium">{{ $image['topic'] }}</span>
                             </td>
                             <td class="p-4 hidden lg:table-cell text-on-surface-variant dark:text-slate-400">{{ $image['date_added'] }}</td>
-                            <td class="p-4 text-right">
-                                <div class="flex justify-end gap-2">
-                                    <button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-full transition-colors dark:hover:bg-slate-700" title="Edit">
-                                        <i class="fa-solid fa-pen text-xs"></i>
+                            <td class="p-4 text-right whitespace-nowrap">
+                                <div class="relative inline-block text-left action-dropdown">
+                                    <button type="button" class="action-dropdown-trigger w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors" title="Actions">
+                                        <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
                                     </button>
-                                    <button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors dark:hover:bg-slate-700" title="Delete">
-                                        <i class="fa-solid fa-trash text-xs"></i>
-                                    </button>
+                                    <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
+                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
+                                            <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
+                                            Edit
+                                        </button>
+                                        <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
+                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
+                                            <i class="fa-solid fa-trash w-4"></i>
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
