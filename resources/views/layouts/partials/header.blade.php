@@ -29,7 +29,7 @@
         </button>
 
         {{-- Search --}}
-        <button
+        <button id="searchTrigger" type="button"
             class="flex w-9 h-9 sm:w-10 sm:h-10 bg-surface-container-lowest dark:bg-slate-800 rounded-full items-center justify-center text-on-surface-variant dark:text-slate-300 shadow-sm hover:text-primary hover:scale-105 active:scale-95 dark:hover:text-white transition-all border dark:border-slate-700"
             title="Search">
             <i class="fa-solid fa-magnifying-glass"></i>

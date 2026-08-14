@@ -12,11 +12,19 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Display the admin login view.
      */
     public function create(): View
     {
         return view('auth.login');
+    }
+
+    /**
+     * Display the student login view.
+     */
+    public function createStudent(): View
+    {
+        return view('auth.student-login');
     }
 
     /**
@@ -28,7 +36,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $home = Auth::user()->hasRole('student')
+            ? route('student.dashboard', absolute: false)
+            : route('dashboard', absolute: false);
+
+        return redirect()->intended($home);
     }
 
     /**

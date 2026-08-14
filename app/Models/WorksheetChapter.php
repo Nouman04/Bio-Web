@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 class WorksheetChapter extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $table = 'worksheets_chapters';
 
@@ -36,5 +38,17 @@ class WorksheetChapter extends Model
     public function worksheetQuestions(): HasMany
     {
         return $this->hasMany(WorksheetQuestion::class, 'worksheets_chapters_id');
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'worksheet' => $this->worksheet?->title,
+            'chapter' => $this->chapter?->title,
+        ];
     }
 }

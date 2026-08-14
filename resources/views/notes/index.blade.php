@@ -186,6 +186,7 @@
                         <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Content</label>
                         <textarea name="content" class="w-full bg-white dark:bg-slate-800 border border-outline-variant/50 rounded-lg px-3 py-2 text-sm text-on-surface dark:text-slate-200 focus:ring-1 focus:ring-primary focus:border-primary outline-none min-h-[120px] resize-y" placeholder="Write your note content here..." required></textarea>
                     </div>
+                    @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
                     <div>
                         <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Attachments</label>
                         <div class="border-2 border-dashed border-outline-variant/50 dark:border-slate-600 rounded-lg p-6 flex flex-col items-center justify-center text-outline bg-surface-container-lowest dark:bg-slate-800 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors cursor-pointer">

@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 class QuizAttemptAnswer extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $table = 'quiz_attempt_answers';
 
@@ -37,5 +39,16 @@ class QuizAttemptAnswer extends Model
     public function selectedOption(): BelongsTo
     {
         return $this->belongsTo(QuestionOption::class, 'selected_option');
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'answer_content' => $this->answer_content,
+        ];
     }
 }

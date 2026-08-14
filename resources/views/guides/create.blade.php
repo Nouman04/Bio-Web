@@ -104,7 +104,10 @@
                     <textarea name="content" class="flex-1 w-full p-4 bg-transparent border-none focus:ring-0 resize-none text-sm text-on-surface dark:text-slate-200 placeholder:text-outline" placeholder="Start writing the guide content here..." required></textarea>
                 </div>
             </div>
-            
+
+            {{-- Linked Questions --}}
+            @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+
             {{-- Footer Actions --}}
             <div class="flex items-center justify-end gap-4 mt-4 pt-6 border-t border-outline-variant/40 dark:border-slate-700">
                 <a href="{{ route('guides') }}" class="px-6 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors cursor-pointer inline-block">

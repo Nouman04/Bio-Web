@@ -231,6 +231,25 @@
 
     </main>
 
+    {{-- Global Search --}}
+    @include('partials.search-modal', [
+        'searchPlaceholder' => 'Search your courses and resources…',
+        'searchLinks' => [
+            ['label' => 'Dashboard', 'icon' => 'fa-solid fa-border-all'],
+            ['label' => 'Courses', 'icon' => 'fa-solid fa-graduation-cap'],
+            ['label' => 'Categories', 'icon' => 'fa-solid fa-book-open'],
+            ['label' => 'Topics', 'icon' => 'fa-solid fa-tags'],
+            ['label' => 'Quizzes', 'icon' => 'fa-solid fa-clipboard-question'],
+            ['label' => 'Questions', 'icon' => 'fa-regular fa-circle-question'],
+            ['label' => 'Flashcards', 'icon' => 'fa-solid fa-layer-group'],
+            ['label' => 'Video Lessons', 'icon' => 'fa-solid fa-circle-play'],
+            ['label' => 'Notes', 'icon' => 'fa-regular fa-note-sticky'],
+            ['label' => 'Guides', 'icon' => 'fa-solid fa-book-open'],
+            ['label' => 'Diagrams', 'icon' => 'fa-regular fa-image'],
+            ['label' => 'Summaries', 'icon' => 'fa-solid fa-list-check'],
+        ],
+    ])
+
     {{-- Save / Bookmark Toggle --}}
     <script>
         function toggleSaveIcon(btn) {

@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Scout\Searchable;
 
 class Topic extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $fillable = [
         'chapter_id',
@@ -65,5 +67,16 @@ class Topic extends Model
     public function worksheetQuestions(): HasMany
     {
         return $this->hasMany(WorksheetQuestion::class, 'topics_id');
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+        ];
     }
 }

@@ -111,6 +111,11 @@
                 <textarea class="w-full bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] text-on-surface dark:text-slate-200 placeholder:text-outline/70 transition-all h-32 resize-y" id="description" name="description" placeholder="Provide context, key takeaways, or paste transcript here..."></textarea>
             </div>
 
+            {{-- Linked Questions --}}
+            <div class="flex flex-col gap-2 mt-2">
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+            </div>
+
             {{-- Action Buttons --}}
             <div class="flex items-center justify-end gap-3 pt-6 border-t border-surface-variant dark:border-slate-700 mt-2">
                 <a href="{{ route('videos') }}" class="px-6 py-2.5 rounded-full border border-outline/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 text-sm font-semibold hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors">

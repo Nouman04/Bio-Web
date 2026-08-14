@@ -194,6 +194,7 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic Name</label>
                     <input class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="Enter topic name" type="text">
                 </div>
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeCreateTopicModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors">Add Topic</button>

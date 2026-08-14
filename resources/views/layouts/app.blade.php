@@ -272,6 +272,26 @@
 
     </main>
 
+    {{-- Global Search --}}
+    @include('partials.search-modal', [
+        'searchPlaceholder' => 'Search modules, content, or students…',
+        'searchLinks' => [
+            ['label' => 'Dashboard', 'icon' => 'fa-solid fa-border-all'],
+            ['label' => 'Courses', 'icon' => 'fa-solid fa-graduation-cap'],
+            ['label' => 'Categories', 'icon' => 'fa-solid fa-book-open'],
+            ['label' => 'Topics', 'icon' => 'fa-solid fa-tags'],
+            ['label' => 'Quizzes', 'icon' => 'fa-solid fa-clipboard-question'],
+            ['label' => 'Questions', 'icon' => 'fa-regular fa-circle-question'],
+            ['label' => 'Flashcards', 'icon' => 'fa-solid fa-layer-group'],
+            ['label' => 'Video Lessons', 'icon' => 'fa-solid fa-circle-play'],
+            ['label' => 'Notes', 'icon' => 'fa-regular fa-note-sticky'],
+            ['label' => 'Guides', 'icon' => 'fa-solid fa-book-open'],
+            ['label' => 'Diagrams', 'icon' => 'fa-regular fa-image'],
+            ['label' => 'Summaries', 'icon' => 'fa-solid fa-list-check'],
+            ['label' => 'Students', 'icon' => 'fa-solid fa-users'],
+        ],
+    ])
+
     {{-- Theme & Sidebar Scripts --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -352,6 +372,108 @@
                 document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
                     menu.classList.add('hidden');
                 });
+            });
+
+            // ── Question Widget (multi-add existing or newly-written questions) ────
+            document.querySelectorAll('.question-widget').forEach(widget => {
+                const fieldName = widget.dataset.fieldName || 'question_ids';
+                const newFieldName = widget.dataset.newFieldName || 'new_questions';
+                const select = widget.querySelector('.question-widget-select');
+                const addBtn = widget.querySelector('.question-widget-add');
+                const newInput = widget.querySelector('.question-widget-new-input');
+                const addNewBtn = widget.querySelector('.question-widget-add-new');
+                const list = widget.querySelector('.question-widget-list');
+                const emptyMsg = widget.querySelector('.question-widget-empty');
+                const added = new Set();
+                let newCounter = 0;
+
+                function refreshEmpty() {
+                    emptyMsg.classList.toggle('hidden', list.children.length > 0);
+                }
+
+                function buildRow(key, text, { isNew = false, name, value } = {}) {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-lg px-3 py-2';
+                    li.dataset.key = key;
+
+                    const left = document.createElement('div');
+                    left.className = 'flex items-center gap-2 min-w-0';
+
+                    if (isNew) {
+                        const badge = document.createElement('span');
+                        badge.className = 'shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary';
+                        badge.textContent = 'New';
+                        left.appendChild(badge);
+                    }
+
+                    const span = document.createElement('span');
+                    span.className = 'text-sm text-on-surface dark:text-slate-200 line-clamp-1';
+                    span.textContent = text;
+                    left.appendChild(span);
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'question-widget-remove shrink-0 text-on-surface-variant hover:text-error transition-colors';
+                    removeBtn.innerHTML = '<i class="fa-solid fa-xmark text-sm"></i>';
+
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = name;
+                    hidden.value = value;
+
+                    li.appendChild(left);
+                    li.appendChild(removeBtn);
+                    li.appendChild(hidden);
+                    list.appendChild(li);
+                    refreshEmpty();
+                }
+
+                function addExisting(id, text) {
+                    const key = 'existing:' + id;
+                    if (added.has(key)) return;
+                    added.add(key);
+                    buildRow(key, text, { name: fieldName + '[]', value: id });
+                }
+
+                function addNew(text) {
+                    const key = 'new:' + (++newCounter);
+                    added.add(key);
+                    buildRow(key, text, { isNew: true, name: newFieldName + '[]', value: text });
+                }
+
+                addBtn?.addEventListener('click', () => {
+                    const opt = select.options[select.selectedIndex];
+                    if (!opt || !opt.value) return;
+                    addExisting(opt.value, opt.dataset.text || opt.textContent);
+                    select.selectedIndex = 0;
+                });
+
+                function submitNewQuestion() {
+                    const text = newInput.value.trim();
+                    if (!text) return;
+                    addNew(text);
+                    newInput.value = '';
+                    newInput.focus();
+                }
+
+                addNewBtn?.addEventListener('click', submitNewQuestion);
+                newInput?.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submitNewQuestion();
+                    }
+                });
+
+                list?.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.question-widget-remove');
+                    if (!btn) return;
+                    const li = btn.closest('li');
+                    added.delete(li.dataset.key);
+                    li.remove();
+                    refreshEmpty();
+                });
+
+                refreshEmpty();
             });
         });
     </script>

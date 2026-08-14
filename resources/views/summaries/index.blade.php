@@ -229,7 +229,12 @@
                         <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Summary Title</label>
                         <input name="title" required class="w-full bg-white dark:bg-slate-800 border border-outline-variant/50 dark:border-slate-700 rounded-lg py-2 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="Enter summary title..." type="text">
                     </div>
-                    
+
+                    {{-- Linked Questions --}}
+                    <div class="mb-6">
+                        @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+                    </div>
+
                     {{-- Content Editor --}}
                     <div class="flex flex-col gap-2 flex-1 min-h-[300px]">
                         <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Content</label>

@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 class QuizQuestion extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $table = 'quiz_questions';
 
@@ -36,5 +38,17 @@ class QuizQuestion extends Model
     public function attemptAnswers(): HasMany
     {
         return $this->hasMany(QuizAttemptAnswer::class, 'quizzes_question_id');
+    }
+
+    /**
+     * Get the indexable data array for the model. Indexes the linked
+     * question's text since this join record has none of its own.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'question' => $this->questionBank?->question,
+        ];
     }
 }

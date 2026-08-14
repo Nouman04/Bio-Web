@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Create Student Account')
+@section('title', 'Student Sign In')
 
 @section('content')
 <div class="w-full max-w-auth-card-width relative">
@@ -17,31 +17,25 @@
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">school</span>
             </div>
             <h1 class="text-3xl font-semibold text-primary">EduStudent</h1>
-            <p class="text-base text-secondary">Create your account to start learning.</p>
+            <p class="text-base text-secondary">Welcome back. Please sign in to continue.</p>
         </div>
 
-        {{-- Signup Form --}}
-        <form class="flex flex-col gap-sm" method="POST" action="{{ route('register') }}">
-            @csrf
+        <x-auth-session-status class="text-center" :status="session('status')" />
 
-            {{-- Name --}}
-            <div class="flex flex-col gap-xs">
-                <label class="text-sm font-medium text-on-surface-variant" for="name">Full Name</label>
-                <div class="relative flex items-center">
-                    <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">badge</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="name" name="name" placeholder="Jane Doe" type="text" value="{{ old('name') }}" required autofocus autocomplete="name">
-                </div>
-                @error('name')
-                    <p class="text-sm text-error">{{ $message }}</p>
-                @enderror
-            </div>
+        @if (session('error'))
+            <p class="text-sm text-error text-center">{{ session('error') }}</p>
+        @endif
+
+        {{-- Login Form --}}
+        <form class="flex flex-col gap-sm" method="POST" action="{{ route('login') }}">
+            @csrf
 
             {{-- Email --}}
             <div class="flex flex-col gap-xs">
                 <label class="text-sm font-medium text-on-surface-variant" for="email">Email Address</label>
                 <div class="relative flex items-center">
-                    <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">mail</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="email" name="email" placeholder="e.g. jdoe@lumina.edu" type="email" value="{{ old('email') }}" required autocomplete="username">
+                    <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">person</span>
+                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="email" name="email" placeholder="e.g. jdoe@lumina.edu" type="email" value="{{ old('email') }}" required autofocus>
                 </div>
                 @error('email')
                     <p class="text-sm text-error">{{ $message }}</p>
@@ -50,31 +44,30 @@
 
             {{-- Password --}}
             <div class="flex flex-col gap-xs">
-                <label class="text-sm font-medium text-on-surface-variant" for="password">Password</label>
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-medium text-on-surface-variant" for="password">Password</label>
+                    @if (Route::has('password.request'))
+                        <a class="text-xs font-semibold text-primary hover:text-primary-container transition-colors" href="{{ route('password.request') }}">Forgot?</a>
+                    @endif
+                </div>
                 <div class="relative flex items-center">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="new-password">
+                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required>
                 </div>
                 @error('password')
                     <p class="text-sm text-error">{{ $message }}</p>
                 @enderror
             </div>
 
-            {{-- Confirm Password --}}
-            <div class="flex flex-col gap-xs">
-                <label class="text-sm font-medium text-on-surface-variant" for="password_confirmation">Confirm Password</label>
-                <div class="relative flex items-center">
-                    <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock_reset</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password_confirmation" name="password_confirmation" placeholder="••••••••" type="password" required autocomplete="new-password">
-                </div>
-                @error('password_confirmation')
-                    <p class="text-sm text-error">{{ $message }}</p>
-                @enderror
-            </div>
+            {{-- Remember Me --}}
+            <label class="flex items-center gap-xs cursor-pointer">
+                <input class="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary-container bg-surface-container-low cursor-pointer" name="remember" type="checkbox">
+                <span class="text-sm text-secondary">Remember me</span>
+            </label>
 
             {{-- Primary Action --}}
             <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded-DEFAULT mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(70,72,212,0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
-                Create Account
+                Sign In
                 <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
         </form>
@@ -86,7 +79,7 @@
             <div class="h-px bg-outline-variant flex-1"></div>
         </div>
 
-        {{-- Google Sign Up --}}
+        {{-- Google Sign In --}}
         <a href="{{ route('google.login') }}"
             class="w-full bg-transparent border border-outline-variant rounded-DEFAULT py-[10px] px-sm flex items-center justify-center gap-sm hover:bg-surface-container-low active:scale-[0.98] transition-all duration-200 text-on-surface text-sm font-semibold">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -101,7 +94,10 @@
         {{-- Footer Link --}}
         <div class="text-center mt-sm">
             <p class="text-base text-secondary">
-                Already have an account? <a class="text-primary font-semibold hover:underline hover:text-primary-container transition-colors" href="{{ route('student.login') }}">Sign in</a>
+                New here? <a class="text-primary font-semibold hover:underline hover:text-primary-container transition-colors" href="{{ route('register') }}">Create account</a>
+            </p>
+            <p class="text-xs text-outline mt-xs">
+                Administrator? <a class="text-secondary hover:text-primary transition-colors" href="{{ route('login') }}">Sign in here</a>
             </p>
         </div>
     </div>

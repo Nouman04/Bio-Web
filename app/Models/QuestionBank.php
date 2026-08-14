@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Scout\Searchable;
 
 class QuestionBank extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $table = 'question_bank';
 
@@ -70,5 +72,17 @@ class QuestionBank extends Model
     public function quizQuestions(): HasMany
     {
         return $this->hasMany(QuizQuestion::class);
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'question' => $this->question,
+            'difficulty_level' => $this->difficulty_level,
+        ];
     }
 }

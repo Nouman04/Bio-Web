@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 class QuestionAnswer extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $fillable = [
         'question_bank_id',
@@ -31,5 +33,17 @@ class QuestionAnswer extends Model
     public function flashcards(): HasMany
     {
         return $this->hasMany(Flashcard::class, 'question_answer_id');
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'expected_answer' => $this->expected_answer,
+            'description' => $this->description,
+        ];
     }
 }
