@@ -11,7 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Send unauthenticated visitors to the branded login page for the
+        // area they were trying to reach (student vs admin).
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('student/*')
+            ? route('student.login')
+            : route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
