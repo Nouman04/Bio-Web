@@ -28,6 +28,9 @@
     <link href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css" rel="stylesheet"/>
     <link href="{{ asset('css/app-datatable.css') }}" rel="stylesheet"/>
 
+    {{-- Tom Select (self-hosted) — type-ahead pickers --}}
+    <link href="{{ asset('cdn/tom-select/tomSelect.css') }}" rel="stylesheet"/>
+
     {{-- Tailwind Config --}}
     <script id="tailwind-config">
         tailwind.config = {
@@ -313,6 +316,86 @@
         }
         .app-swal-cancel:hover { background: rgba(118, 117, 134, 0.08); }
 
+        /* ── Tom Select (question picker) ──────────────────────────────────── */
+        .question-widget .ts-wrapper { margin: 0; }
+        .question-widget .ts-control {
+            background: #ffffff;
+            border: 1px solid rgba(118, 117, 134, 0.35);
+            border-radius: 0.5rem;
+            padding: 0.375rem 0.5rem;
+            font-size: 0.875rem;
+            min-height: 2.5rem;
+            box-shadow: none;
+            /* Linked questions scroll instead of stretching the modal */
+            max-height: 11rem;
+            overflow-y: auto;
+        }
+        .question-widget .ts-control::-webkit-scrollbar { width: 6px; }
+        .question-widget .ts-control::-webkit-scrollbar-track { background: transparent; }
+        .question-widget .ts-control::-webkit-scrollbar-thumb {
+            background: rgba(118, 117, 134, 0.28);
+            border-radius: 9999px;
+        }
+        .question-widget .ts-control::-webkit-scrollbar-thumb:hover { background: rgba(118, 117, 134, 0.45); }
+        .dark .question-widget .ts-control::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); }
+        .question-widget .ts-wrapper.focus .ts-control {
+            border-color: #4648d4;
+            box-shadow: 0 0 0 1px rgba(70, 72, 212, 0.35);
+        }
+        .question-widget .ts-control > .item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            max-width: 100%;
+            background: rgba(70, 72, 212, 0.08);
+            color: #4648d4;
+            border: none;
+            border-radius: 9999px;
+            padding: 0.1875rem 0.5rem 0.1875rem 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .question-widget .ts-control > .item > div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 22rem;
+        }
+        .question-widget .ts-control > .item .remove {
+            border-left: none;
+            padding: 0 0.125rem;
+            opacity: 0.7;
+        }
+        .question-widget .ts-control > .item .remove:hover { background: transparent; opacity: 1; }
+        /* Dropdowns render on <body> (dropdownParent), so they sit outside
+           .question-widget and must clear the modal's z-index. */
+        .ts-dropdown {
+            z-index: 200;
+            border: 1px solid rgba(118, 117, 134, 0.25);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+            overflow: hidden;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+        }
+        .ts-dropdown .active { background: rgba(70, 72, 212, 0.08); }
+        .dark .question-widget .ts-control {
+            background: rgb(30, 41, 59);
+            border-color: rgb(51, 65, 85);
+            color: rgb(226, 232, 240);
+        }
+        .dark .question-widget .ts-control > .item {
+            background: rgba(70, 72, 212, 0.28);
+            color: #c0c1ff;
+        }
+        .dark .ts-dropdown {
+            background: rgb(30, 41, 59);
+            border-color: rgb(51, 65, 85);
+            color: rgb(226, 232, 240);
+        }
+        .dark .ts-dropdown .active { background: rgba(70, 72, 212, 0.3); }
+        .question-widget .ts-control input::placeholder { color: #767586; }
+
         /* ── Quill editor ──────────────────────────────────────────────────── */
         .quill-wrapper .ql-toolbar.ql-snow,
         .quill-wrapper .ql-container.ql-snow {
@@ -562,42 +645,109 @@
             window.addEventListener('resize', closeActionMenu);
             document.addEventListener('scroll', closeActionMenu, true);
 
-            // ── Question Widget (multi-add existing or newly-written questions) ────
+            // ── Question Widget (Tom Select search + queued new questions) ─────
             document.querySelectorAll('.question-widget').forEach(widget => {
                 const fieldName = widget.dataset.fieldName || 'question_ids';
                 const newFieldName = widget.dataset.newFieldName || 'new_questions';
+                const searchUrl = widget.dataset.searchUrl;
+
                 const select = widget.querySelector('.question-widget-select');
-                const addBtn = widget.querySelector('.question-widget-add');
                 const newInput = widget.querySelector('.question-widget-new-input');
                 const addNewBtn = widget.querySelector('.question-widget-add-new');
+                const newWrap = widget.querySelector('.question-widget-new-wrap');
                 const list = widget.querySelector('.question-widget-list');
-                const emptyMsg = widget.querySelector('.question-widget-empty');
-                const added = new Set();
+                const count = widget.querySelector('.question-widget-count');
+                const clearBtn = widget.querySelector('.question-widget-clear');
+
+                // ── Existing questions: type-ahead against the question bank ──
+                const picker = new TomSelect(select, {
+                    valueField: 'id',
+                    labelField: 'text',
+                    searchField: 'text',
+                    plugins: ['remove_button'],
+                    maxOptions: 20,
+                    loadThrottle: 300,
+                    hideSelected: true,
+                    // The widget panel scrolls, so the dropdown hangs off <body>
+                    // rather than being clipped by it.
+                    dropdownParent: 'body',
+                    // Values post as question_ids[] alongside the rest of the form.
+                    onInitialize() { this.input.name = fieldName + '[]'; },
+                    load(query, callback) {
+                        // Built through URL so a search url that already carries
+                        // params (e.g. exclude_type/exclude_id) keeps them.
+                        const url = new URL(searchUrl, window.location.origin);
+                        url.searchParams.set('q', query);
+
+                        fetch(url, {
+                            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                            credentials: 'same-origin',
+                        })
+                            .then(response => response.json())
+                            .then(callback)
+                            .catch(() => callback());
+                    },
+                    render: {
+                        option: (data, escape) => `<div class="py-2 px-3">
+                                <div class="text-sm text-on-surface dark:text-slate-200">${escape(data.text)}</div>
+                                ${data.meta ? `<div class="text-[11px] text-on-surface-variant mt-0.5">${escape(data.meta)}</div>` : ''}
+                            </div>`,
+                        item: (data, escape) => `<div>${escape(data.text)}</div>`,
+                        no_results: () => '<div class="py-2 px-3 text-sm text-on-surface-variant">No questions found.</div>',
+                    },
+                });
+
+                // Tom Select caches results per search term. Call this when the
+                // set of eligible questions changes server-side (e.g. one was
+                // detached) so the next identical search re-queries.
+                widget.refreshQuestionSearch = () => {
+                    picker.loadedSearches = {};
+                };
+
+                // Pre-selecting from JS (e.g. an edit modal) needs the labels too.
+                widget.setQuestions = (questions) => {
+                    picker.clear(true);
+                    picker.clearOptions();
+                    (questions || []).forEach(question => {
+                        picker.addOption({ id: question.id, text: question.text });
+                        picker.addItem(question.id, true);
+                    });
+                    picker.refreshItems();
+                };
+
+                // ── New questions: queued in a scrollable list ─────────────────
                 let newCounter = 0;
 
-                function refreshEmpty() {
-                    emptyMsg.classList.toggle('hidden', list.children.length > 0);
+                // A widget can be picker-only (no "write a new question" half),
+                // as on the flashcard builder — everything below no-ops then.
+                const canWriteNew = Boolean(list && newWrap && newInput);
+
+                function refreshNewList() {
+                    if (!canWriteNew) return;
+
+                    const total = list.children.length;
+                    newWrap.classList.toggle('hidden', total === 0);
+                    newWrap.classList.toggle('flex', total > 0);
+                    count.textContent = `(${total})`;
                 }
 
-                function buildRow(key, text, { isNew = false, name, value } = {}) {
+                function addNewQuestion(text) {
                     const li = document.createElement('li');
-                    li.className = 'flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-lg px-3 py-2';
-                    li.dataset.key = key;
+                    li.className = 'flex items-start justify-between gap-3 bg-white dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-lg px-3 py-2';
+                    li.dataset.key = `new:${++newCounter}`;
 
                     const left = document.createElement('div');
-                    left.className = 'flex items-center gap-2 min-w-0';
+                    left.className = 'flex items-start gap-2 min-w-0';
 
-                    if (isNew) {
-                        const badge = document.createElement('span');
-                        badge.className = 'shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary';
-                        badge.textContent = 'New';
-                        left.appendChild(badge);
-                    }
+                    const badge = document.createElement('span');
+                    badge.className = 'shrink-0 mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary';
+                    badge.textContent = 'New';
 
                     const span = document.createElement('span');
-                    span.className = 'text-sm text-on-surface dark:text-slate-200 line-clamp-1';
+                    span.className = 'text-sm text-on-surface dark:text-slate-200 break-words';
                     span.textContent = text;
-                    left.appendChild(span);
+
+                    left.append(badge, span);
 
                     const removeBtn = document.createElement('button');
                     removeBtn.type = 'button';
@@ -606,40 +756,19 @@
 
                     const hidden = document.createElement('input');
                     hidden.type = 'hidden';
-                    hidden.name = name;
-                    hidden.value = value;
+                    hidden.name = `${newFieldName}[]`;
+                    hidden.value = text;
 
-                    li.appendChild(left);
-                    li.appendChild(removeBtn);
-                    li.appendChild(hidden);
+                    li.append(left, removeBtn, hidden);
                     list.appendChild(li);
-                    refreshEmpty();
+                    list.scrollTop = list.scrollHeight;
+                    refreshNewList();
                 }
-
-                function addExisting(id, text) {
-                    const key = 'existing:' + id;
-                    if (added.has(key)) return;
-                    added.add(key);
-                    buildRow(key, text, { name: fieldName + '[]', value: id });
-                }
-
-                function addNew(text) {
-                    const key = 'new:' + (++newCounter);
-                    added.add(key);
-                    buildRow(key, text, { isNew: true, name: newFieldName + '[]', value: text });
-                }
-
-                addBtn?.addEventListener('click', () => {
-                    const opt = select.options[select.selectedIndex];
-                    if (!opt || !opt.value) return;
-                    addExisting(opt.value, opt.dataset.text || opt.textContent);
-                    select.selectedIndex = 0;
-                });
 
                 function submitNewQuestion() {
                     const text = newInput.value.trim();
                     if (!text) return;
-                    addNew(text);
+                    addNewQuestion(text);
                     newInput.value = '';
                     newInput.focus();
                 }
@@ -653,17 +782,31 @@
                 });
 
                 list?.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.question-widget-remove');
-                    if (!btn) return;
-                    const li = btn.closest('li');
-                    added.delete(li.dataset.key);
-                    li.remove();
-                    refreshEmpty();
+                    if (!e.target.closest('.question-widget-remove')) return;
+                    e.target.closest('li').remove();
+                    refreshNewList();
                 });
 
-                refreshEmpty();
+                clearBtn?.addEventListener('click', () => {
+                    list.replaceChildren();
+                    refreshNewList();
+                });
+
+                // Lets a modal wipe the widget between openings.
+                widget.resetQuestions = () => {
+                    picker.clear(true);
+                    picker.clearOptions();
+                    if (canWriteNew) {
+                        list.replaceChildren();
+                        newInput.value = '';
+                    }
+                    refreshNewList();
+                };
+
+                refreshNewList();
             });
         });
+    </script>
     </script>
 
     {{-- jQuery + DataTables (server-side grids), then SweetAlert2 and the shared
@@ -671,6 +814,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="{{ asset('cdn/sweet-alert/sweetAlert2.min.js') }}"></script>
+    <script src="{{ asset('cdn/tom-select/tomSelect.min.js') }}"></script>
     <script src="{{ asset('js/app-ajax.js') }}"></script>
 
     {{-- Quill rich text editor (self-hosted) --}}

@@ -58,16 +58,57 @@ Route::middleware('auth')->group(function () {
             Route::post('/', [ChapterController::class, 'store'])->middleware('can:add chapter')->name('courses.chapters.store');
             Route::put('/{chapter}', [ChapterController::class, 'update'])->middleware('can:edit chapter')->name('courses.chapters.update');
             Route::delete('/{chapter}', [ChapterController::class, 'destroy'])->middleware('can:delete chapter')->name('courses.chapters.destroy');
-        });
-    });
 
-    Route::prefix('topics')->group(function () {
-        Route::get('/', [TopicController::class, 'index'])->name('topics');
-        Route::get('/create', [TopicController::class, 'create'])->name('topics.create');
-        Route::post('/', [TopicController::class, 'store'])->name('topics.store');
-        Route::get('/{id}/assign', [TopicController::class, 'assign'])->name('topics.assign');
-        Route::get('/{id}/edit', [TopicController::class, 'edit'])->name('topics.edit');
-        Route::put('/{id}', [TopicController::class, 'update'])->name('topics.update');
+            // Topics — always scoped to their chapter (course › chapter › topic)
+            Route::prefix('{chapter}/topics')->group(function () {
+                Route::get('/', [TopicController::class, 'index'])->name('topics');
+                Route::get('/data', [TopicController::class, 'data'])->name('topics.data');
+                Route::post('/', [TopicController::class, 'store'])->name('topics.store');
+                Route::get('/{topic}/assign', [TopicController::class, 'assign'])->name('topics.assign');
+                Route::get('/{topic}/questions', [TopicController::class, 'questions'])->name('topics.questions');
+                Route::put('/{topic}', [TopicController::class, 'update'])->name('topics.update');
+                Route::delete('/{topic}', [TopicController::class, 'destroy'])->name('topics.destroy');
+            });
+
+            // Flashcard decks — also scoped to the chapter they belong to
+            Route::prefix('{chapter}/flashcards')->group(function () {
+                Route::get('/', [FlashcardController::class, 'index'])->name('flashcards');
+                Route::get('/data', [FlashcardController::class, 'data'])->name('flashcards.data');
+                Route::post('/', [FlashcardController::class, 'store'])->name('flashcards.store');
+
+                // Dependent picker: the records available for a chosen source type
+                Route::get('/sources/{type}', [FlashcardController::class, 'sourceRecords'])->name('flashcards.sources');
+
+                // Step two of the flow — attaching questions from the bank
+                Route::get('/{flashcard}/builder', [FlashcardController::class, 'builder'])->name('flashcards.builder');
+                Route::get('/{flashcard}/questions', [FlashcardController::class, 'questions'])->name('flashcards.questions');
+                Route::post('/{flashcard}/questions', [FlashcardController::class, 'addQuestions'])->name('flashcards.questions.add');
+                Route::put('/{flashcard}/questions/order', [FlashcardController::class, 'reorderQuestions'])->name('flashcards.questions.order');
+                Route::delete('/{flashcard}/questions/{assessment}', [FlashcardController::class, 'removeQuestion'])->name('flashcards.questions.remove');
+
+                Route::put('/{flashcard}', [FlashcardController::class, 'update'])->name('flashcards.update');
+                Route::delete('/{flashcard}', [FlashcardController::class, 'destroy'])->name('flashcards.destroy');
+            });
+
+            // Guides — also scoped to the chapter they belong to
+            Route::prefix('{chapter}/guides')->group(function () {
+                Route::get('/', [GuideController::class, 'index'])->name('guides');
+                Route::get('/data', [GuideController::class, 'data'])->name('guides.data');
+                Route::post('/', [GuideController::class, 'store'])->name('guides.store');
+                Route::get('/{guide}/questions', [GuideController::class, 'questions'])->name('guides.questions');
+                Route::put('/{guide}', [GuideController::class, 'update'])->name('guides.update');
+                Route::delete('/{guide}', [GuideController::class, 'destroy'])->name('guides.destroy');
+            });
+
+            // Study notes — also scoped to the chapter they belong to
+            Route::prefix('{chapter}/notes')->group(function () {
+                Route::get('/', [NoteController::class, 'index'])->name('notes');
+                Route::get('/data', [NoteController::class, 'data'])->name('notes.data');
+                Route::post('/', [NoteController::class, 'store'])->name('notes.store');
+                Route::put('/{note}', [NoteController::class, 'update'])->name('notes.update');
+                Route::delete('/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+            });
+        });
     });
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories');
@@ -88,6 +129,8 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('questions')->group(function () {
         Route::get('/', [QuestionController::class, 'index'])->name('questions');
+        // Type-ahead source for the shared question widget
+        Route::get('/search', [QuestionController::class, 'search'])->name('questions.search');
         Route::get('/create', [QuestionController::class, 'create'])->name('questions.create');
         Route::post('/', [QuestionController::class, 'store'])->name('questions.store');
     });
@@ -98,51 +141,35 @@ Route::middleware('auth')->group(function () {
     |----------------------------------------------------------------------
     */
 
-    Route::prefix('guides')->group(function () {
-        Route::get('/', [GuideController::class, 'index'])->name('guides');
-        Route::get('/create', [GuideController::class, 'create'])->name('guides.create');
-        Route::post('/', [GuideController::class, 'store'])->name('guides.store');
-        Route::get('/{id}/edit', [GuideController::class, 'edit'])->name('guides.edit');
-        Route::put('/{id}', [GuideController::class, 'update'])->name('guides.update');
-    });
 
     // Diagrams are served by ImageController (shared media handling)
     Route::prefix('diagrams')->group(function () {
         Route::get('/', [ImageController::class, 'index'])->name('diagrams');
-        Route::get('/create', [ImageController::class, 'create'])->name('diagrams.create');
+        Route::get('/data', [ImageController::class, 'data'])->name('diagrams.data');
         Route::post('/', [ImageController::class, 'store'])->name('diagrams.store');
-        Route::get('/{id}/edit', [ImageController::class, 'edit'])->name('diagrams.edit');
-        Route::put('/{id}', [ImageController::class, 'update'])->name('diagrams.update');
+        Route::get('/{diagram}/questions', [ImageController::class, 'questions'])->name('diagrams.questions');
+        Route::put('/{diagram}', [ImageController::class, 'update'])->name('diagrams.update');
+        Route::delete('/{diagram}', [ImageController::class, 'destroy'])->name('diagrams.destroy');
     });
 
     Route::prefix('videos')->group(function () {
         Route::get('/', [VideoController::class, 'index'])->name('videos');
-        Route::get('/create', [VideoController::class, 'create'])->name('videos.create');
+        Route::get('/data', [VideoController::class, 'data'])->name('videos.data');
         Route::post('/', [VideoController::class, 'store'])->name('videos.store');
-        Route::get('/{id}/edit', [VideoController::class, 'edit'])->name('videos.edit');
-        Route::put('/{id}', [VideoController::class, 'update'])->name('videos.update');
+        Route::get('/{video}/questions', [VideoController::class, 'questions'])->name('videos.questions');
+        Route::put('/{video}', [VideoController::class, 'update'])->name('videos.update');
+        Route::delete('/{video}', [VideoController::class, 'destroy'])->name('videos.destroy');
     });
 
-    Route::prefix('flashcards')->group(function () {
-        Route::get('/', [FlashcardController::class, 'index'])->name('flashcards');
-        Route::get('/create', [FlashcardController::class, 'create'])->name('flashcards.create');
-        Route::post('/', [FlashcardController::class, 'store'])->name('flashcards.store');
-        Route::get('/{id}/edit', [FlashcardController::class, 'edit'])->name('flashcards.edit');
-        Route::put('/{id}', [FlashcardController::class, 'update'])->name('flashcards.update');
-    });
 
-    Route::prefix('notes')->group(function () {
-        Route::get('/', [NoteController::class, 'index'])->name('notes');
-        Route::post('/', [NoteController::class, 'store'])->name('notes.store');
-        Route::get('/{id}/edit', [NoteController::class, 'edit'])->name('notes.edit');
-        Route::put('/{id}', [NoteController::class, 'update'])->name('notes.update');
-    });
 
     Route::prefix('summaries')->group(function () {
         Route::get('/', [SummaryController::class, 'index'])->name('summaries');
+        Route::get('/data', [SummaryController::class, 'data'])->name('summaries.data');
         Route::post('/', [SummaryController::class, 'store'])->name('summaries.store');
-        Route::get('/{id}/edit', [SummaryController::class, 'edit'])->name('summaries.edit');
-        Route::put('/{id}', [SummaryController::class, 'update'])->name('summaries.update');
+        Route::get('/{summary}/questions', [SummaryController::class, 'questions'])->name('summaries.questions');
+        Route::put('/{summary}', [SummaryController::class, 'update'])->name('summaries.update');
+        Route::delete('/{summary}', [SummaryController::class, 'destroy'])->name('summaries.destroy');
     });
 
     /*

@@ -2,111 +2,265 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chapter;
+use App\Models\Course;
+use App\Models\QuestionBank;
+use App\Models\QuestionCategory;
+use App\Models\Topic;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 
 class TopicController extends Controller
 {
     /**
-     * Display a listing of topics.
+     * Topics belong to a chapter, which belongs to a course, so every action
+     * here is reached through course › chapter › topic. The chapter comes from
+     * the URL rather than a picker in the form.
      */
-    public function index(Request $request)
+    public function index(Request $request, int $course, int $chapter)
     {
-        // Simple collection matching topics list.html
-        $topics = collect([
-            ['id' => 1, 'chapter' => 'Ch 1. Fundamentals', 'name' => 'Introduction to Core Concepts', 'questions' => 42],
-            ['id' => 2, 'chapter' => 'Ch 1. Fundamentals', 'name' => 'Historical Context & Evolution', 'questions' => 18],
-            ['id' => 3, 'chapter' => 'Ch 2. Advanced', 'name' => 'Predictive Modeling Basics', 'questions' => 56],
-            ['id' => 4, 'chapter' => 'Ch 2. Advanced', 'name' => 'Data Normalization Strategies', 'questions' => 31]
-        ]);
-
-        // Filter by Title
-        if ($title = $request->input('title')) {
-            $topics = $topics->filter(function ($t) use ($title) {
-                return stripos($t['name'], $title) !== false;
-            });
-        }
-
-        // Filter by Chapter
-        if ($chapter = $request->input('chapter')) {
-            $topics = $topics->filter(function ($t) use ($chapter) {
-                return $t['chapter'] === $chapter;
-            });
-        }
+        [$courseModel, $chapterModel] = $this->scope($course, $chapter);
 
         return view('topics.index', [
-            'topics' => $topics,
+            'course' => $courseModel,
+            'chapter' => $chapterModel,
             'filters' => [
-                'title' => $title ?? '',
-                'chapter' => $chapter ?? '',
-            ]
+                'title' => $request->input('title', ''),
+            ],
         ]);
     }
 
     /**
-     * Show the form for creating a new topic.
+     * Server-side DataTables source for the topics of one chapter.
      */
-    public function create()
+    public function data(Request $request, int $course, int $chapter): JsonResponse
     {
-        return view('topics.create');
+        $this->scope($course, $chapter);
+
+        $topics = Topic::query()
+            ->where('chapter_id', $chapter)
+            ->withCount(['questionables', 'attachments']);
+
+        // Filter from the filter card above the table.
+        $topics->when(
+            $request->input('search_term'),
+            fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
+        );
+
+        $table = DataTables::eloquent($topics)
+            ->addColumn('title_cell', fn (Topic $topic) => view('topics.partials.title-cell', compact('topic'))->render())
+            ->addColumn('questions_cell', fn (Topic $topic) => view('topics.partials.questions-cell', compact('topic'))->render())
+            ->addColumn('action', fn (Topic $topic) => view('topics.partials.actions', [
+                'topic' => $topic,
+                'courseId' => $course,
+                'chapterId' => $chapter,
+            ])->render())
+            ->orderColumn('title_cell', 'title $1')
+            ->orderColumn('questions_cell', 'questionables_count $1')
+            ->rawColumns(['title_cell', 'questions_cell', 'action'])
+            ->only(['title_cell', 'questions_cell', 'action'])
+            ->toJson();
+
+        // Never let a proxy or the browser replay an old page of rows.
+        return $table->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
-     * Store a newly created topic in storage.
+     * The questions already linked to a topic, for the edit modal's picker.
      */
-    public function store(Request $request)
+    public function questions(int $course, int $chapter, Topic $topic): JsonResponse
     {
-        // Placeholder for storing topics
-        return redirect()->route('topics')->with('success', 'Topic added successfully.');
+        $this->scope($course, $chapter, $topic);
+
+        return response()->json(
+            $topic->questionables()->with('question:id,question')->get()
+                ->filter(fn ($link) => $link->question)
+                ->map(fn ($link) => [
+                    'id' => $link->question->id,
+                    'text' => $link->question->question,
+                ])
+                ->values()
+        );
+    }
+
+    /**
+     * Store a newly created topic under the chapter from the URL.
+     */
+    public function store(Request $request, int $course, int $chapter)
+    {
+        $this->scope($course, $chapter);
+
+        $data = $this->validated($request);
+
+        $topic = DB::transaction(function () use ($data, $request, $chapter) {
+            $topic = Topic::create([
+                'chapter_id' => $chapter,
+                'title' => $data['title'],
+                'content' => $data['content'] ?? null,
+            ]);
+
+            $this->syncQuestions($topic, $data);
+            $this->storeAttachments($topic, $request);
+
+            return $topic;
+        });
+
+        return $this->respond($request, $course, $chapter, $topic->fresh(), 'Topic created successfully.', 201);
+    }
+
+    /**
+     * Update the given topic. Newly uploaded files are added to the existing
+     * attachments rather than replacing them.
+     */
+    public function update(Request $request, int $course, int $chapter, Topic $topic)
+    {
+        $this->scope($course, $chapter, $topic);
+
+        $data = $this->validated($request);
+
+        DB::transaction(function () use ($request, $topic, $data) {
+            $topic->update([
+                'title' => $data['title'],
+                'content' => $data['content'] ?? null,
+            ]);
+
+            $this->syncQuestions($topic, $data);
+            $this->storeAttachments($topic, $request);
+        });
+
+        return $this->respond($request, $course, $chapter, $topic->fresh(), 'Topic updated successfully.');
+    }
+
+    /**
+     * Soft delete the given topic.
+     */
+    public function destroy(Request $request, int $course, int $chapter, Topic $topic)
+    {
+        $this->scope($course, $chapter, $topic);
+
+        DB::transaction(function () use ($topic) {
+            $topic->questionables()->delete();
+            $topic->delete();
+        });
+
+        return $this->respond($request, $course, $chapter, null, 'Topic deleted successfully.');
     }
 
     /**
      * Display the question assignment page for a specific topic.
      */
-    public function assign($id)
+    public function assign(int $course, int $chapter, Topic $topic)
     {
-        // Lookup topic details or default mock values
-        $topicName = ($id == 3) ? 'Predictive Modeling Basics' : (($id == 4) ? 'Data Normalization Strategies' : 'Introduction to Core Concepts');
-        
-        $questions = collect([
-            ['id' => 1, 'text' => 'Explain the fundamental difference between definite and indefinite integrals with practical examples.', 'type' => 'Theory', 'difficulty' => 'Hard'],
-            ['id' => 2, 'text' => 'Which of the following describes the area under a curve?', 'type' => 'MCQ', 'difficulty' => 'Easy'],
-            ['id' => 3, 'text' => 'Evaluate the integral of f(x) = 3x^2 from x=0 to x=2.', 'type' => 'MCQ', 'difficulty' => 'Medium'],
-            ['id' => 4, 'text' => 'State the Fundamental Theorem of Calculus.', 'type' => 'Theory', 'difficulty' => 'Medium']
-        ]);
+        [$courseModel, $chapterModel] = $this->scope($course, $chapter, $topic);
 
         return view('topics.assign', [
-            'topicId' => $id,
-            'topicName' => $topicName,
-            'questions' => $questions
+            'course' => $courseModel,
+            'chapter' => $chapterModel,
+            'topicId' => $topic->id,
+            'topicName' => $topic->title,
+            'questions' => QuestionBank::latest('id')->limit(25)->get()
+                ->map(fn (QuestionBank $question) => [
+                    'id' => $question->id,
+                    'text' => $question->question,
+                    'type' => $question->category?->type === 'mcqs' ? 'MCQ' : 'Theory',
+                    'difficulty' => $question->difficulty_level ?: '—',
+                ]),
         ]);
     }
 
     /**
-     * Show the form for editing the specified topic.
+     * Guards the course › chapter › topic chain so a mismatched URL 404s
+     * instead of quietly operating on someone else's records.
      */
-    public function edit($id)
+    private function scope(int $course, int $chapter, ?Topic $topic = null): array
     {
-        // In a real app, you would fetch the topic by $id
-        $topic = [
-            'id' => $id,
-            'title' => 'Introduction to Core Concepts',
-            'chapter' => 'ch1',
-            'content' => 'An overview of the foundational vocabulary and models used throughout the chapter.',
-            'attachments' => [
-                ['id' => 11, 'name' => 'core-concepts-handout.pdf', 'size' => '840 KB'],
-                ['id' => 12, 'name' => 'lecture-slides.pptx', 'size' => '2.1 MB'],
-            ],
-        ];
+        $courseModel = Course::findOrFail($course);
+        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
 
-        return view('topics.edit', compact('topic'));
+        abort_if($topic && $topic->chapter_id !== $chapterModel->id, 404);
+
+        return [$courseModel, $chapterModel];
     }
 
     /**
-     * Update the specified topic in storage.
+     * Files posted with the form are stored and attached to the topic.
      */
-    public function update(Request $request, $id)
+    private function storeAttachments(Topic $topic, Request $request): void
     {
-        // Placeholder for updating topics
-        return redirect()->route('topics')->with('success', 'Topic updated successfully.');
+        foreach ($request->file('attachments', []) as $file) {
+            $topic->attachments()->create([
+                'file_path' => $file->store('topics', 'public'),
+            ]);
+        }
+    }
+
+    /**
+     * Replaces the topic's question links: existing questions come through as
+     * ids, freshly written ones are created in the bank first.
+     */
+    private function syncQuestions(Topic $topic, array $data): void
+    {
+        $topic->questionables()->delete();
+
+        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
+
+        $newQuestions = collect($data['new_questions'] ?? [])
+            ->map(fn ($text) => trim($text))
+            ->filter();
+
+        if ($newQuestions->isNotEmpty()) {
+            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
+
+            $questionIds = $questionIds->merge(
+                $newQuestions->map(fn ($text) => QuestionBank::create([
+                    'chapter_id' => $topic->chapter_id,
+                    'question_categories_id' => $categoryId,
+                    'question' => $text,
+                ])->id)
+            );
+        }
+
+        foreach ($questionIds->unique() as $questionId) {
+            $topic->questionables()->create([
+                'chapter_id' => $topic->chapter_id,
+                'question_id' => $questionId,
+            ]);
+        }
+    }
+
+    /**
+     * Shared validation. The chapter is not validated here — it comes from the
+     * URL and is checked by scope().
+     */
+    private function validated(Request $request): array
+    {
+        return $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'max:10240'],
+            'question_ids' => ['nullable', 'array'],
+            'question_ids.*' => ['integer', 'exists:question_bank,id'],
+            'new_questions' => ['nullable', 'array'],
+            'new_questions.*' => ['string', 'max:1000'],
+        ]);
+    }
+
+    /**
+     * JSON for fetch/AJAX callers, a redirect back to the listing for plain
+     * form posts.
+     */
+    private function respond(Request $request, int $course, int $chapter, ?Topic $topic, string $message, int $status = 200)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(array_filter([
+                'message' => $message,
+                'data' => $topic,
+            ], fn ($value) => $value !== null), $status);
+        }
+
+        return redirect()->route('topics', [$course, $chapter])->with('success', $message);
     }
 }

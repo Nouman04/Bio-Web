@@ -35,6 +35,14 @@ class Worksheet extends Model
     }
 
     /**
+     * Questions attached to this assessment, in order.
+     */
+    public function assessments()
+    {
+        return $this->morphMany(Assessment::class, "assessmentable")->orderBy("order");
+    }
+
+    /**
      * Get the indexable data array for the model.
      */
     public function toSearchableArray(): array

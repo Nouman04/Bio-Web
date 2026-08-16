@@ -43,12 +43,12 @@
             ['label' => 'Summaries', 'stat' => '4 Documents', 'icon' => 'fa-solid fa-list-check', 'bg' => 'icon-bg-amber', 'route' => route('summaries')],
             ['label' => 'Quizzes', 'stat' => '12 Active', 'icon' => 'fa-solid fa-clipboard-question', 'bg' => 'icon-bg-teal', 'route' => route('quizzes')],
             ['label' => 'Diagrams', 'stat' => '15 Assets', 'icon' => 'fa-regular fa-image', 'bg' => 'icon-bg-rose', 'route' => route('diagrams')],
-            ['label' => 'Guides', 'stat' => '6 Manuals', 'icon' => 'fa-solid fa-book-open', 'bg' => 'icon-bg-orange', 'route' => route('guides')],
-            ['label' => 'Study Notes', 'stat' => '22 Notes', 'icon' => 'fa-regular fa-note-sticky', 'bg' => 'icon-bg-blue', 'route' => route('notes')],
+            ['label' => 'Guides', 'stat' => '6 Manuals', 'icon' => 'fa-solid fa-book-open', 'bg' => 'icon-bg-orange', 'route' => route('guides', [$courseId, $chapter['id']])],
+            ['label' => 'Study Notes', 'stat' => '22 Notes', 'icon' => 'fa-regular fa-note-sticky', 'bg' => 'icon-bg-blue', 'route' => route('notes', [$courseId, $chapter['id']])],
             ['label' => 'Questions', 'stat' => '150 Items', 'icon' => 'fa-regular fa-circle-question', 'bg' => 'icon-bg-rose', 'route' => route('questions')],
             ['label' => 'Video Lessons', 'stat' => '8 Videos', 'icon' => 'fa-solid fa-circle-play', 'bg' => 'icon-bg-amber', 'route' => route('videos')],
-            ['label' => 'Topics', 'stat' => '12 Sections', 'icon' => 'fa-solid fa-tags', 'bg' => 'icon-bg-blue', 'route' => route('topics')],
-            ['label' => 'Flashcards', 'stat' => '4 Decks', 'icon' => 'fa-solid fa-layer-group', 'bg' => 'icon-bg-teal', 'route' => route('flashcards')],
+            ['label' => 'Topics', 'stat' => 'Sections in this chapter', 'icon' => 'fa-solid fa-tags', 'bg' => 'icon-bg-blue', 'route' => route('topics', [$courseId, $chapter['id']])],
+            ['label' => 'Flashcards', 'stat' => '4 Decks', 'icon' => 'fa-solid fa-layer-group', 'bg' => 'icon-bg-teal', 'route' => route('flashcards', [$courseId, $chapter['id']])],
         ];
     @endphp
 

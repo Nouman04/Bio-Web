@@ -22,6 +22,18 @@ class Diagram extends Model
         'content',
     ];
 
+    /**
+     * Public URL of the stored image.
+     *
+     * Built with asset() rather than Storage::url(), because the latter is
+     * pinned to APP_URL and breaks whenever the app is served on another port
+     * or from a subdirectory.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? asset('storage/' . $this->image_path) : null;
+    }
+
     public function chapter(): BelongsTo
     {
         return $this->belongsTo(Chapter::class);
@@ -40,6 +52,14 @@ class Diagram extends Model
     public function questionables()
     {
         return $this->morphMany(QuestionableType::class, 'questionable');
+    }
+
+    /**
+     * Flashcard decks built from this record.
+     */
+    public function flashcards()
+    {
+        return $this->morphMany(Flashcard::class, "flashcardable");
     }
 
     /**

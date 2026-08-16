@@ -23,6 +23,31 @@ class VideoLesson extends Model
         'external_link',
     ];
 
+    /**
+     * Where the lesson can actually be watched: the uploaded file if there is
+     * one, otherwise the external link.
+     *
+     * Built with asset() rather than Storage::url(), because the latter is
+     * pinned to APP_URL and breaks whenever the app is served on another port
+     * or from a subdirectory.
+     */
+    public function getVideoUrlAttribute(): ?string
+    {
+        if ($this->file_path) {
+            return asset('storage/' . $this->file_path);
+        }
+
+        return $this->external_link ?: null;
+    }
+
+    /**
+     * Whether this lesson is hosted elsewhere rather than uploaded.
+     */
+    public function getIsExternalAttribute(): bool
+    {
+        return ! $this->file_path && (bool) $this->external_link;
+    }
+
     public function chapter(): BelongsTo
     {
         return $this->belongsTo(Chapter::class);
@@ -41,6 +66,14 @@ class VideoLesson extends Model
     public function questionables()
     {
         return $this->morphMany(QuestionableType::class, 'questionable');
+    }
+
+    /**
+     * Flashcard decks built from this record.
+     */
+    public function flashcards()
+    {
+        return $this->morphMany(Flashcard::class, "flashcardable");
     }
 
     /**

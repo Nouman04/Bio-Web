@@ -2,10 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assessment;
+use App\Models\Flashcard;
+use App\Models\QuestionBank;
+use App\Models\Quiz;
+use App\Models\Worksheet;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class QuestionController extends Controller
 {
+    /**
+     * What the picker can be building for, keyed by the `exclude_type` the UI
+     * sends. Mirrors the `assessments` morph.
+     */
+    private const ASSESSMENTABLES = [
+        'flashcard' => Flashcard::class,
+        'quiz' => Quiz::class,
+        'worksheet' => Worksheet::class,
+    ];
+
+    /**
+     * Type-ahead source for the question widget's Tom Select field.
+     * Returns the questions matching `q`, newest first.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $questions = QuestionBank::query()
+            ->when($request->input('q'), fn ($query, $term) => $query->where('question', 'like', "%{$term}%"))
+            // Hide questions already attached to the assessment being built, so
+            // the picker never offers a duplicate.
+            ->when(
+                $request->input('exclude_type') && $request->input('exclude_id'),
+                function ($query) use ($request) {
+                    $class = self::ASSESSMENTABLES[$request->input('exclude_type')] ?? null;
+                    if (! $class) {
+                        return;
+                    }
+
+                    $query->whereNotIn('id', Assessment::query()
+                        ->where('assessmentable_type', $class)
+                        ->where('assessmentable_id', $request->input('exclude_id'))
+                        ->pluck('question_id'));
+                }
+            )
+            ->latest('id')
+            ->limit(20)
+            ->get(['id', 'question', 'difficulty_level']);
+
+        return response()->json(
+            $questions->map(fn (QuestionBank $question) => [
+                'id' => $question->id,
+                'text' => $question->question,
+                'meta' => $question->difficulty_level,
+            ])
+        );
+    }
+
     /**
      * Display the question bank listing.
      */

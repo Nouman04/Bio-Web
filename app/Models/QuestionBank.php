@@ -18,7 +18,6 @@ class QuestionBank extends Model
 
     protected $fillable = [
         'chapter_id',
-        'topic_id',
         'question_categories_id',
         'question',
         'difficulty_level',
@@ -49,9 +48,13 @@ class QuestionBank extends Model
         return $this->hasMany(QuestionAnswer::class);
     }
 
-    public function flashcards(): HasMany
+    /**
+     * Every place this question has been attached to an assessment — a
+     * flashcard deck, worksheet or quiz.
+     */
+    public function assessments(): HasMany
     {
-        return $this->hasMany(Flashcard::class, 'question_id');
+        return $this->hasMany(Assessment::class, 'question_id');
     }
 
     public function diagrams(): HasMany

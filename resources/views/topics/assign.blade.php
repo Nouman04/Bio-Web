@@ -12,7 +12,7 @@
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('topics') }}">Topics</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('topics', [$course->id, $chapter->id]) }}">Topics</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Assign Questions</span>
     </div>
@@ -123,10 +123,10 @@
                     <input type="date" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
                 </div>
                 <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/20 dark:border-slate-700">
-                    <a href="{{ route('topics') }}" class="w-full py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 text-center">
+                    <a href="{{ route('topics', [$course->id, $chapter->id]) }}" class="w-full py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 text-center">
                         Confirm Assignment
                     </a>
-                    <a href="{{ route('topics') }}" class="w-full py-2.5 rounded-full border border-outline-variant text-on-surface-variant dark:text-slate-400 text-sm font-semibold hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors text-center">
+                    <a href="{{ route('topics', [$course->id, $chapter->id]) }}" class="w-full py-2.5 rounded-full border border-outline-variant text-on-surface-variant dark:text-slate-400 text-sm font-semibold hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors text-center">
                         Cancel
                     </a>
                 </div>

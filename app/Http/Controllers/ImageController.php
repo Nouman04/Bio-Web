@@ -2,130 +2,238 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chapter;
+use App\Models\Diagram;
+use App\Models\QuestionBank;
+use App\Models\QuestionCategory;
+use App\Models\Topic;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class ImageController extends Controller
 {
     /**
-     * Display a listing of the images.
+     * Display the diagrams listing. The grid itself is loaded by DataTables
+     * from the `diagrams.data` endpoint below.
      */
     public function index(Request $request)
     {
-        // Dummy data for presentation
-        $images = collect([
-            [
-                'id' => 1,
-                'title' => 'Mitosis Diagram V2',
-                'meta' => 'PNG • 1.2 MB',
-                'chapter' => 'Chapter 2: Cell Structure',
-                'topic' => 'Mitosis',
-                'topic_color' => 'bg-primary/10 text-primary',
-                'url' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKOhvTraqPgk8GIbwlEpUSV8vzhVmrT_stkimu5CxWu0JurXR0KfI4JmEZdQeMkiGwSfNgheRhG6Cgo3FEafS43-Hm_xoDd2yFhe_KCFdmWSgGxiRcH8nBbyCn_AnYaAcv4wMnAG6ZSlrK4SESQdtbKF04sLOxVhGc__9xMEw771R90fPCuj4cIEQ8WF6uMo0HtO3PyW3-bzoxoYCbBivgJ_3wIkMD8XcMUX2ExhVGl88UmOnrAEFN',
-                'date_added' => 'Oct 24, 2023',
-                'date' => '2023-10-24',
-                'has_image' => true
-            ],
-            [
-                'id' => 2,
-                'title' => 'Lab Students Hero',
-                'meta' => 'JPG • 3.5 MB',
-                'chapter' => 'Chapter 1: Biology Basics',
-                'topic' => 'Introduction',
-                'topic_color' => 'bg-secondary/10 text-secondary',
-                'url' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgb6B_7pHjHc326HAq4QDm-LY7RnFXFcW5K6nkACLhqam0hfrP8aw6bYM0U36x78jT69BIBxNV536GX4KvF_do5jEpzQ93yEfJQ922qOXMnDKZAGawhlaEDIh-UZcDH_CF15sMMW-OO4AcXw9ZYmkW1bYqcTihb89R_fOpp1gv_4LJlAirtnqxgARC1NRDOR9wfeGiUxaOwGLUS-vrbQ5U78WY56abT34rQVhTempUs5qquCZXsb0V',
-                'date_added' => 'Oct 22, 2023',
-                'date' => '2023-10-22',
-                'has_image' => true
-            ],
-            [
-                'id' => 3,
-                'title' => 'DNA_Helix_Animation.gif',
-                'meta' => 'GIF • 850 KB',
-                'chapter' => 'Chapter 3: Genetics',
-                'topic' => 'DNA Structure',
-                'topic_color' => 'bg-tertiary-container/20 text-tertiary',
-                'url' => '',
-                'date_added' => 'Oct 20, 2023',
-                'date' => '2023-10-20',
-                'has_image' => false
+        return view('diagrams.index', [
+            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
+            'topics' => Topic::orderBy('title')->get(['id', 'title']),
+            'filters' => [
+                'title' => $request->input('title', ''),
+                'topic' => $request->input('topic', ''),
+                'date_from' => $request->input('date_from', ''),
+                'date_to' => $request->input('date_to', ''),
             ],
         ]);
-
-        $filters = $request->all();
-
-        // Filter by Chapter
-        if ($chapter = $request->input('chapter')) {
-            $images = $images->filter(function ($img) use ($chapter) {
-                return stripos($img['chapter'], $chapter) !== false;
-            });
-        }
-
-        // Filter by Topic
-        if ($topic = $request->input('topic')) {
-            $images = $images->filter(function ($img) use ($topic) {
-                return $img['topic'] === $topic;
-            });
-        }
-
-        // Filter by Date Range
-        if ($dateFrom = $request->input('date_from')) {
-            $images = $images->filter(function ($img) use ($dateFrom) {
-                return $img['date'] >= $dateFrom;
-            });
-        }
-
-        if ($dateTo = $request->input('date_to')) {
-            $images = $images->filter(function ($img) use ($dateTo) {
-                return $img['date'] <= $dateTo;
-            });
-        }
-
-        return view('diagrams.index', compact('images', 'filters'));
     }
 
     /**
-     * Show the form for creating a new diagram.
+     * Server-side DataTables source for the diagrams list.
      */
-    public function create()
+    public function data(Request $request): JsonResponse
     {
-        return view('diagrams.create');
+        $diagrams = Diagram::query()
+            ->with(['chapter:id,title', 'topic:id,title'])
+            ->withCount('questionables');
+
+        // Filters from the filter card above the table.
+        $diagrams->when(
+            $request->input('search_term'),
+            fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
+        );
+
+        $diagrams->when($request->input('topic'), fn ($query, $id) => $query->where('topic_id', $id));
+        $diagrams->when($request->input('date_from'), fn ($query, $date) => $query->whereDate('created_at', '>=', $date));
+        $diagrams->when($request->input('date_to'), fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
+
+        $table = DataTables::eloquent($diagrams)
+            ->addColumn('preview_cell', fn (Diagram $diagram) => view('diagrams.partials.preview-cell', compact('diagram'))->render())
+            ->addColumn('title_cell', fn (Diagram $diagram) => view('diagrams.partials.title-cell', compact('diagram'))->render())
+            ->addColumn('chapter_cell', fn (Diagram $diagram) => view('diagrams.partials.chapter-cell', compact('diagram'))->render())
+            ->addColumn('topic_cell', fn (Diagram $diagram) => view('diagrams.partials.topic-cell', compact('diagram'))->render())
+            ->addColumn('date_cell', fn (Diagram $diagram) => view('diagrams.partials.date-cell', compact('diagram'))->render())
+            ->addColumn('action', fn (Diagram $diagram) => view('diagrams.partials.actions', compact('diagram'))->render())
+            ->orderColumn('title_cell', 'title $1')
+            ->orderColumn('date_cell', 'created_at $1')
+            ->rawColumns(['preview_cell', 'title_cell', 'chapter_cell', 'topic_cell', 'date_cell', 'action'])
+            ->only(['preview_cell', 'title_cell', 'chapter_cell', 'topic_cell', 'date_cell', 'action'])
+            ->toJson();
+
+        // Never let a proxy or the browser replay an old page of rows.
+        return $table->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
-     * Store a newly created diagram in storage.
+     * The questions already linked to a diagram, for the edit modal's picker.
+     */
+    public function questions(Diagram $diagram): JsonResponse
+    {
+        return response()->json(
+            $diagram->questionables()->with('question:id,question')->get()
+                ->filter(fn ($link) => $link->question)
+                ->map(fn ($link) => [
+                    'id' => $link->question->id,
+                    'text' => $link->question->question,
+                ])
+                ->values()
+        );
+    }
+
+    /**
+     * Store a newly created diagram.
      */
     public function store(Request $request)
     {
-        // Placeholder for storing diagrams
-        return redirect()->route('diagrams')->with('success', 'Diagram added successfully.');
+        $data = $this->validated($request);
+
+        $diagram = DB::transaction(function () use ($data, $request) {
+            $diagram = Diagram::create([
+                'chapter_id' => $data['chapter_id'] ?? null,
+                'topic_id' => $data['topic_id'] ?? null,
+                'added_by' => $request->user()->id,
+                'image_path' => $request->file('image')->store('diagrams', 'public'),
+                'title' => $data['title'],
+                'slug' => $data['slug'],
+                'content' => $data['content'] ?? null,
+            ]);
+
+            $this->syncQuestions($diagram, $data);
+
+            return $diagram;
+        });
+
+        return $this->respond($request, $diagram->fresh(), 'Diagram created successfully.', 201);
     }
 
     /**
-     * Show the form for editing the specified diagram.
+     * Update the given diagram. The image is only replaced when a new file is
+     * actually uploaded.
      */
-    public function edit($id)
+    public function update(Request $request, Diagram $diagram)
     {
-        // In a real app, you would fetch the diagram by $id
-        $diagram = [
-            'id' => $id,
-            'title' => 'Mitosis Diagram V2',
-            'description' => 'Stages of mitosis annotated for the cell division unit. Use alongside the chapter 2 worksheet.',
-            'chapter' => 'ch2',
-            'topic' => 't2',
-            'meta' => 'PNG • 1.2 MB',
-            'url' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKOhvTraqPgk8GIbwlEpUSV8vzhVmrT_stkimu5CxWu0JurXR0KfI4JmEZdQeMkiGwSfNgheRhG6Cgo3FEafS43-Hm_xoDd2yFhe_KCFdmWSgGxiRcH8nBbyCn_AnYaAcv4wMnAG6ZSlrK4SESQdtbKF04sLOxVhGc__9xMEw771R90fPCuj4cIEQ8WF6uMo0HtO3PyW3-bzoxoYCbBivgJ_3wIkMD8XcMUX2ExhVGl88UmOnrAEFN',
-            'has_image' => true,
-        ];
+        $data = $this->validated($request, $diagram);
 
-        return view('diagrams.edit', compact('diagram'));
+        DB::transaction(function () use ($request, $diagram, $data) {
+            $attributes = [
+                'chapter_id' => $data['chapter_id'] ?? null,
+                'topic_id' => $data['topic_id'] ?? null,
+                'title' => $data['title'],
+                'slug' => $data['slug'],
+                'content' => $data['content'] ?? null,
+            ];
+
+            if ($request->hasFile('image')) {
+                Storage::disk('public')->delete($diagram->image_path);
+                $attributes['image_path'] = $request->file('image')->store('diagrams', 'public');
+            }
+
+            $diagram->update($attributes);
+            $this->syncQuestions($diagram, $data);
+        });
+
+        return $this->respond($request, $diagram->fresh(), 'Diagram updated successfully.');
     }
 
     /**
-     * Update the specified diagram in storage.
+     * Soft delete the given diagram. The file is kept so the row stays
+     * restorable.
      */
-    public function update(Request $request, $id)
+    public function destroy(Request $request, Diagram $diagram)
     {
-        // Placeholder for updating diagrams
-        return redirect()->route('diagrams')->with('success', 'Diagram updated successfully.');
+        DB::transaction(function () use ($diagram) {
+            $diagram->questionables()->delete();
+            $diagram->delete();
+        });
+
+        return $this->respond($request, null, 'Diagram deleted successfully.');
+    }
+
+    /**
+     * Replaces the diagram's question links: existing questions come through as
+     * ids, freshly written ones are created in the bank first.
+     */
+    private function syncQuestions(Diagram $diagram, array $data): void
+    {
+        $diagram->questionables()->delete();
+
+        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
+
+        $newQuestions = collect($data['new_questions'] ?? [])
+            ->map(fn ($text) => trim($text))
+            ->filter();
+
+        if ($newQuestions->isNotEmpty()) {
+            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
+
+            $questionIds = $questionIds->merge(
+                $newQuestions->map(fn ($text) => QuestionBank::create([
+                    'chapter_id' => $diagram->chapter_id,
+                    'question_categories_id' => $categoryId,
+                    'question' => $text,
+                ])->id)
+            );
+        }
+
+        foreach ($questionIds->unique() as $questionId) {
+            $diagram->questionables()->create([
+                'chapter_id' => $diagram->chapter_id,
+                'question_id' => $questionId,
+            ]);
+        }
+    }
+
+    /**
+     * Shared validation. The modal posts the body copy as `description`, and a
+     * blank slug falls back to one derived from the title. The image is only
+     * required when creating.
+     */
+    private function validated(Request $request, ?Diagram $diagram = null): array
+    {
+        $request->merge([
+            'slug' => Str::slug($request->input('slug') ?: $request->input('title')),
+            'content' => $request->input('content', $request->input('description')),
+        ]);
+
+        return $request->validate([
+            'chapter_id' => ['nullable', 'integer', 'exists:chapters,id'],
+            'topic_id' => ['nullable', 'integer', 'exists:topics,id'],
+            'image' => [$diagram ? 'nullable' : 'required', 'image', 'max:10240'],
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('diagrams', 'slug')->ignore($diagram?->id),
+            ],
+            'content' => ['nullable', 'string'],
+            'question_ids' => ['nullable', 'array'],
+            'question_ids.*' => ['integer', 'exists:question_bank,id'],
+            'new_questions' => ['nullable', 'array'],
+            'new_questions.*' => ['string', 'max:1000'],
+        ]);
+    }
+
+    /**
+     * JSON for fetch/AJAX callers, a redirect back to the listing for plain
+     * form posts.
+     */
+    private function respond(Request $request, ?Diagram $diagram, string $message, int $status = 200)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(array_filter([
+                'message' => $message,
+                'data' => $diagram,
+            ], fn ($value) => $value !== null), $status);
+        }
+
+        return redirect()->route('diagrams')->with('success', $message);
     }
 }

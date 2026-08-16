@@ -30,10 +30,6 @@ class QuestionAnswer extends Model
         return $this->belongsTo(QuestionOption::class, 'question_option_id');
     }
 
-    public function flashcards(): HasMany
-    {
-        return $this->hasMany(Flashcard::class, 'question_answer_id');
-    }
 
     /**
      * Get the indexable data array for the model.

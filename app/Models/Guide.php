@@ -43,6 +43,14 @@ class Guide extends Model
     }
 
     /**
+     * Flashcard decks built from this record.
+     */
+    public function flashcards()
+    {
+        return $this->morphMany(Flashcard::class, "flashcardable");
+    }
+
+    /**
      * Get the indexable data array for the model.
      */
     public function toSearchableArray(): array

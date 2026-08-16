@@ -1,22 +1,125 @@
 @extends('layouts.app')
 
 @section('title', 'Guides')
-@section('meta-description', 'Manage and view educational guides.')
+@section('meta-description', 'Manage theory and ATP guides in EduAdmin LMS.')
 
-@section('page-title', 'Guides')
-@section('page-subtitle', 'Design and structure comprehensive learning materials for the curriculum.')
+@section("page-title", "Guides")
+@section("page-subtitle", $chapter->title . " · " . $course->title)
 
 @push('styles')
 <style>
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
+    /* ── Guides table ─────────────────────────────────────────────────────
+       Same treatment as the courses, chapters and summaries grids: DataTables'
+       own chrome folded into the panel so it reads as one quiet surface. */
+    .guides-panel { overflow: hidden; }
+    #guides-table_wrapper { padding: 0.25rem 0 0; font-size: 0.875rem; }
+
+    /* Header */
+    #guides-table thead th {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgb(118, 117, 134);
+        background: rgba(242, 244, 246, 0.5);
+        border-bottom: 1px solid rgba(118, 117, 134, 0.14);
+        white-space: nowrap;
     }
-    .hover-ambient-shadow:hover {
-        box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
+    .dark #guides-table thead th {
+        color: rgb(148, 163, 184);
+        background: rgba(15, 23, 42, 0.4);
+        border-bottom-color: rgb(51, 65, 85);
     }
+    #guides-table.dataTable thead th.dt-orderable-asc:hover,
+    #guides-table.dataTable thead th.dt-orderable-desc:hover { color: #4648d4; }
+
+    /* DataTables' own `table.dataTable thead>tr>th` rule outranks utility classes,
+       so the centred columns are aligned here to keep header and cell in line. */
+    #guides-table.dataTable thead > tr > th:nth-child(5),
+    #guides-table.dataTable tbody > tr > td:nth-child(5) { text-align: center; }
+
+    /* Body */
+    #guides-table tbody td {
+        padding: 0.9375rem 1.5rem;
+        vertical-align: middle;
+        border-top: none;
+        border-bottom: 1px solid rgba(118, 117, 134, 0.08);
+    }
+    .dark #guides-table tbody td { border-bottom-color: rgba(51, 65, 85, 0.6); }
+    #guides-table tbody tr:last-child td { border-bottom: none; }
+    #guides-table tbody tr { transition: background-color 0.15s ease; }
+    #guides-table tbody tr:hover { background: rgba(70, 72, 212, 0.035); }
+    .dark #guides-table tbody tr:hover { background: rgba(70, 72, 212, 0.12); }
+    #guides-table.dataTable tbody tr.odd,
+    #guides-table.dataTable tbody tr.even,
+    #guides-table.dataTable tbody tr > .sorting_1 { background: transparent; box-shadow: none; }
+    #guides-table tbody td.dt-empty {
+        padding: 3.5rem 1.5rem;
+        text-align: center;
+        color: rgb(118, 117, 134);
+    }
+
+    /* Footer chrome: length menu, info line, pagination */
+    #guides-table_wrapper .dt-layout-row:last-child {
+        padding: 0.875rem 1.5rem;
+        border-top: 1px solid rgba(118, 117, 134, 0.12);
+        background: rgba(242, 244, 246, 0.35);
+    }
+    .dark #guides-table_wrapper .dt-layout-row:last-child {
+        border-top-color: rgb(51, 65, 85);
+        background: rgba(15, 23, 42, 0.35);
+    }
+    #guides-table_wrapper .dt-layout-row:first-child { padding: 0.875rem 1.5rem 0.25rem; }
+    #guides-table_wrapper .dt-length,
+    #guides-table_wrapper .dt-info {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgb(118, 117, 134);
+    }
+    .dark #guides-table_wrapper .dt-length,
+    .dark #guides-table_wrapper .dt-info { color: rgb(148, 163, 184); }
+    #guides-table_wrapper select {
+        background: #ffffff;
+        border: 1px solid rgba(118, 117, 134, 0.3);
+        border-radius: 0.625rem;
+        padding: 0.25rem 0.5rem;
+        margin: 0 0.375rem;
+        outline: none;
+    }
+    .dark #guides-table_wrapper select {
+        background: rgb(15, 23, 42);
+        border-color: rgb(51, 65, 85);
+        color: rgb(226, 232, 240);
+    }
+    #guides-table_wrapper .dt-paging .dt-paging-button {
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0.625rem;
+        min-width: 2rem;
+        padding: 0.3125rem 0.625rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: rgb(118, 117, 134) !important;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    #guides-table_wrapper .dt-paging .dt-paging-button:hover:not(.disabled) {
+        background: rgba(70, 72, 212, 0.08) !important;
+        color: #4648d4 !important;
+    }
+    #guides-table_wrapper .dt-paging .dt-paging-button.current {
+        background: #4648d4 !important;
+        color: #ffffff !important;
+    }
+    #guides-table_wrapper .dt-paging .dt-paging-button.disabled { opacity: 0.4; }
+
+    /* The shimmer below stands in for DataTables' "Processing..." box */
+    #guides-table_wrapper .dt-processing { display: none !important; }
+
+    /* Loading shimmer: real <tr>s inside the table body, so the skeleton
+       occupies exactly the rows' space and never covers the header or footer. */
+    tr.guides-shimmer-row td > .shimmer-bar + .shimmer-bar { margin-top: 0.4375rem; }
+
     .filter-card-wrapper {
         display: grid;
         grid-template-rows: 0fr;
@@ -51,15 +154,21 @@
 @endpush
 
 @section('content')
-    {{-- Breadcrumbs --}}
-    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
-        <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
+    {{-- Breadcrumbs — course › chapter › guides --}}
+    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6 flex-wrap">
+        <a class="hover:text-primary transition-colors" href="{{ route("dashboard") }}">Home</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <a class="hover:text-primary transition-colors" href="{{ route("courses") }}">Courses</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <a class="hover:text-primary transition-colors" href="{{ route("courses.chapters", $course->id) }}">{{ $course->title }}</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <a class="hover:text-primary transition-colors" href="{{ route("courses.chapters.dashboard", [$course->id, $chapter->id]) }}">{{ $chapter->title }}</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Guides</span>
     </div>
 
     @php
-        $filtersOpen = request()->hasAny(['search', 'chapter', 'topic', 'type', 'date_from', 'date_to']);
+        $filtersOpen = request()->hasAny(['title', 'topic', 'type', 'date_from', 'date_to']);
     @endphp
 
     {{-- Toolbar: Filter toggle + Add button --}}
@@ -69,61 +178,63 @@
             title="Toggle Filters">
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
-        <a href="{{ route('guides.create') }}" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+        <button type="button" onclick="openAddGuideModal()"
+            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add New Guide
-        </a>
+        </button>
     </div>
 
     {{-- Filters Card (toggleable) --}}
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
-            <div class="filter-card-panel glass-panel dark:bg-slate-800/80 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-                <form action="{{ route('guides') }}" method="GET">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
+                <form id="guides-filter-form" action="{{ route('guides', [$course->id, $chapter->id]) }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
                             <div class="relative group">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                                <input name="search" value="{{ $filters['search'] ?? '' }}" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Search title..." type="text">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-sm"></i>
+                                <input name="title" value="{{ $filters['title'] ?? '' }}"
+                                    class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none"
+                                    placeholder="Search by title..." type="text">
                             </div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
-                            <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
-                                <option value="">All Chapters</option>
-                                <option value="1" {{ ($filters['chapter'] ?? '') == '1' ? 'selected' : '' }}>Chapter 1: Foundations</option>
-                                <option value="2" {{ ($filters['chapter'] ?? '') == '2' ? 'selected' : '' }}>Chapter 2: Advanced Topics</option>
-                            </select>
                         </div>
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic</label>
                             <select name="topic" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Topics</option>
-                                <option value="math" {{ ($filters['topic'] ?? '') == 'math' ? 'selected' : '' }}>Mathematics</option>
-                                <option value="sci" {{ ($filters['topic'] ?? '') == 'sci' ? 'selected' : '' }}>Science</option>
+                                @forelse($topics as $topic)
+                                    <option value="{{ $topic->id }}" {{ ($filters['topic'] ?? '') == $topic->id ? 'selected' : '' }}>{{ $topic->title }}</option>
+                                @empty
+                                    <option value="" disabled>No topics yet</option>
+                                @endforelse
                             </select>
                         </div>
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Type</label>
                             <select name="type" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Types</option>
-                                <option value="theory" {{ ($filters['type'] ?? '') == 'theory' ? 'selected' : '' }}>Theory Guide</option>
-                                <option value="practical" {{ ($filters['type'] ?? '') == 'practical' ? 'selected' : '' }}>Practical Guide</option>
+                                @foreach($types as $value => $label)
+                                    <option value="{{ $value }}" {{ ($filters['type'] ?? '') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Date Range</label>
-                            <div class="relative">
-                                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
-                                <input id="guides-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Select date range" readonly>
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Created Between</label>
+                            <div class="flex items-center gap-2">
+                                <input name="date_from" value="{{ $filters['date_from'] ?? '' }}" type="date"
+                                    class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <span class="text-xs text-on-surface-variant">to</span>
+                                <input name="date_to" value="{{ $filters['date_to'] ?? '' }}" type="date"
+                                    class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                             </div>
                         </div>
                     </div>
                     <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
-                        <a href="{{ route('guides') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                        <button type="button" id="guidesClearFilters" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
                             <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
-                        </a>
+                        </button>
                         <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
                             Apply Filters
                         </button>
@@ -133,82 +244,157 @@
         </div>
     </div>
 
-    {{-- Data Table --}}
-    <div class="glass-panel dark:bg-slate-800/80 rounded-xl overflow-hidden hover-ambient-shadow transition-shadow duration-300 dark:border-slate-700 border-outline-variant/30 bg-white/50 dark:bg-slate-900/50">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[800px]">
+    {{-- Guide List Data Table (server-side, Yajra DataTables) --}}
+    <div class="guides-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <div class="overflow-x-auto w-full">
+            <table id="guides-table" class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-outline-variant/20 dark:border-slate-700 bg-surface-container-lowest/50 dark:bg-slate-800/50">
-                        <th class="p-4 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Title</th>
-                        <th class="p-4 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Chapter</th>
-                        <th class="p-4 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Topic</th>
-                        <th class="p-4 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Type</th>
-                        <th class="p-4 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Created Date</th>
-                        <th class="p-4 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                    <tr>
+                        <th class="w-1/3">Guide</th>
+                        <th>Topic</th>
+                        <th>Type</th>
+                        <th>Created</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="text-sm divide-y divide-outline-variant/10 dark:divide-slate-700">
-                    @forelse($guides as $guide)
-                    <tr class="hover:bg-primary-fixed/10 dark:hover:bg-primary/5 transition-colors group bg-white/40 dark:bg-slate-800/40">
-                        <td class="p-4 font-medium text-on-surface dark:text-slate-200">{{ $guide['title'] }}</td>
-                        <td class="p-4 text-on-surface-variant dark:text-slate-400">{{ $guide['course'] }}</td>
-                        <td class="p-4 text-on-surface-variant dark:text-slate-400">{{ $guide['author'] }}</td>
-                        <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-primary-fixed-dim/20 text-primary border border-primary/20">Theory Guide</span>
-                        </td>
-                        <td class="p-4 text-on-surface-variant dark:text-slate-400">{{ $guide['last_updated'] }}</td>
-                        <td class="p-4 text-right whitespace-nowrap">
-                            <div class="relative inline-block text-left action-dropdown">
-                                <button type="button" class="action-dropdown-trigger w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors" title="Actions">
-                                    <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
-                                </button>
-                                <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
-                                    <a href="{{ route('guides.edit', $guide['id']) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
-                                        <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
-                                        Edit
-                                    </a>
-                                    <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
-                                    <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
-                                        <i class="fa-solid fa-trash w-4"></i>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="p-8 text-center text-on-surface-variant dark:text-slate-500">
-                            No guides found.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
+                <tbody></tbody>
             </table>
-        </div>
-        {{-- Pagination Placeholder --}}
-        <div class="px-6 py-4 border-t border-outline-variant/10 dark:border-slate-700 flex items-center justify-between bg-surface-container-lowest/30 dark:bg-slate-800/30">
-            <div class="text-sm text-on-surface-variant dark:text-slate-400">
-                Showing <span class="font-medium text-on-surface dark:text-white">1</span> to <span class="font-medium text-on-surface dark:text-white">5</span> of <span class="font-medium text-on-surface dark:text-white">42</span> results
-            </div>
-            <div class="flex items-center gap-2">
-                <button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest dark:hover:bg-slate-700 transition-colors disabled:opacity-50" disabled>
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
-                </button>
-                <div class="flex items-center gap-1">
-                    <button class="w-8 h-8 rounded-lg bg-primary text-white text-sm flex items-center justify-center shadow-sm">1</button>
-                    <button class="w-8 h-8 rounded-lg text-on-surface dark:text-slate-300 hover:bg-surface-container-highest dark:hover:bg-slate-700 text-sm flex items-center justify-center transition-colors">2</button>
-                    <button class="w-8 h-8 rounded-lg text-on-surface dark:text-slate-300 hover:bg-surface-container-highest dark:hover:bg-slate-700 text-sm flex items-center justify-center transition-colors">3</button>
-                </div>
-                <button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest dark:hover:bg-slate-700 transition-colors">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
-                </button>
-            </div>
         </div>
     </div>
 
-    @push('scripts')
+    {{-- One skeleton row, cloned into the table body while a draw is in flight --}}
+    <template id="guides-shimmer-row">
+        <tr class="guides-shimmer-row" aria-hidden="true">
+            <td>
+                <span class="shimmer-bar" style="width:55%"></span>
+                <span class="shimmer-bar shimmer-bar-sm" style="width:35%"></span>
+            </td>
+            <td><span class="shimmer-bar shimmer-pill" style="width:60%"></span></td>
+            <td><span class="shimmer-bar shimmer-pill" style="width:75%"></span></td>
+            <td>
+                <span class="shimmer-bar" style="width:60%"></span>
+                <span class="shimmer-bar shimmer-bar-sm" style="width:40%"></span>
+            </td>
+            <td><span class="shimmer-bar shimmer-dots"></span></td>
+        </tr>
+    </template>
+
+    {{-- Add Guide Modal --}}
+    <div id="add-guide-modal-container" class="fixed inset-0 z-[100] flex items-center justify-center hidden" aria-modal="true" role="dialog">
+        <div class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onclick="closeAddGuideModal()"></div>
+        <div class="relative w-full max-w-3xl mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
+            <div class="p-6 border-b border-outline-variant/20 dark:border-slate-700 flex justify-between items-center bg-surface-container-low/40 dark:bg-slate-900/40">
+                <h3 class="text-lg font-bold text-on-surface dark:text-white">Add New Guide</h3>
+                <button type="button" onclick="closeAddGuideModal()" class="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="add-guide-form" data-ajax-form action="{{ route('guides.store', [$course->id, $chapter->id]) }}" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+                @csrf
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
+                    Adding to <span class="text-primary">{{ $chapter->title }}</span>
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic <span class="font-normal text-outline">(Optional)</span></label>
+                        <select name="topic_id" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
+                            <option value="">Select a topic</option>
+                            @foreach($topics as $topic)
+                                <option value="{{ $topic->id }}">{{ $topic->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Guide Type</label>
+                        <select name="type" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
+                            @foreach($types as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Guide Title</label>
+                    <input name="title" type="text" oninput="autoGenerateGuideSlug(this.value, 'add')" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. Introduction to Advanced Quantum Mechanics">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Slug</label>
+                    <input id="add-guide-slug" name="slug" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. introduction-to-advanced-quantum-mechanics">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Guide Content</label>
+                    <textarea name="content" data-quill data-quill-height="260px" placeholder="Start writing the guide content here..."></textarea>
+                </div>
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeAddGuideModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                    <button type="submit" data-loading-text="Creating…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Create Guide</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Edit Guide Modal --}}
+    <div id="edit-guide-modal-container" class="fixed inset-0 z-[100] flex items-center justify-center hidden" aria-modal="true" role="dialog">
+        <div class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onclick="closeEditGuideModal()"></div>
+        <div class="relative w-full max-w-3xl mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
+            <div class="p-6 border-b border-outline-variant/20 dark:border-slate-700 flex justify-between items-center bg-surface-container-low/40 dark:bg-slate-900/40">
+                <h3 class="text-lg font-bold text-on-surface dark:text-white">Edit Guide</h3>
+                <button type="button" onclick="closeEditGuideModal()" class="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="edit-guide-form" data-ajax-form action="#" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+                @csrf
+                @method('PUT')
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
+                    Editing in <span class="text-primary">{{ $chapter->title }}</span>
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic <span class="font-normal text-outline">(Optional)</span></label>
+                        <select id="edit-guide-topic" name="topic_id" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
+                            <option value="">Select a topic</option>
+                            @foreach($topics as $topic)
+                                <option value="{{ $topic->id }}">{{ $topic->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Guide Type</label>
+                        <select id="edit-guide-type" name="type" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
+                            @foreach($types as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Guide Title</label>
+                    <input id="edit-guide-title" name="title" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. Introduction to Advanced Quantum Mechanics">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Slug</label>
+                    <input id="edit-guide-slug" name="slug" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. introduction-to-advanced-quantum-mechanics">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Guide Content</label>
+                    <textarea id="edit-guide-content" name="content" data-quill data-quill-height="260px" placeholder="Start writing the guide content here..."></textarea>
+                </div>
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditGuideModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                    <button type="submit" data-loading-text="Saving…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
     <script>
+        let guidesTable = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             const filterToggle = document.getElementById('filterToggle');
             const filterCardWrapper = document.getElementById('filterCardWrapper');
@@ -218,30 +404,146 @@
                 filterToggle.classList.toggle('is-active', isOpen);
             });
 
-            flatpickr("#guides-date-range", {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr, instance) {
-                if (selectedDates.length === 2) {
-                    const form = instance.input.closest('form');
-                    form.querySelectorAll('input[name="date_from"], input[name="date_to"]').forEach(el => el.remove());
+            const filterForm = document.getElementById('guides-filter-form');
 
-                    const dateFromInput = document.createElement('input');
-                    dateFromInput.type = 'hidden';
-                    dateFromInput.name = 'date_from';
-                    dateFromInput.value = flatpickr.formatDate(selectedDates[0], 'Y-m-d');
+            // Server-side table: paging, ordering and filtering all happen in
+            // GuideController@data, so only the visible page is ever loaded.
+            guidesTable = App.dataTable('#guides-table', {
+                order: [[3, 'desc']],
+                shimmerTemplate: '#guides-shimmer-row',
+                language: {
+                    emptyTable: 'No guides yet.',
+                    zeroRecords: 'No guides match these filters.',
+                },
+                ajax: {
+                    url: '{{ route('guides.data', [$course->id, $chapter->id]) }}',
+                    data: (params) => {
+                        const filters = new FormData(filterForm);
+                        // DataTables reserves `search`, so the filter box travels
+                        // as search_term and is mapped back on the server.
+                        params.search_term = filters.get('title') ?? '';
+                        params.topic = filters.get('topic') ?? '';
+                        params.type = filters.get('type') ?? '';
+                        params.date_from = filters.get('date_from') ?? '';
+                        params.date_to = filters.get('date_to') ?? '';
+                        return params;
+                    },
+                },
+                columns: [
+                    { data: 'title_cell', name: 'title' },
+                    { data: 'topic_cell', name: 'topic.title', orderable: false },
+                    { data: 'type_cell', name: 'type' },
+                    { data: 'date_cell', name: 'created_at' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center whitespace-nowrap' },
+                ],
+            });
 
-                    const dateToInput = document.createElement('input');
-                    dateToInput.type = 'hidden';
-                    dateToInput.name = 'date_to';
-                    dateToInput.value = flatpickr.formatDate(selectedDates[1], 'Y-m-d');
+            filterForm?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                guidesTable.ajax.reload();
+            });
 
-                    form.appendChild(dateFromInput);
-                    form.appendChild(dateToInput);
-                }
+            document.getElementById('guidesClearFilters')?.addEventListener('click', () => {
+                filterForm.reset();
+                filterForm.querySelectorAll('select').forEach(select => { select.value = ''; });
+                filterForm.querySelectorAll('input').forEach(input => { input.value = ''; });
+                guidesTable.ajax.reload();
+            });
+
+            // ── Add / Edit submit over AJAX ─────────────────────────────────
+            const addForm = document.getElementById('add-guide-form');
+            const editForm = document.getElementById('edit-guide-form');
+
+            addForm?.addEventListener('ajax:success', () => {
+                closeAddGuideModal();
+                resetGuideForm(addForm);
+                guidesTable.ajax.reload(null, false);
+            });
+
+            editForm?.addEventListener('ajax:success', () => {
+                closeEditGuideModal();
+                guidesTable.ajax.reload(null, false);
+            });
+        });
+
+        function openAddGuideModal() {
+            document.getElementById('add-guide-modal-container').classList.remove('hidden');
+        }
+
+        function closeAddGuideModal() {
+            document.getElementById('add-guide-modal-container').classList.add('hidden');
+        }
+
+        // Fills the edit modal from the row's data-* attributes, then fetches the
+        // questions already linked so the picker opens pre-populated.
+        function openEditGuideModal(trigger) {
+            const form = document.getElementById('edit-guide-form');
+            const id = trigger.dataset.id;
+
+            form.action = `{{ url("courses/{$course->id}/chapters/{$chapter->id}/guides") }}/${id}`;
+            App.clearFieldErrors(form);
+
+            document.getElementById('edit-guide-topic').value = trigger.dataset.topicId ?? '';
+            document.getElementById('edit-guide-type').value = trigger.dataset.type ?? 'theory_guides';
+            document.getElementById('edit-guide-title').value = trigger.dataset.title ?? '';
+            document.getElementById('edit-guide-slug').value = trigger.dataset.slug ?? '';
+
+            const content = document.getElementById('edit-guide-content');
+            if (content.setQuillContent) {
+                content.setQuillContent(trigger.dataset.content ?? '');
+            } else {
+                content.value = trigger.dataset.content ?? '';
             }
-        });
-        });
+
+            const widget = form.querySelector('.question-widget');
+            widget?.resetQuestions?.();
+            App.request(`{{ url("courses/{$course->id}/chapters/{$chapter->id}/guides") }}/${id}/questions`)
+                .then(questions => widget?.setQuestions?.(questions))
+                .catch(() => App.toast('error', 'Could not load the linked questions.'));
+
+            document.getElementById('edit-guide-modal-container').classList.remove('hidden');
+        }
+
+        function closeEditGuideModal() {
+            document.getElementById('edit-guide-modal-container').classList.add('hidden');
+        }
+
+        // Clears inputs, the Quill editor and the question picker, none of which
+        // a native form.reset() fully handles.
+        function resetGuideForm(form) {
+            form.reset();
+            App.clearFieldErrors(form);
+            form.querySelectorAll('textarea[data-quill]').forEach(textarea => {
+                textarea.setQuillContent?.('');
+            });
+            form.querySelector('.question-widget')?.resetQuestions?.();
+        }
+
+        // Deletes through the guides.destroy endpoint, then refreshes the table.
+        async function deleteGuide(trigger) {
+            const title = trigger.dataset.title ?? 'this guide';
+
+            const confirmed = await App.confirmDelete({
+                title: 'Delete guide?',
+                text: `“${title}” will be removed from the listing.`,
+            });
+            if (!confirmed) return;
+
+            try {
+                const payload = await App.request(`{{ url("courses/{$course->id}/chapters/{$chapter->id}/guides") }}/${trigger.dataset.id}`, { method: 'DELETE' });
+                App.toast('success', payload.message || 'Guide deleted successfully.');
+                guidesTable?.ajax.reload(null, false);
+            } catch (error) {
+                App.toast('error', error.message);
+            }
+        }
+
+        function autoGenerateGuideSlug(title, target) {
+            const slug = title.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)+/g, '');
+            const input = document.getElementById(`${target}-guide-slug`);
+            if (input) input.value = slug;
+        }
     </script>
-    @endpush
-@endsection
+@endpush

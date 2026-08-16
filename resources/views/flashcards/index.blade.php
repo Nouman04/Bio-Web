@@ -1,13 +1,125 @@
 @extends('layouts.app')
 
-@section('title', 'Flashcard Management')
-@section('meta-description', 'Organize and manage flashcard study sets across all curricula.')
+@section('title', 'Flashcards')
+@section('meta-description', 'Manage flashcards built from your question bank.')
 
-@section('page-title', 'Flashcard Management')
-@section('page-subtitle', 'Organize and manage study sets across all curricula.')
+@section('page-title', 'Flashcards')
+@section('page-subtitle', $chapter->title . ' · ' . $course->title)
 
 @push('styles')
 <style>
+    /* ── Flashcards table ────────────────────────────────────────────────────
+       Same treatment as the courses and chapters grids: DataTables' own chrome
+       folded into the panel so it reads as one quiet surface. */
+    .flashcards-panel { overflow: hidden; }
+    #flashcards-table_wrapper { padding: 0.25rem 0 0; font-size: 0.875rem; }
+
+    /* Header */
+    #flashcards-table thead th {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgb(118, 117, 134);
+        background: rgba(242, 244, 246, 0.5);
+        border-bottom: 1px solid rgba(118, 117, 134, 0.14);
+        white-space: nowrap;
+    }
+    .dark #flashcards-table thead th {
+        color: rgb(148, 163, 184);
+        background: rgba(15, 23, 42, 0.4);
+        border-bottom-color: rgb(51, 65, 85);
+    }
+    #flashcards-table.dataTable thead th.dt-orderable-asc:hover,
+    #flashcards-table.dataTable thead th.dt-orderable-desc:hover { color: #4648d4; }
+
+    /* DataTables' own `table.dataTable thead>tr>th` rule outranks utility classes,
+       so the centred columns are aligned here to keep header and cell in line. */
+    #flashcards-table.dataTable thead > tr > th:nth-child(5),
+    #flashcards-table.dataTable tbody > tr > td:nth-child(5) { text-align: center; }
+
+    /* Body */
+    #flashcards-table tbody td {
+        padding: 0.9375rem 1.5rem;
+        vertical-align: middle;
+        border-top: none;
+        border-bottom: 1px solid rgba(118, 117, 134, 0.08);
+    }
+    .dark #flashcards-table tbody td { border-bottom-color: rgba(51, 65, 85, 0.6); }
+    #flashcards-table tbody tr:last-child td { border-bottom: none; }
+    #flashcards-table tbody tr { transition: background-color 0.15s ease; }
+    #flashcards-table tbody tr:hover { background: rgba(70, 72, 212, 0.035); }
+    .dark #flashcards-table tbody tr:hover { background: rgba(70, 72, 212, 0.12); }
+    #flashcards-table.dataTable tbody tr.odd,
+    #flashcards-table.dataTable tbody tr.even,
+    #flashcards-table.dataTable tbody tr > .sorting_1 { background: transparent; box-shadow: none; }
+    #flashcards-table tbody td.dt-empty {
+        padding: 3.5rem 1.5rem;
+        text-align: center;
+        color: rgb(118, 117, 134);
+    }
+
+    /* Footer chrome: length menu, info line, pagination */
+    #flashcards-table_wrapper .dt-layout-row:last-child {
+        padding: 0.875rem 1.5rem;
+        border-top: 1px solid rgba(118, 117, 134, 0.12);
+        background: rgba(242, 244, 246, 0.35);
+    }
+    .dark #flashcards-table_wrapper .dt-layout-row:last-child {
+        border-top-color: rgb(51, 65, 85);
+        background: rgba(15, 23, 42, 0.35);
+    }
+    #flashcards-table_wrapper .dt-layout-row:first-child { padding: 0.875rem 1.5rem 0.25rem; }
+    #flashcards-table_wrapper .dt-length,
+    #flashcards-table_wrapper .dt-info {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgb(118, 117, 134);
+    }
+    .dark #flashcards-table_wrapper .dt-length,
+    .dark #flashcards-table_wrapper .dt-info { color: rgb(148, 163, 184); }
+    #flashcards-table_wrapper select {
+        background: #ffffff;
+        border: 1px solid rgba(118, 117, 134, 0.3);
+        border-radius: 0.625rem;
+        padding: 0.25rem 0.5rem;
+        margin: 0 0.375rem;
+        outline: none;
+    }
+    .dark #flashcards-table_wrapper select {
+        background: rgb(15, 23, 42);
+        border-color: rgb(51, 65, 85);
+        color: rgb(226, 232, 240);
+    }
+    #flashcards-table_wrapper .dt-paging .dt-paging-button {
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0.625rem;
+        min-width: 2rem;
+        padding: 0.3125rem 0.625rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: rgb(118, 117, 134) !important;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    #flashcards-table_wrapper .dt-paging .dt-paging-button:hover:not(.disabled) {
+        background: rgba(70, 72, 212, 0.08) !important;
+        color: #4648d4 !important;
+    }
+    #flashcards-table_wrapper .dt-paging .dt-paging-button.current {
+        background: #4648d4 !important;
+        color: #ffffff !important;
+    }
+    #flashcards-table_wrapper .dt-paging .dt-paging-button.disabled { opacity: 0.4; }
+
+    /* The shimmer below stands in for DataTables' "Processing..." box */
+    #flashcards-table_wrapper .dt-processing { display: none !important; }
+
+    /* Loading shimmer: real <tr>s inside the table body, so the skeleton
+       occupies exactly the rows' space and never covers the header or footer. */
+    tr.flashcards-shimmer-row td > .shimmer-bar + .shimmer-bar { margin-top: 0.4375rem; }
+
     .filter-card-wrapper {
         display: grid;
         grid-template-rows: 0fr;
@@ -42,15 +154,21 @@
 @endpush
 
 @section('content')
-    {{-- Breadcrumbs --}}
-    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
+    {{-- Breadcrumbs — course › chapter › flashcards --}}
+    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6 flex-wrap">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-primary dark:text-primary-fixed-dim font-semibold">Flashcard Management</span>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $course->id) }}">{{ $course->title }}</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$course->id, $chapter->id]) }}">{{ $chapter->title }}</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span class="text-primary dark:text-primary-fixed-dim font-semibold">Flashcards</span>
     </div>
 
     @php
-        $filtersOpen = request()->hasAny(['title', 'course', 'topic', 'date_from', 'date_to']);
+        $filtersOpen = request()->hasAny(['title', 'source_type', 'source_id']);
     @endphp
 
     {{-- Toolbar: Filter toggle + Add button --}}
@@ -60,56 +178,48 @@
             title="Toggle Filters">
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
-        <a href="{{ route('flashcards.create') }}" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+        <button type="button" onclick="openAddFlashcardModal()"
+            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
-            Create New Set
-        </a>
+            Add New Flashcard
+        </button>
     </div>
 
     {{-- Filters Card (toggleable) --}}
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
-            <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm relative overflow-hidden">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-                <form action="{{ route('flashcards') }}" method="GET" class="relative">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
+                <form id="flashcards-filter-form" action="{{ route('flashcards', [$course->id, $chapter->id]) }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search Title</label>
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
                             <div class="relative group">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"></i>
-                                <input name="title" value="{{ $filters['title'] ?? '' }}" class="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Search flashcards..." type="text">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-sm"></i>
+                                <input name="title" value="{{ $filters['title'] ?? '' }}"
+                                    class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none"
+                                    placeholder="Search by title..." type="text">
                             </div>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
-                            <select name="course" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
-                                <option value="">All Courses</option>
-                                <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
-                                <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
-                                <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Organic Chemistry</option>
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Linked To</label>
+                            <select id="filter-source-type" name="source_type" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <option value="">All Types</option>
+                                @foreach($sources as $key => $label)
+                                    <option value="{{ $key }}" {{ ($filters['source_type'] ?? '') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic</label>
-                            <select name="topic" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
-                                <option value="">All Topics</option>
-                                <option value="Kinematics" {{ ($filters['topic'] ?? '') == 'Kinematics' ? 'selected' : '' }}>Kinematics</option>
-                                <option value="Nomenclature" {{ ($filters['topic'] ?? '') == 'Nomenclature' ? 'selected' : '' }}>Nomenclature</option>
-                                <option value="Cold War" {{ ($filters['topic'] ?? '') == 'Cold War' ? 'selected' : '' }}>Cold War</option>
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Record</label>
+                            <select id="filter-source-id" name="source_id" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none disabled:opacity-50" disabled>
+                                <option value="">Pick a type first</option>
                             </select>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Date Range</label>
-                            <div class="relative">
-                                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm pointer-events-none z-10"></i>
-                                <input id="flashcards-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-3 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Select date range" readonly>
-                            </div>
                         </div>
                     </div>
                     <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
-                        <a href="{{ route('flashcards') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                        <button type="button" id="flashcardsClearFilters" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
                             <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
-                        </a>
+                        </button>
                         <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
                             Apply Filters
                         </button>
@@ -119,90 +229,141 @@
         </div>
     </div>
 
-    {{-- Data Table --}}
-    <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700 overflow-hidden">
+    {{-- Flashcard List Data Table (server-side, Yajra DataTables) --}}
+    <div class="flashcards-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
         <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse">
+            <table id="flashcards-table" class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-outline-variant/20 bg-surface-container-low/40 dark:bg-slate-900/40 text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">
-                        <th class="py-4 px-6 font-semibold">Flashcard Set Title</th>
-                        <th class="py-4 px-6 font-semibold">Chapter</th>
-                        <th class="py-4 px-6 font-semibold">Topic</th>
-                        <th class="py-4 px-6 font-semibold">Total Cards</th>
-                        <th class="py-4 px-6 font-semibold">Last Updated</th>
-                        <th class="py-4 px-6 font-semibold text-right">Actions</th>
+                    <tr>
+                        <th class="w-2/5">Title</th>
+                        <th>Linked To</th>
+                        <th>Questions</th>
+                        <th>Added</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="text-sm text-on-surface dark:text-slate-300 divide-y divide-outline-variant/10 dark:divide-slate-700">
-                    @foreach($flashcards as $i => $card)
-                    <tr class="hover:bg-primary/5 transition-colors group">
-                        <td class="py-4 px-6">
-                            <div class="flex items-center gap-3">
-                                @php
-                                    $icons = ['fa-flask text-primary bg-primary/10', 'fa-dna text-tertiary bg-tertiary/10', 'fa-earth-americas text-secondary bg-secondary-container/30', 'fa-brain text-error bg-error-container/40'];
-                                    $iconClass = $icons[$i % count($icons)];
-                                @endphp
-                                <div class="w-8 h-8 rounded-md flex items-center justify-center {!! $iconClass !!}">
-                                    <i class="fa-solid {!! explode(' ', $iconClass)[0] !!} text-sm"></i>
-                                </div>
-                                <span class="font-semibold text-on-surface dark:text-white">{{ $card['title'] }}</span>
-                            </div>
-                        </td>
-                        <td class="py-4 px-6 text-on-surface-variant dark:text-slate-400">{{ $card['chapter'] }}</td>
-                        <td class="py-4 px-6 text-on-surface-variant dark:text-slate-400">{{ $card['topic'] }}</td>
-                        <td class="py-4 px-6">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary">
-                                {{ $card['cards_count'] }} Cards
-                            </span>
-                        </td>
-                        <td class="py-4 px-6 text-on-surface-variant dark:text-slate-400">{{ $card['updated_at'] }}</td>
-                        <td class="py-4 px-6 text-right whitespace-nowrap">
-                            <div class="relative inline-block text-left action-dropdown">
-                                <button type="button" class="action-dropdown-trigger w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors" title="Actions">
-                                    <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
-                                </button>
-                                <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
-                                    <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
-                                        <i class="fa-solid fa-eye w-4 text-on-surface-variant"></i>
-                                        Preview
-                                    </button>
-                                    <a href="{{ route('flashcards.edit', $card['id']) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
-                                        <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
-                                        Edit
-                                    </a>
-                                    <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
-                                    <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
-                                        <i class="fa-solid fa-trash w-4"></i>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
+                <tbody></tbody>
             </table>
-        </div>
-        
-        {{-- Pagination --}}
-        <div class="px-6 py-4 border-t border-outline-variant/20 dark:border-slate-700 bg-surface-container-lowest/30 dark:bg-slate-800/60 flex items-center justify-between">
-            <span class="text-xs font-medium text-on-surface-variant dark:text-slate-400">Showing {{ $flashcards->count() }} of 24 sets</span>
-            <div class="flex gap-1">
-                <button class="p-1.5 rounded-md text-outline hover:bg-surface-variant dark:hover:bg-slate-700 disabled:opacity-50" disabled>
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
-                </button>
-                <button class="w-8 h-8 rounded-md bg-primary text-white text-xs font-bold flex items-center justify-center">1</button>
-                <button class="w-8 h-8 rounded-md text-on-surface-variant hover:bg-surface-variant dark:hover:bg-slate-700 text-xs font-medium">2</button>
-                <button class="w-8 h-8 rounded-md text-on-surface-variant hover:bg-surface-variant dark:hover:bg-slate-700 text-xs font-medium">3</button>
-                <button class="p-1.5 rounded-md text-outline hover:bg-surface-variant dark:hover:bg-slate-700">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
-                </button>
-            </div>
         </div>
     </div>
 
-    @push('scripts')
+    {{-- One skeleton row, cloned into the table body while a draw is in flight --}}
+    <template id="flashcards-shimmer-row">
+        <tr class="flashcards-shimmer-row" aria-hidden="true">
+            <td>
+                <span class="shimmer-bar" style="width:55%"></span>
+                <span class="shimmer-bar shimmer-bar-sm" style="width:35%"></span>
+            </td>
+            <td><span class="shimmer-bar shimmer-pill" style="width:70%"></span></td>
+            <td><span class="shimmer-bar shimmer-chip"></span></td>
+            <td>
+                <span class="shimmer-bar" style="width:60%"></span>
+                <span class="shimmer-bar shimmer-bar-sm" style="width:40%"></span>
+            </td>
+            <td><span class="shimmer-bar shimmer-dots"></span></td>
+        </tr>
+    </template>
+
+    {{-- Add Flashcard Modal — step one: the deck's details --}}
+    <div id="add-flashcard-modal-container" class="fixed inset-0 z-[100] flex items-center justify-center hidden" aria-modal="true" role="dialog">
+        <div class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onclick="closeAddFlashcardModal()"></div>
+        <div class="relative w-full max-w-2xl mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
+            <div class="p-6 border-b border-outline-variant/20 dark:border-slate-700 flex justify-between items-center bg-surface-container-low/40 dark:bg-slate-900/40">
+                <div>
+                    <h3 class="text-lg font-bold text-on-surface dark:text-white">Add New Flashcard</h3>
+                    <p class="text-xs text-on-surface-variant dark:text-slate-400 mt-0.5">Step 1 of 2 — name the deck, then add its questions.</p>
+                </div>
+                <button type="button" onclick="closeAddFlashcardModal()" class="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="add-flashcard-form" data-ajax-form action="{{ route('flashcards.store', [$course->id, $chapter->id]) }}" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+                @csrf
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
+                    Adding to <span class="text-primary">{{ $chapter->title }}</span>
+                </p>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Title</label>
+                    <input name="title" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. Cell Structures — Revision Deck">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Linked To <span class="font-normal text-outline">(Optional)</span></label>
+                        <select id="add-source-type" name="source_type" class="source-type w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
+                            <option value="">Standalone deck</option>
+                            @foreach($sources as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Record</label>
+                        <select id="add-source-id" name="source_id" class="source-id w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface disabled:opacity-50" disabled>
+                            <option value="">Pick a type first</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeAddFlashcardModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                    <button type="submit" data-loading-text="Creating…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center gap-2">
+                        Continue to Questions
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Edit Flashcard Modal — details only; questions live in the builder --}}
+    <div id="edit-flashcard-modal-container" class="fixed inset-0 z-[100] flex items-center justify-center hidden" aria-modal="true" role="dialog">
+        <div class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onclick="closeEditFlashcardModal()"></div>
+        <div class="relative w-full max-w-2xl mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
+            <div class="p-6 border-b border-outline-variant/20 dark:border-slate-700 flex justify-between items-center bg-surface-container-low/40 dark:bg-slate-900/40">
+                <h3 class="text-lg font-bold text-on-surface dark:text-white">Edit Flashcard</h3>
+                <button type="button" onclick="closeEditFlashcardModal()" class="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="edit-flashcard-form" data-ajax-form action="#" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+                @csrf
+                @method('PUT')
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
+                    Editing in <span class="text-primary">{{ $chapter->title }}</span>
+                </p>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Title</label>
+                    <input id="edit-flashcard-title" name="title" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="e.g. Cell Structures — Revision Deck">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Linked To <span class="font-normal text-outline">(Optional)</span></label>
+                        <select id="edit-source-type" name="source_type" class="source-type w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
+                            <option value="">Standalone deck</option>
+                            @foreach($sources as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Record</label>
+                        <select id="edit-source-id" name="source_id" class="source-id w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface disabled:opacity-50" disabled>
+                            <option value="">Pick a type first</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditFlashcardModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                    <button type="submit" data-loading-text="Saving…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
     <script>
+        let flashcardsTable = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             const filterToggle = document.getElementById('filterToggle');
             const filterCardWrapper = document.getElementById('filterCardWrapper');
@@ -212,31 +373,185 @@
                 filterToggle.classList.toggle('is-active', isOpen);
             });
 
-            flatpickr("#flashcards-date-range", {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr, instance) {
-                if (selectedDates.length === 2) {
-                    const form = instance.input.closest('form');
-                    // Remove existing hidden inputs if any
-                    form.querySelectorAll('input[name="date_from"], input[name="date_to"]').forEach(el => el.remove());
+            const filterForm = document.getElementById('flashcards-filter-form');
 
-                    const dateFromInput = document.createElement('input');
-                    dateFromInput.type = 'hidden';
-                    dateFromInput.name = 'date_from';
-                    dateFromInput.value = flatpickr.formatDate(selectedDates[0], 'Y-m-d');
+            // Server-side table: paging, ordering and filtering all happen in
+            // FlashcardController@data, so only the visible page is ever loaded.
+            flashcardsTable = App.dataTable('#flashcards-table', {
+                order: [[3, 'desc']],
+                shimmerTemplate: '#flashcards-shimmer-row',
+                language: {
+                    emptyTable: 'No flashcards yet.',
+                    zeroRecords: 'No flashcards match these filters.',
+                },
+                ajax: {
+                    url: '{{ route('flashcards.data', [$course->id, $chapter->id]) }}',
+                    data: (params) => {
+                        const filters = new FormData(filterForm);
+                        // DataTables reserves `search`, so the filter box travels
+                        // as search_term and is mapped back on the server.
+                        params.search_term = filters.get('title') ?? '';
+                        params.source_type = filters.get('source_type') ?? '';
+                        params.source_id = filters.get('source_id') ?? '';
+                        return params;
+                    },
+                },
+                columns: [
+                    { data: 'title_cell', name: 'title' },
+                    { data: 'source_cell', name: 'flashcardable_type', orderable: false },
+                    { data: 'questions_cell', name: 'assessments_count', className: 'text-center' },
+                    { data: 'date_cell', name: 'created_at' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center whitespace-nowrap' },
+                ],
+            });
 
-                    const dateToInput = document.createElement('input');
-                    dateToInput.type = 'hidden';
-                    dateToInput.name = 'date_to';
-                    dateToInput.value = flatpickr.formatDate(selectedDates[1], 'Y-m-d');
+            filterForm?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                flashcardsTable.ajax.reload();
+            });
 
-                    form.appendChild(dateFromInput);
-                    form.appendChild(dateToInput);
+            document.getElementById('flashcardsClearFilters')?.addEventListener('click', () => {
+                filterForm.reset();
+                filterForm.querySelectorAll('select').forEach(select => { select.value = ''; });
+                filterForm.querySelector('input[name="title"]').value = '';
+                resetSourceRecords(document.getElementById('filter-source-id'));
+                flashcardsTable.ajax.reload();
+            });
+
+            // ── Dependent source pickers ────────────────────────────────────
+            // Choosing a type loads that type's records into the neighbouring
+            // select, in the filter card and in both modals.
+            document.getElementById('filter-source-type')?.addEventListener('change', (e) => {
+                loadSourceRecords(e.target.value, document.getElementById('filter-source-id'));
+            });
+
+            document.querySelectorAll('.source-type').forEach(typeSelect => {
+                typeSelect.addEventListener('change', (e) => {
+                    const recordSelect = e.target.closest('.grid').querySelector('.source-id');
+                    loadSourceRecords(e.target.value, recordSelect);
+                });
+            });
+
+            // ── Add / Edit submit over AJAX ─────────────────────────────────
+            const addForm = document.getElementById('add-flashcard-form');
+            const editForm = document.getElementById('edit-flashcard-form');
+
+            // Step one hands off to the builder, which is step two.
+            addForm?.addEventListener('ajax:success', (e) => {
+                const redirect = e.detail?.payload?.redirect;
+                if (redirect) {
+                    window.location.href = redirect;
+                    return;
                 }
+                closeAddFlashcardModal();
+                flashcardsTable.ajax.reload(null, false);
+            });
+
+            editForm?.addEventListener('ajax:success', () => {
+                closeEditFlashcardModal();
+                flashcardsTable.ajax.reload(null, false);
+            });
+        });
+
+        // Fills a "Record" select with the chosen type's rows.
+        function loadSourceRecords(type, recordSelect, selectedId = null, selectedLabel = null) {
+            if (!recordSelect) return;
+
+            if (!type) {
+                resetSourceRecords(recordSelect);
+                return;
             }
-        });
-        });
+
+            recordSelect.disabled = true;
+            recordSelect.innerHTML = '<option value="">Loading…</option>';
+
+            App.request(`{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards/sources") }}/${type}`)
+                .then(records => {
+                    recordSelect.innerHTML = '<option value="">Select a record</option>';
+                    records.forEach(record => {
+                        const option = document.createElement('option');
+                        option.value = record.id;
+                        option.textContent = record.text;
+                        recordSelect.appendChild(option);
+                    });
+
+                    // The linked record may sit outside the 50 most recent.
+                    if (selectedId && !records.some(record => String(record.id) === String(selectedId))) {
+                        const option = document.createElement('option');
+                        option.value = selectedId;
+                        option.textContent = selectedLabel || `#${selectedId}`;
+                        recordSelect.appendChild(option);
+                    }
+
+                    recordSelect.value = selectedId ?? '';
+                    recordSelect.disabled = false;
+                })
+                .catch(() => {
+                    recordSelect.innerHTML = '<option value="">Could not load records</option>';
+                });
+        }
+
+        function resetSourceRecords(recordSelect) {
+            if (!recordSelect) return;
+            recordSelect.innerHTML = '<option value="">Pick a type first</option>';
+            recordSelect.disabled = true;
+        }
+
+        function openAddFlashcardModal() {
+            document.getElementById('add-flashcard-modal-container').classList.remove('hidden');
+        }
+
+        function closeAddFlashcardModal() {
+            const form = document.getElementById('add-flashcard-form');
+            form.reset();
+            App.clearFieldErrors(form);
+            resetSourceRecords(document.getElementById('add-source-id'));
+            document.getElementById('add-flashcard-modal-container').classList.add('hidden');
+        }
+
+        // Fills the edit modal from the row's data-* attributes.
+        function openEditFlashcardModal(trigger) {
+            const form = document.getElementById('edit-flashcard-form');
+            const id = trigger.dataset.id;
+
+            form.action = `{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards") }}/${id}`;
+            App.clearFieldErrors(form);
+
+            document.getElementById('edit-flashcard-title').value = trigger.dataset.title ?? '';
+
+            const type = trigger.dataset.sourceType ?? '';
+            document.getElementById('edit-source-type').value = type;
+            loadSourceRecords(
+                type,
+                document.getElementById('edit-source-id'),
+                trigger.dataset.sourceId || null,
+                trigger.dataset.sourceLabel || null
+            );
+
+            document.getElementById('edit-flashcard-modal-container').classList.remove('hidden');
+        }
+
+        function closeEditFlashcardModal() {
+            document.getElementById('edit-flashcard-modal-container').classList.add('hidden');
+        }
+
+        // Deletes through the flashcards.destroy endpoint, then refreshes the table.
+        async function deleteFlashcard(trigger) {
+            const title = trigger.dataset.title ?? 'this flashcard';
+
+            const confirmed = await App.confirmDelete({
+                title: 'Delete flashcard?',
+                text: `“${title}” and its attached questions will be removed.`,
+            });
+            if (!confirmed) return;
+
+            try {
+                const payload = await App.request(`{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards") }}/${trigger.dataset.id}`, { method: 'DELETE' });
+                App.toast('success', payload.message || 'Flashcard deleted successfully.');
+                flashcardsTable?.ajax.reload(null, false);
+            } catch (error) {
+                App.toast('error', error.message);
+            }
+        }
     </script>
-    @endpush
-@endsection
+@endpush

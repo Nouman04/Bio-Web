@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
 
 class Note extends Model
@@ -16,9 +17,20 @@ class Note extends Model
     protected $fillable = [
         'chapter_id',
         'topic_id',
+        'summary_id',
+        'title',
         'type',
         'content',
     ];
+
+    /**
+     * The chapter summary this note was written from — only set on notes of
+     * type `summary`.
+     */
+    public function summary(): BelongsTo
+    {
+        return $this->belongsTo(Summary::class);
+    }
 
     public function chapter(): BelongsTo
     {
@@ -30,9 +42,12 @@ class Note extends Model
         return $this->belongsTo(Topic::class);
     }
 
-    public function flashcards(): HasMany
+    /**
+     * Flashcard decks built from this note.
+     */
+    public function flashcards(): MorphMany
     {
-        return $this->hasMany(Flashcard::class);
+        return $this->morphMany(Flashcard::class, 'flashcardable');
     }
 
     public function questionables()
@@ -42,7 +57,8 @@ class Note extends Model
 
     public function attachments()
     {
-        return $this->morphMany(Attachment::class, 'attachable');
+        // The attachments table stores `attachmentable_type` / `attachmentable_id`.
+        return $this->morphMany(Attachment::class, 'attachmentable');
     }
 
 
