@@ -71,4 +71,36 @@ class NoteController extends Controller
         // Placeholder for storing notes
         return redirect()->route('notes')->with('success', 'Note added successfully.');
     }
+
+    /**
+     * Show the form for editing the specified note.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the note by $id
+        $note = [
+            'id' => $id,
+            'title' => 'Newton\'s Laws Summary',
+            'course' => 'Physics 101',
+            'chapter' => 'Ch1',
+            'topic' => 'Basics',
+            'type' => 'exam_notes',
+            'content' => 'A quick overview of the three laws of motion, including formulas and real-world examples discussed in week 2 lecture.',
+            'attachments' => [
+                ['id' => 21, 'name' => 'newtons-laws-worksheet.pdf', 'size' => '512 KB'],
+                ['id' => 22, 'name' => 'free-body-diagrams.png', 'size' => '318 KB'],
+            ],
+        ];
+
+        return view('notes.edit', compact('note'));
+    }
+
+    /**
+     * Update the specified note in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Placeholder for updating notes
+        return redirect()->route('notes')->with('success', 'Note updated successfully.');
+    }
 }

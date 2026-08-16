@@ -20,6 +20,7 @@ class VideoLesson extends Model
         'slug',
         'description',
         'file_path',
+        'external_link',
     ];
 
     public function chapter(): BelongsTo
@@ -35,6 +36,11 @@ class VideoLesson extends Model
     public function addedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    public function questionables()
+    {
+        return $this->morphMany(QuestionableType::class, 'questionable');
     }
 
     /**

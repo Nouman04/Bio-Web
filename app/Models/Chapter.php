@@ -18,6 +18,7 @@ class Chapter extends Model
         'title',
         'chapter_number',
         'description',
+        'status',
     ];
 
     public function course(): BelongsTo

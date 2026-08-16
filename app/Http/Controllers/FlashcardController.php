@@ -47,4 +47,41 @@ class FlashcardController extends Controller
         // Placeholder for storing flashcards
         return redirect()->route('flashcards')->with('success', 'Flashcard set created successfully.');
     }
+
+    /**
+     * Show the form for editing the specified flashcard set.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the flashcard set by $id
+        $flashcard = [
+            'id' => $id,
+            'title' => 'Biology 101: Cellular Structures',
+            'chapter' => 'Chapter 3: The Cell',
+            'topic' => 'Cell Membrane',
+            'cards' => [
+                [
+                    'type' => 'Multiple Choice',
+                    'question' => 'What is the primary function of the mitochondria in a eukaryotic cell?',
+                    'answer' => 'It generates most of the cell\'s ATP through oxidative phosphorylation.',
+                ],
+                [
+                    'type' => 'True/False',
+                    'question' => 'Plant cells contain both chloroplasts and mitochondria. (True/False)',
+                    'answer' => 'True — plant cells need mitochondria to respire even though they also photosynthesise.',
+                ],
+            ],
+        ];
+
+        return view('flashcards.edit', compact('flashcard'));
+    }
+
+    /**
+     * Update the specified flashcard set in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Placeholder for updating flashcards
+        return redirect()->route('flashcards')->with('success', 'Flashcard set updated successfully.');
+    }
 }

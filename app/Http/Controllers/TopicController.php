@@ -43,6 +43,23 @@ class TopicController extends Controller
     }
 
     /**
+     * Show the form for creating a new topic.
+     */
+    public function create()
+    {
+        return view('topics.create');
+    }
+
+    /**
+     * Store a newly created topic in storage.
+     */
+    public function store(Request $request)
+    {
+        // Placeholder for storing topics
+        return redirect()->route('topics')->with('success', 'Topic added successfully.');
+    }
+
+    /**
      * Display the question assignment page for a specific topic.
      */
     public function assign($id)
@@ -62,5 +79,34 @@ class TopicController extends Controller
             'topicName' => $topicName,
             'questions' => $questions
         ]);
+    }
+
+    /**
+     * Show the form for editing the specified topic.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the topic by $id
+        $topic = [
+            'id' => $id,
+            'title' => 'Introduction to Core Concepts',
+            'chapter' => 'ch1',
+            'content' => 'An overview of the foundational vocabulary and models used throughout the chapter.',
+            'attachments' => [
+                ['id' => 11, 'name' => 'core-concepts-handout.pdf', 'size' => '840 KB'],
+                ['id' => 12, 'name' => 'lecture-slides.pptx', 'size' => '2.1 MB'],
+            ],
+        ];
+
+        return view('topics.edit', compact('topic'));
+    }
+
+    /**
+     * Update the specified topic in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Placeholder for updating topics
+        return redirect()->route('topics')->with('success', 'Topic updated successfully.');
     }
 }

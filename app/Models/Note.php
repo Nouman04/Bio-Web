@@ -35,6 +35,18 @@ class Note extends Model
         return $this->hasMany(Flashcard::class);
     }
 
+    public function questionables()
+    {
+        return $this->morphMany(QuestionableType::class, 'questionable');
+    }
+
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+
+
     /**
      * Get the indexable data array for the model.
      */

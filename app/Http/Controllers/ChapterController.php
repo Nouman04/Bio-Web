@@ -2,72 +2,68 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chapter;
+use App\Models\Course;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class ChapterController extends Controller
 {
     /**
-     * Course titles keyed by id — mirrors CourseController's mock data so
-     * chapters can be scoped to a course without a real courses table yet.
-     */
-    private function courses(): array
-    {
-        return [
-            1 => 'Advanced React Patterns',
-            2 => 'Digital Marketing 101',
-            3 => 'UI/UX Principles',
-        ];
-    }
-
-    /**
-     * Chapters mock data, grouped by course_id.
-     */
-    private function allChapters(): \Illuminate\Support\Collection
-    {
-        return collect([
-            ['id' => 1, 'course_id' => 1, 'num' => 1, 'title' => 'Introduction to Hooks', 'desc' => 'Understanding useState, useEffect, and the rules of hooks in modern React development.', 'status' => 'Published'],
-            ['id' => 2, 'course_id' => 1, 'num' => 2, 'title' => 'Context API Deep Dive', 'desc' => 'Managing global state without prop drilling using React Context and custom providers.', 'status' => 'Published'],
-            ['id' => 3, 'course_id' => 1, 'num' => 3, 'title' => 'Performance Optimization', 'desc' => 'Memoization, code splitting, and profiling techniques for production React apps.', 'status' => 'Draft'],
-            ['id' => 4, 'course_id' => 2, 'num' => 1, 'title' => 'SEO Fundamentals', 'desc' => 'On-page and off-page optimization strategies to improve organic search visibility.', 'status' => 'Published'],
-            ['id' => 5, 'course_id' => 2, 'num' => 2, 'title' => 'Social Media Strategy', 'desc' => 'Building and executing a content calendar across major social platforms.', 'status' => 'Published'],
-            ['id' => 6, 'course_id' => 3, 'num' => 1, 'title' => 'Wireframing Fundamentals', 'desc' => 'Translating user needs into low-fidelity structural layouts before applying visual design.', 'status' => 'Published'],
-            ['id' => 7, 'course_id' => 3, 'num' => 2, 'title' => 'Prototyping & Testing', 'desc' => 'Building interactive prototypes and running usability tests to validate design decisions.', 'status' => 'Draft'],
-        ]);
-    }
-
-    /**
-     * Display the chapters belonging to a single course.
+     * Display the chapters belonging to a single course. The grid itself is
+     * loaded by DataTables from the `courses.chapters.data` endpoint below.
      */
     public function index(Request $request, int $course)
     {
-        $courses = $this->courses();
-        abort_if(! isset($courses[$course]), 404);
-
-        $chapters = $this->allChapters()->where('course_id', $course)->values();
-
-        // Filter by Title
-        if ($title = $request->input('title')) {
-            $chapters = $chapters->filter(fn ($c) => stripos($c['title'], $title) !== false)->values();
-        }
-
-        // Filter by Status
-        if ($status = $request->input('status')) {
-            $chapters = $chapters->filter(fn ($c) => $c['status'] === $status)->values();
-        }
-
-        $allForCourse = $this->allChapters()->where('course_id', $course);
+        $courseModel = Course::findOrFail($course);
 
         return view('chapters.index', [
-            'courseId' => $course,
-            'courseTitle' => $courses[$course],
-            'chapters' => $chapters,
-            'totalCount' => $allForCourse->count(),
-            'draftsCount' => $allForCourse->where('status', 'Draft')->count(),
+            'courseId' => $courseModel->id,
+            'courseTitle' => $courseModel->title,
+            'stats' => $this->stats($courseModel->id),
             'filters' => [
-                'title' => $title ?? '',
-                'status' => $status ?? '',
+                'title' => $request->input('title', ''),
+                'status' => $request->input('status', ''),
             ],
         ]);
+    }
+
+    /**
+     * Server-side DataTables source for the chapter list of one course.
+     */
+    public function data(Request $request, int $course): JsonResponse
+    {
+        $chapters = Chapter::query()->where('course_id', $course);
+
+        // Filters from the filter card above the table.
+        $chapters->when(
+            $request->input('search_term'),
+            fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
+        );
+
+        $chapters->when(
+            $request->input('status'),
+            fn ($query, $status) => $query->where('status', $status)
+        );
+
+        $table = DataTables::eloquent($chapters)
+            ->addColumn('number_cell', fn (Chapter $chapter) => view('chapters.partials.number-cell', compact('chapter'))->render())
+            ->addColumn('title_cell', fn (Chapter $chapter) => view('chapters.partials.title-cell', compact('chapter'))->render())
+            ->addColumn('status_cell', fn (Chapter $chapter) => view('chapters.partials.status-cell', compact('chapter'))->render())
+            ->addColumn('action', fn (Chapter $chapter) => view('chapters.partials.actions', ['chapter' => $chapter, 'courseId' => $course])->render())
+            ->orderColumn('number_cell', 'chapter_number $1')
+            ->orderColumn('title_cell', 'title $1')
+            ->orderColumn('status_cell', 'status $1')
+            ->rawColumns(['number_cell', 'title_cell', 'status_cell', 'action'])
+            ->only(['number_cell', 'title_cell', 'status_cell', 'action'])
+            // Rides along on the DataTables payload so the stat cards stay in
+            // step with the grid without a second round trip.
+            ->with('stats', $this->stats($course))
+            ->toJson();
+
+        // Never let a proxy or the browser replay an old page of rows.
+        return $table->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
@@ -75,16 +71,104 @@ class ChapterController extends Controller
      */
     public function dashboard(int $course, int $chapter)
     {
-        $courses = $this->courses();
-        abort_if(! isset($courses[$course]), 404);
-
-        $chapterData = $this->allChapters()->firstWhere('id', $chapter);
-        abort_if(! $chapterData || $chapterData['course_id'] !== $course, 404);
+        $courseModel = Course::findOrFail($course);
+        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
 
         return view('chapters.dashboard', [
-            'courseId' => $course,
-            'courseTitle' => $courses[$course],
-            'chapter' => $chapterData,
+            'courseId' => $courseModel->id,
+            'courseTitle' => $courseModel->title,
+            'chapter' => [
+                'id' => $chapterModel->id,
+                'num' => $chapterModel->chapter_number,
+                'title' => $chapterModel->title,
+                'desc' => $chapterModel->description,
+                'status' => $chapterModel->status,
+            ],
         ]);
+    }
+
+    /**
+     * Chapter counts for the stat cards. Unfiltered on purpose — the cards
+     * describe the course, not the current filter.
+     */
+    private function stats(int $course): array
+    {
+        $total = Chapter::where('course_id', $course)->count();
+        $drafts = Chapter::where('course_id', $course)->where('status', 'Draft')->count();
+
+        return [
+            'total' => $total,
+            'published' => $total - $drafts,
+            'drafts' => $drafts,
+        ];
+    }
+
+    /**
+     * Store a newly created chapter under the given course.
+     */
+    public function store(Request $request, int $course)
+    {
+        $data = $this->validated($request, $course);
+
+        $chapter = Chapter::create($data);
+
+        return $this->respond($request, $course, $chapter->fresh(), 'Chapter created successfully.', 201);
+    }
+
+    /**
+     * Update the given chapter.
+     */
+    public function update(Request $request, int $course, Chapter $chapter)
+    {
+        $chapter->update($this->validated($request, $course));
+
+        return $this->respond($request, $course, $chapter->fresh(), 'Chapter updated successfully.');
+    }
+
+    /**
+     * Soft delete the given chapter.
+     */
+    public function destroy(Request $request, int $course, Chapter $chapter)
+    {
+        $chapter->delete();
+
+        return $this->respond($request, $course, null, 'Chapter deleted successfully.');
+    }
+
+    /**
+     * Shared validation. The course comes from the URL, and the modals post the
+     * chapter number as `num` and the description as `desc`.
+     */
+    private function validated(Request $request, int $course): array
+    {
+        $request->merge([
+            'course_id' => $course,
+            'chapter_number' => $request->input('chapter_number', $request->input('num')),
+            'description' => $request->input('description', $request->input('desc')),
+        ]);
+
+        return $request->validate([
+            'course_id' => ['required', 'integer', 'exists:courses,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'chapter_number' => ['required', 'integer', 'min:1'],
+            'description' => ['required', 'string'],
+            'status' => ['required', 'in:Draft,Published'],
+        ]);
+    }
+
+    /**
+     * JSON for fetch/AJAX callers, a redirect back to the chapter list for plain
+     * form posts.
+     */
+    private function respond(Request $request, int $course, ?Chapter $chapter, string $message, int $status = 200)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(array_filter([
+                'message' => $message,
+                'data' => $chapter,
+            ], fn ($value) => $value !== null), $status);
+        }
+
+        return redirect()->route('courses.chapters', $course)->with('success', $message);
     }
 }

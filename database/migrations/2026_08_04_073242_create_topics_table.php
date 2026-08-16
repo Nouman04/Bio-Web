@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('chapter_id')->constrained('chapters')->cascadeOnDelete();
             $table->string('title');
+            $table->longText('content')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

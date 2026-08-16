@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->string('file_path');
+            $table->text('file_path');
+            $table->text('external_link')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

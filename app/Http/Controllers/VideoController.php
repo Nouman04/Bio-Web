@@ -72,4 +72,33 @@ class VideoController extends Controller
         // Placeholder for storing videos
         return redirect()->route('videos')->with('success', 'Video lesson added successfully.');
     }
+
+    /**
+     * Show the form for editing the specified video lesson.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the video lesson by $id
+        $video = [
+            'id' => $id,
+            'title' => 'Introduction to Cell Structure',
+            'chapter' => 'ch1',
+            'topic' => 't1',
+            'description' => 'Walkthrough of the organelles covered in chapter 1, with the transcript attached below.',
+            'video_url' => 'https://example.com/video1',
+            'meta' => '12:45 • MP4 • 1080p',
+            'thumbnail' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKOhvTraqPgk8GIbwlEpUSV8vzhVmrT_stkimu5CxWu0JurXR0KfI4JmEZdQeMkiGwSfNgheRhG6Cgo3FEafS43-Hm_xoDd2yFhe_KCFdmWSgGxiRcH8nBbyCn_AnYaAcv4wMnAG6ZSlrK4SESQdtbKF04sLOxVhGc__9xMEw771R90fPCuj4cIEQ8WF6uMo0HtO3PyW3-bzoxoYCbBivgJ_3wIkMD8XcMUX2ExhVGl88UmOnrAEFN',
+        ];
+
+        return view('videos.edit', compact('video'));
+    }
+
+    /**
+     * Update the specified video lesson in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Placeholder for updating videos
+        return redirect()->route('videos')->with('success', 'Video lesson updated successfully.');
+    }
 }

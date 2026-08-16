@@ -50,7 +50,7 @@
                 
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-semibold text-on-surface dark:text-slate-200" for="description">Description</label>
-                    <textarea class="w-full bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] placeholder:text-outline/70 text-on-surface dark:text-slate-200 h-24 resize-none" id="description" name="description" placeholder="Provide a brief description of the quiz..."></textarea>
+                    <textarea id="description" name="description" data-quill data-quill-height="140px" placeholder="Provide a brief description of the quiz..."></textarea>
                 </div>
                 
                 <div class="flex flex-col gap-2">

@@ -44,7 +44,17 @@
                     <label class="text-sm font-semibold text-on-surface dark:text-slate-200" for="title">Guide Title</label>
                     <input class="bg-white dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary w-full shadow-sm outline-none transition-all" id="title" name="title" placeholder="e.g., Introduction to Advanced Quantum Mechanics" type="text" required>
                 </div>
-                
+
+                {{-- Slug (auto-filled from the title until edited manually) --}}
+                <div class="md:col-span-2 flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-on-surface dark:text-slate-200" for="slug">Slug</label>
+                    <div class="flex items-stretch rounded-lg border border-outline-variant/60 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+                        <span class="hidden sm:flex items-center px-4 text-sm text-on-surface-variant dark:text-slate-400 bg-surface-container-low dark:bg-slate-800 border-r border-outline-variant/60 dark:border-slate-700 select-none">/guides/</span>
+                        <input class="flex-1 bg-transparent px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 outline-none border-none focus:ring-0" id="slug" name="slug" placeholder="introduction-to-advanced-quantum-mechanics" type="text" required>
+                    </div>
+                    <p class="text-xs text-on-surface-variant dark:text-slate-400">Generated from the title. Edit it if you need a different URL — it must be unique.</p>
+                </div>
+
                 {{-- Chapter Dropdown --}}
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-semibold text-on-surface dark:text-slate-200" for="chapter">Chapter</label>
@@ -87,22 +97,7 @@
             {{-- Rich Text Editor Area --}}
             <div class="flex flex-col gap-2 mt-2 flex-1 min-h-[300px]">
                 <label class="text-sm font-semibold text-on-surface dark:text-slate-200">Guide Content</label>
-                <div class="border border-outline-variant/60 dark:border-slate-700 rounded-lg flex flex-col flex-1 overflow-hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-                    {{-- Toolbar --}}
-                    <div class="bg-surface-container-lowest dark:bg-slate-800 border-b border-outline-variant/40 dark:border-slate-700 p-2 flex items-center gap-1 flex-wrap">
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-solid fa-bold"></i></button>
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-solid fa-italic"></i></button>
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-solid fa-underline"></i></button>
-                        <div class="w-px h-5 bg-outline-variant/50 mx-1"></div>
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-solid fa-list-ul"></i></button>
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-solid fa-list-ol"></i></button>
-                        <div class="w-px h-5 bg-outline-variant/50 mx-1"></div>
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-solid fa-link"></i></button>
-                        <button class="w-8 h-8 rounded hover:bg-surface-container-high dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors flex justify-center items-center" type="button"><i class="fa-regular fa-image"></i></button>
-                    </div>
-                    {{-- Editor Area --}}
-                    <textarea name="content" class="flex-1 w-full p-4 bg-transparent border-none focus:ring-0 resize-none text-sm text-on-surface dark:text-slate-200 placeholder:text-outline" placeholder="Start writing the guide content here..." required></textarea>
-                </div>
+                <textarea name="content" data-quill data-quill-height="320px" placeholder="Start writing the guide content here..." required></textarea>
             </div>
 
             {{-- Linked Questions --}}
@@ -121,3 +116,40 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const titleInput = document.getElementById('title');
+            const slugInput = document.getElementById('slug');
+            if (!titleInput || !slugInput) return;
+
+            // Stop mirroring the title once the slug has been edited by hand.
+            let slugEditedManually = slugInput.value.trim() !== '';
+
+            function toSlug(value) {
+                return value
+                    .toLowerCase()
+                    .normalize('NFD').replace(/\p{M}/gu, '')
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            titleInput.addEventListener('input', () => {
+                if (!slugEditedManually) slugInput.value = toSlug(titleInput.value);
+            });
+
+            slugInput.addEventListener('input', () => {
+                slugEditedManually = slugInput.value.trim() !== '';
+            });
+
+            slugInput.addEventListener('blur', () => {
+                slugInput.value = toSlug(slugInput.value);
+                if (slugInput.value === '') {
+                    slugEditedManually = false;
+                    slugInput.value = toSlug(titleInput.value);
+                }
+            });
+        });
+    </script>
+@endpush

@@ -127,7 +127,7 @@
                         <div class="flex justify-between items-start mb-3">
                             <span class="inline-flex items-center px-2 py-1 rounded {{ $note['course_tag_color'] }} text-[10px] font-bold uppercase tracking-wider">{{ $note['course'] }}</span>
                             <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                <button class="w-7 h-7 flex items-center justify-center rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/10"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <a href="{{ route('notes.edit', $note['id']) }}" title="Edit note" class="w-7 h-7 flex items-center justify-center rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/10"><i class="fa-solid fa-pen text-xs"></i></a>
                                 <button class="w-7 h-7 flex items-center justify-center rounded-md text-on-surface-variant hover:text-error hover:bg-error/10"><i class="fa-solid fa-trash text-xs"></i></button>
                             </div>
                         </div>
@@ -184,7 +184,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-on-surface-variant dark:text-slate-400 mb-1">Content</label>
-                        <textarea name="content" class="w-full bg-white dark:bg-slate-800 border border-outline-variant/50 rounded-lg px-3 py-2 text-sm text-on-surface dark:text-slate-200 focus:ring-1 focus:ring-primary focus:border-primary outline-none min-h-[120px] resize-y" placeholder="Write your note content here..." required></textarea>
+                        <textarea name="content" data-quill data-quill-height="160px" placeholder="Write your note content here..." required></textarea>
                     </div>
                     @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
                     <div>

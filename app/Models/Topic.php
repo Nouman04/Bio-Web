@@ -17,6 +17,7 @@ class Topic extends Model
     protected $fillable = [
         'chapter_id',
         'title',
+        'content',
     ];
 
     public function chapter(): BelongsTo
@@ -67,6 +68,16 @@ class Topic extends Model
     public function worksheetQuestions(): HasMany
     {
         return $this->hasMany(WorksheetQuestion::class, 'topics_id');
+    }
+
+    public function questionables()
+    {
+        return $this->morphMany(QuestionableType::class, 'questionable');
+    }
+
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachmentable');
     }
 
     /**

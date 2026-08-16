@@ -58,7 +58,7 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-semibold text-on-surface dark:text-slate-200">Description</label>
-                        <textarea class="w-full bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg px-4 py-2 text-sm text-on-surface dark:text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner h-24 resize-none" name="description">Comprehensive assessment covering chapters 1 through 5.</textarea>
+                        <textarea name="description" data-quill data-quill-height="140px">Comprehensive assessment covering chapters 1 through 5.</textarea>
                     </div>
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-semibold text-on-surface dark:text-slate-200">Quiz Type</label>

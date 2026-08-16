@@ -108,7 +108,7 @@
             {{-- Supplementary Info --}}
             <div class="flex flex-col gap-2 mt-4">
                 <label class="text-sm font-semibold text-on-surface dark:text-slate-200" for="description">Lesson Description / Transcript (Optional)</label>
-                <textarea class="w-full bg-surface-container-lowest dark:bg-slate-900 border border-outline-variant/60 dark:border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] text-on-surface dark:text-slate-200 placeholder:text-outline/70 transition-all h-32 resize-y" id="description" name="description" placeholder="Provide context, key takeaways, or paste transcript here..."></textarea>
+                <textarea id="description" name="description" data-quill data-quill-height="180px" placeholder="Provide context, key takeaways, or paste transcript here..."></textarea>
             </div>
 
             {{-- Linked Questions --}}

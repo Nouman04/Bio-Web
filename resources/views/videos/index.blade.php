@@ -153,9 +153,9 @@
                                 <h3 class="font-bold text-on-surface dark:text-slate-200 line-clamp-2 leading-tight flex-1 group-hover:text-primary transition-colors">
                                     {{ $video['title'] }}
                                 </h3>
-                                <button class="text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors mt-0.5">
-                                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                                </button>
+                                <a href="{{ route('videos.edit', $video['id']) }}" title="Edit lesson" class="text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors mt-0.5">
+                                    <i class="fa-solid fa-pen text-sm"></i>
+                                </a>
                             </div>
 
                             <p class="text-xs text-on-surface-variant dark:text-slate-400 flex items-center gap-1.5 mt-1">

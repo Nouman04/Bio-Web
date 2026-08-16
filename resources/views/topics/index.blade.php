@@ -63,11 +63,11 @@
             title="Toggle Filters">
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
-        <button type="button" onclick="openCreateTopicModal()"
+        <a href="{{ route('topics.create') }}"
             class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add New Topic
-        </button>
+        </a>
     </div>
 
     {{-- Filters Card (toggleable) --}}
@@ -143,10 +143,10 @@
                                             <i class="fa-solid fa-list-check w-4 text-on-surface-variant"></i>
                                             Assign Questions
                                         </a>
-                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
+                                        <a href="{{ route('topics.edit', $t['id']) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
                                             <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
                                             Edit
-                                        </button>
+                                        </a>
                                         <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
                                         <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
                                             <i class="fa-solid fa-trash w-4"></i>
@@ -168,41 +168,6 @@
         </div>
     </div>
 
-    {{-- Create Topic Modal --}}
-    <div id="create-topic-modal-container" class="fixed inset-0 z-[100] flex items-center justify-center hidden" aria-modal="true" role="dialog">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onclick="closeCreateTopicModal()"></div>
-        <!-- Panel -->
-        <div class="relative w-full max-w-md mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
-            <div class="p-6 border-b border-outline-variant/20 dark:border-slate-700 flex justify-between items-center bg-surface-container-low/40 dark:bg-slate-900/40">
-                <h3 class="text-lg font-bold text-on-surface dark:text-white">Add New Topic</h3>
-                <button type="button" onclick="closeCreateTopicModal()" class="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <form action="#" method="POST" class="p-6 flex flex-col gap-4">
-                @csrf
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
-                    <select class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
-                        <option>Select a chapter</option>
-                        <option>Chapter 1: Fundamentals</option>
-                        <option>Chapter 2: Advanced Mechanics</option>
-                    </select>
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic Name</label>
-                    <input class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="Enter topic name" type="text">
-                </div>
-                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeCreateTopicModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors">Add Topic</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 @endsection
 
 @push('scripts')
@@ -216,13 +181,5 @@
                 filterToggle.classList.toggle('is-active', isOpen);
             });
         });
-
-        function openCreateTopicModal() {
-            document.getElementById('create-topic-modal-container').classList.remove('hidden');
-        }
-
-        function closeCreateTopicModal() {
-            document.getElementById('create-topic-modal-container').classList.add('hidden');
-        }
     </script>
 @endpush

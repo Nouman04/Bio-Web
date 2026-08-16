@@ -65,17 +65,7 @@
                 <div class="flex flex-col gap-2 mt-2">
                     <label class="text-sm font-semibold text-on-surface dark:text-slate-200" for="description">Content / Description</label>
                     {{-- Faux Rich Text Editor --}}
-                    <div class="border border-outline-variant/60 dark:border-slate-700 rounded-lg overflow-hidden bg-surface-container-lowest dark:bg-slate-900 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)]">
-                        <div class="bg-surface-container-low dark:bg-slate-800 border-b border-outline-variant/40 dark:border-slate-700 px-3 py-2 flex items-center gap-1">
-                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors" type="button"><i class="fa-solid fa-bold text-xs"></i></button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors" type="button"><i class="fa-solid fa-italic text-xs"></i></button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors" type="button"><i class="fa-solid fa-underline text-xs"></i></button>
-                            <div class="w-[1px] h-4 bg-outline-variant/50 mx-2"></div>
-                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors" type="button"><i class="fa-solid fa-list-ul text-xs"></i></button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest dark:hover:bg-slate-700 text-on-surface-variant dark:text-slate-400 transition-colors" type="button"><i class="fa-solid fa-list-ol text-xs"></i></button>
-                        </div>
-                        <textarea class="w-full p-4 text-sm outline-none resize-y border-none focus:ring-0 bg-transparent placeholder:text-outline/70 text-on-surface dark:text-slate-200" id="description" name="description" placeholder="Add context, alt text, or usage notes here..." rows="5"></textarea>
-                    </div>
+                    <textarea id="description" name="description" data-quill data-quill-height="180px" placeholder="Add context, alt text, or usage notes here..."></textarea>
                 </div>
             </div>
         </div>

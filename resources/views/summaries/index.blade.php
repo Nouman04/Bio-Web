@@ -161,10 +161,10 @@
                                         <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
                                     </button>
                                     <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
-                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
+                                        <a href="{{ route('summaries.edit', $summary['id']) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
                                             <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
                                             Edit
-                                        </button>
+                                        </a>
                                         <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
                                         <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
                                             <i class="fa-solid fa-trash w-4"></i>
@@ -238,21 +238,7 @@
                     {{-- Content Editor --}}
                     <div class="flex flex-col gap-2 flex-1 min-h-[300px]">
                         <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Content</label>
-                        <div class="flex flex-col flex-1 border border-outline-variant/50 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
-                            {{-- Rich Text Toolbar --}}
-                            <div class="flex items-center gap-1 p-2 border-b border-outline-variant/30 dark:border-slate-700 bg-surface-container-low dark:bg-slate-900/50 flex-wrap">
-                                <button type="button" class="w-8 h-8 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors flex items-center justify-center"><i class="fa-solid fa-bold"></i></button>
-                                <button type="button" class="w-8 h-8 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors flex items-center justify-center"><i class="fa-solid fa-italic"></i></button>
-                                <button type="button" class="w-8 h-8 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors flex items-center justify-center"><i class="fa-solid fa-underline"></i></button>
-                                <div class="w-px h-5 bg-outline-variant/50 mx-1"></div>
-                                <button type="button" class="w-8 h-8 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors flex items-center justify-center"><i class="fa-solid fa-list-ul"></i></button>
-                                <div class="w-px h-5 bg-outline-variant/50 mx-1"></div>
-                                <button type="button" class="w-8 h-8 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors flex items-center justify-center"><i class="fa-solid fa-link"></i></button>
-                                <button type="button" class="w-8 h-8 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors flex items-center justify-center"><i class="fa-solid fa-image"></i></button>
-                            </div>
-                            {{-- Editor Text Area --}}
-                            <textarea name="content" required class="w-full flex-1 p-4 bg-transparent border-none text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:ring-0 resize-none min-h-[250px]" placeholder="Start writing your summary content here..."></textarea>
-                        </div>
+                        <textarea name="content" data-quill data-quill-height="250px" placeholder="Start writing your summary content here..." required></textarea>
                     </div>
                 </form>
             </div>

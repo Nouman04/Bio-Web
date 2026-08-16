@@ -76,4 +76,31 @@ class SummaryController extends Controller
         // Placeholder for storing summaries
         return redirect()->route('summaries')->with('success', 'Summary added successfully.');
     }
+
+    /**
+     * Show the form for editing the specified summary.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the summary by $id
+        $summary = [
+            'id' => $id,
+            'title' => 'Newtonian Mechanics Summary',
+            'slug' => 'newtonian-mechanics-summary',
+            'chapter' => 'ch1',
+            'topic' => 't1',
+            'content' => 'Condensed revision notes covering the three laws of motion, momentum, and worked examples from the chapter.',
+        ];
+
+        return view('summaries.edit', compact('summary'));
+    }
+
+    /**
+     * Update the specified summary in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Placeholder for updating summaries
+        return redirect()->route('summaries')->with('success', 'Summary updated successfully.');
+    }
 }

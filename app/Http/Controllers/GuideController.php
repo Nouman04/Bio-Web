@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class GuideController extends Controller
 {
@@ -84,7 +86,55 @@ class GuideController extends Controller
      */
     public function store(Request $request)
     {
+        // Fall back to the title when the slug field arrives empty (e.g. JS disabled).
+        $request->merge([
+            'slug' => Str::slug($request->input('slug') ?: $request->input('title')),
+        ]);
+
+        $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('guides', 'slug')],
+        ]);
+
         // Placeholder for storing guides
         return redirect()->route('guides')->with('success', 'Guide created successfully.');
+    }
+
+    /**
+     * Show the form for editing the specified guide.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the guide by $id
+        $guide = [
+            'id' => $id,
+            'title' => 'Mastering Differential Equations',
+            'slug' => 'mastering-differential-equations',
+            'chapter' => 'ch1',
+            'topic' => 't1',
+            'type' => 'theory',
+            'content' => 'A comprehensive guide covering first and second order differential equations, Laplace transforms, and series solutions with practical examples.',
+        ];
+
+        return view('guides.edit', compact('guide'));
+    }
+
+    /**
+     * Update the specified guide in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Fall back to the title when the slug field arrives empty (e.g. JS disabled).
+        $request->merge([
+            'slug' => Str::slug($request->input('slug') ?: $request->input('title')),
+        ]);
+
+        $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('guides', 'slug')->ignore($id)],
+        ]);
+
+        // Placeholder for updating guides
+        return redirect()->route('guides')->with('success', 'Guide updated successfully.');
     }
 }

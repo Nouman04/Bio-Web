@@ -99,4 +99,33 @@ class ImageController extends Controller
         // Placeholder for storing diagrams
         return redirect()->route('diagrams')->with('success', 'Diagram added successfully.');
     }
+
+    /**
+     * Show the form for editing the specified diagram.
+     */
+    public function edit($id)
+    {
+        // In a real app, you would fetch the diagram by $id
+        $diagram = [
+            'id' => $id,
+            'title' => 'Mitosis Diagram V2',
+            'description' => 'Stages of mitosis annotated for the cell division unit. Use alongside the chapter 2 worksheet.',
+            'chapter' => 'ch2',
+            'topic' => 't2',
+            'meta' => 'PNG • 1.2 MB',
+            'url' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKOhvTraqPgk8GIbwlEpUSV8vzhVmrT_stkimu5CxWu0JurXR0KfI4JmEZdQeMkiGwSfNgheRhG6Cgo3FEafS43-Hm_xoDd2yFhe_KCFdmWSgGxiRcH8nBbyCn_AnYaAcv4wMnAG6ZSlrK4SESQdtbKF04sLOxVhGc__9xMEw771R90fPCuj4cIEQ8WF6uMo0HtO3PyW3-bzoxoYCbBivgJ_3wIkMD8XcMUX2ExhVGl88UmOnrAEFN',
+            'has_image' => true,
+        ];
+
+        return view('diagrams.edit', compact('diagram'));
+    }
+
+    /**
+     * Update the specified diagram in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Placeholder for updating diagrams
+        return redirect()->route('diagrams')->with('success', 'Diagram updated successfully.');
+    }
 }

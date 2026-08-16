@@ -37,6 +37,11 @@ class Guide extends Model
         return $this->belongsTo(User::class, 'added_by');
     }
 
+    public function questionables()
+    {
+        return $this->morphMany(QuestionableType::class, 'questionable');
+    }
+
     /**
      * Get the indexable data array for the model.
      */

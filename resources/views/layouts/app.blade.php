@@ -18,6 +18,16 @@
     {{-- Font Awesome --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
+    {{-- Quill rich text editor (self-hosted) --}}
+    <link href="{{ asset('cdn/quill/quill.css') }}" rel="stylesheet"/>
+
+    {{-- SweetAlert2 (self-hosted) --}}
+    <link href="{{ asset('cdn/sweet-alert/sweetAlert2.css') }}" rel="stylesheet"/>
+
+    {{-- DataTables + the panel's shared table/shimmer styling --}}
+    <link href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css" rel="stylesheet"/>
+    <link href="{{ asset('css/app-datatable.css') }}" rel="stylesheet"/>
+
     {{-- Tailwind Config --}}
     <script id="tailwind-config">
         tailwind.config = {
@@ -238,6 +248,125 @@
                 overflow: hidden;
             }
         }
+        /* ── AJAX feedback: button spinners, inline errors, toasts ─────────── */
+        .app-spinner {
+            display: inline-block;
+            width: 0.875rem;
+            height: 0.875rem;
+            margin-right: 0.5rem;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 9999px;
+            vertical-align: -2px;
+            animation: app-spin 0.65s linear infinite;
+        }
+        @keyframes app-spin { to { transform: rotate(360deg); } }
+        button.is-loading { opacity: 0.75; cursor: progress; }
+        button:disabled { cursor: not-allowed; }
+
+        .app-field-error {
+            margin-top: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #ba1a1a;
+        }
+        .app-field-invalid {
+            border-color: #ba1a1a !important;
+            box-shadow: 0 0 0 1px rgba(186, 26, 26, 0.25);
+        }
+
+        /* Compact toast, anchored top-centre */
+        .swal2-container.swal2-top { padding-top: 1rem; }
+        .app-toast.swal2-popup {
+            padding: 0.75rem 1rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+        }
+        .app-toast .swal2-title {
+            font-size: 0.875rem !important;
+            font-weight: 600;
+            padding: 0;
+            margin: 0;
+        }
+        .app-toast .swal2-icon { width: 1.5rem; height: 1.5rem; margin: 0 0.625rem 0 0; }
+        .dark .app-toast.swal2-popup { background: rgb(30, 41, 59); color: rgb(226, 232, 240); }
+        .dark .swal2-popup { background: rgb(30, 41, 59); color: rgb(226, 232, 240); }
+        .dark .swal2-popup .swal2-title,
+        .dark .swal2-popup .swal2-html-container { color: rgb(226, 232, 240); }
+
+        /* Confirm dialog buttons, styled like the panel's own */
+        .app-swal-confirm,
+        .app-swal-cancel {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0 0.25rem;
+            cursor: pointer;
+        }
+        .app-swal-confirm { background: #ba1a1a; color: #ffffff; }
+        .app-swal-confirm:hover { background: #a31616; }
+        .app-swal-cancel {
+            background: transparent;
+            color: #767586;
+            border: 1px solid rgba(118, 117, 134, 0.4);
+        }
+        .app-swal-cancel:hover { background: rgba(118, 117, 134, 0.08); }
+
+        /* ── Quill editor ──────────────────────────────────────────────────── */
+        .quill-wrapper .ql-toolbar.ql-snow,
+        .quill-wrapper .ql-container.ql-snow {
+            border-color: rgba(118, 117, 134, 0.35);
+        }
+        .quill-wrapper .ql-toolbar.ql-snow {
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            background: #f2f4f6;
+        }
+        .quill-wrapper .ql-container.ql-snow {
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            background: #ffffff;
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+        .quill-wrapper .ql-editor {
+            min-height: var(--quill-min-height, 180px);
+        }
+        .quill-wrapper .ql-editor.ql-blank::before {
+            font-style: normal;
+            color: #767586;
+        }
+        .quill-wrapper.is-invalid .ql-toolbar.ql-snow,
+        .quill-wrapper.is-invalid .ql-container.ql-snow {
+            border-color: #ba1a1a;
+        }
+        .quill-error {
+            display: none;
+            margin-top: 0.375rem;
+            font-size: 0.75rem;
+            color: #ba1a1a;
+        }
+        .quill-wrapper.is-invalid + .quill-error { display: block; }
+
+        /* Dark mode — Quill's snow theme only ships light styling */
+        .dark .quill-wrapper .ql-toolbar.ql-snow,
+        .dark .quill-wrapper .ql-container.ql-snow {
+            border-color: rgb(51, 65, 85);
+        }
+        .dark .quill-wrapper .ql-toolbar.ql-snow { background: rgb(15, 23, 42); }
+        .dark .quill-wrapper .ql-container.ql-snow {
+            background: rgb(30, 41, 59);
+            color: rgb(226, 232, 240);
+        }
+        .dark .quill-wrapper .ql-editor.ql-blank::before { color: rgb(100, 116, 139); }
+        .dark .quill-wrapper .ql-snow .ql-stroke { stroke: rgb(203, 213, 225); }
+        .dark .quill-wrapper .ql-snow .ql-fill { fill: rgb(203, 213, 225); }
+        .dark .quill-wrapper .ql-snow .ql-picker { color: rgb(203, 213, 225); }
+        .dark .quill-wrapper .ql-snow .ql-picker-options {
+            background: rgb(30, 41, 59);
+            border-color: rgb(51, 65, 85);
+        }
     </style>
 
     @stack('styles')
@@ -355,24 +484,83 @@
             });
 
             // ── Table Row Action Dropdowns (the "..." menu in Actions columns) ─────
-            document.querySelectorAll('.action-dropdown').forEach(dropdown => {
-                const trigger = dropdown.querySelector('.action-dropdown-trigger');
-                const menu = dropdown.querySelector('.action-dropdown-menu');
+            // The menu is moved onto <body> and positioned with `fixed` while open, so
+            // the table card's overflow and the pagination footer can never clip it or
+            // paint over it — including for the last row of a table.
+            const actionMenu = { element: null, anchor: null, trigger: null };
 
-                trigger?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('.action-dropdown-menu').forEach(m => {
-                        if (m !== menu) m.classList.add('hidden');
-                    });
-                    menu?.classList.toggle('hidden');
-                });
+            function closeActionMenu() {
+                const menu = actionMenu.element;
+                if (!menu) return;
+
+                menu.classList.add('hidden');
+                menu.style.position = '';
+                menu.style.top = '';
+                menu.style.left = '';
+                menu.style.right = '';
+                menu.style.margin = '';
+                menu.style.zIndex = '';
+
+                // Put it back where it came from so the markup stays intact.
+                actionMenu.anchor.replaceWith(menu);
+                actionMenu.element = null;
+                actionMenu.anchor = null;
+                actionMenu.trigger = null;
+            }
+
+            function openActionMenu(menu, trigger) {
+                closeActionMenu();
+
+                const anchor = document.createComment('action-dropdown-menu');
+                menu.replaceWith(anchor);
+                document.body.appendChild(menu);
+                actionMenu.element = menu;
+                actionMenu.anchor = anchor;
+                actionMenu.trigger = trigger;
+
+                menu.classList.remove('hidden');
+                menu.style.position = 'fixed';
+                menu.style.right = 'auto';
+                menu.style.margin = '0';
+                menu.style.zIndex = '200';
+
+                const triggerRect = trigger.getBoundingClientRect();
+                const menuRect = menu.getBoundingClientRect();
+                const gap = 4;
+
+                // Right-align to the trigger, then keep it inside the viewport.
+                let left = triggerRect.right - menuRect.width;
+                left = Math.min(Math.max(left, 8), window.innerWidth - menuRect.width - 8);
+
+                // Drop down by default; flip above the trigger when the bottom would overflow.
+                let top = triggerRect.bottom + gap;
+                if (top + menuRect.height > window.innerHeight - 8) {
+                    top = Math.max(triggerRect.top - menuRect.height - gap, 8);
+                }
+
+                menu.style.left = `${left}px`;
+                menu.style.top = `${top}px`;
+            }
+
+            // Delegated so rows rendered later — DataTables pages, for instance —
+            // get working dropdowns without re-binding.
+            document.addEventListener('click', (e) => {
+                // Clicks inside the open menu are handled by the item itself.
+                if (actionMenu.element?.contains(e.target)) return;
+
+                const trigger = e.target.closest('.action-dropdown-trigger');
+                const wasOpenForThisTrigger = trigger && actionMenu.trigger === trigger;
+
+                closeActionMenu();
+                if (!trigger || wasOpenForThisTrigger) return;
+
+                const menu = trigger.closest('.action-dropdown')?.querySelector('.action-dropdown-menu');
+                if (menu) openActionMenu(menu, trigger);
             });
 
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
+            // A fixed menu would stay behind while the page moves, so dismiss it instead.
+            window.addEventListener('resize', closeActionMenu);
+            document.addEventListener('scroll', closeActionMenu, true);
 
             // ── Question Widget (multi-add existing or newly-written questions) ────
             document.querySelectorAll('.question-widget').forEach(widget => {
@@ -474,6 +662,112 @@
                 });
 
                 refreshEmpty();
+            });
+        });
+    </script>
+
+    {{-- jQuery + DataTables (server-side grids), then SweetAlert2 and the shared
+         AJAX helpers: App.dataTable / App.toast / App.request / … --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+    <script src="{{ asset('cdn/sweet-alert/sweetAlert2.min.js') }}"></script>
+    <script src="{{ asset('js/app-ajax.js') }}"></script>
+
+    {{-- Quill rich text editor (self-hosted) --}}
+    <script src="{{ asset('cdn/quill/quill.js') }}"></script>
+    <script>
+        // Upgrades every <textarea data-quill> into a Quill editor. The original
+        // textarea stays in the form (hidden) and receives the editor's HTML, so
+        // nothing about how these forms submit has to change.
+        document.addEventListener('DOMContentLoaded', () => {
+            const Delta = Quill.import('delta');
+
+            const toolbarFor = (allowAttachments) => [
+                [{ header: [2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ script: 'sub' }, { script: 'super' }],
+                ['blockquote', 'code-block'],
+                allowAttachments ? ['link', 'image'] : ['link'],
+                ['clean'],
+            ];
+
+            document.querySelectorAll('textarea[data-quill]').forEach(textarea => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'quill-wrapper';
+                if (textarea.dataset.quillHeight) {
+                    wrapper.style.setProperty('--quill-min-height', textarea.dataset.quillHeight);
+                }
+
+                const editor = document.createElement('div');
+                wrapper.appendChild(editor);
+                textarea.parentNode.insertBefore(wrapper, textarea);
+
+                // `required` on a hidden field makes the browser refuse to submit with
+                // an unfocusable-control error, so enforce it ourselves instead.
+                const isRequired = textarea.hasAttribute('required');
+                textarea.removeAttribute('required');
+                textarea.classList.add('hidden');
+
+                let error = null;
+                if (isRequired) {
+                    error = document.createElement('p');
+                    error.className = 'quill-error';
+                    error.textContent = 'This field is required.';
+                    wrapper.insertAdjacentElement('afterend', error);
+                }
+
+                // Fields marked data-quill-no-attachments lose the image button, and
+                // reject images arriving by paste or drag-and-drop as well.
+                const allowAttachments = !textarea.hasAttribute('data-quill-no-attachments');
+
+                const quill = new Quill(editor, {
+                    theme: 'snow',
+                    placeholder: textarea.getAttribute('placeholder') || '',
+                    modules: { toolbar: toolbarFor(allowAttachments) },
+                });
+
+                if (!allowAttachments) {
+                    quill.clipboard.addMatcher('IMG', () => new Delta());
+                    quill.root.addEventListener('drop', (e) => {
+                        if (e.dataTransfer?.files?.length) e.preventDefault();
+                    });
+                }
+
+                if (textarea.value.trim() !== '') {
+                    quill.clipboard.dangerouslyPasteHTML(textarea.value);
+                }
+
+                const isEmpty = () => quill.getText().trim() === '' && !quill.root.querySelector('img');
+                const sync = () => { textarea.value = isEmpty() ? '' : quill.root.innerHTML; };
+
+                quill.on('text-change', () => {
+                    sync();
+                    if (!isEmpty()) wrapper.classList.remove('is-invalid');
+                });
+                sync();
+
+                // Handles for pages that need to drive the editor — e.g. a modal that
+                // is reused across table rows and has to swap its content on open.
+                textarea.quillInstance = quill;
+                textarea.setQuillContent = (html) => {
+                    if (html && html.trim() !== '') {
+                        quill.clipboard.dangerouslyPasteHTML(html);
+                    } else {
+                        quill.setText('');
+                    }
+                    wrapper.classList.remove('is-invalid');
+                    sync();
+                };
+
+                textarea.form?.addEventListener('submit', (e) => {
+                    sync();
+                    if (isRequired && isEmpty()) {
+                        e.preventDefault();
+                        wrapper.classList.add('is-invalid');
+                        quill.focus();
+                    }
+                });
             });
         });
     </script>

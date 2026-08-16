@@ -15,7 +15,6 @@ class Diagram extends Model
     protected $fillable = [
         'chapter_id',
         'topic_id',
-        'question_bank_id',
         'image_path',
         'added_by',
         'title',
@@ -33,14 +32,14 @@ class Diagram extends Model
         return $this->belongsTo(Topic::class);
     }
 
-    public function questionBank(): BelongsTo
-    {
-        return $this->belongsTo(QuestionBank::class, 'question_bank_id');
-    }
-
     public function addedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    public function questionables()
+    {
+        return $this->morphMany(QuestionableType::class, 'questionable');
     }
 
     /**
