@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksQuestions;
 use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\QuestionBank;
@@ -14,6 +15,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class TopicController extends Controller
 {
+    use LinksQuestions;
+
     /**
      * Topics belong to a chapter, which belongs to a course, so every action
      * here is reached through course › chapter › topic. The chapter comes from
@@ -94,6 +97,8 @@ class TopicController extends Controller
 
         $data = $this->validated($request);
 
+        $this->validateNewQuestions($data);
+
         $topic = DB::transaction(function () use ($data, $request, $chapter) {
             $topic = Topic::create([
                 'chapter_id' => $chapter,
@@ -101,7 +106,7 @@ class TopicController extends Controller
                 'content' => $data['content'] ?? null,
             ]);
 
-            $this->syncQuestions($topic, $data);
+            $this->syncQuestionLinks($topic, $data);
             $this->storeAttachments($topic, $request);
 
             return $topic;
@@ -120,13 +125,15 @@ class TopicController extends Controller
 
         $data = $this->validated($request);
 
+        $this->validateNewQuestions($data);
+
         DB::transaction(function () use ($request, $topic, $data) {
             $topic->update([
                 'title' => $data['title'],
                 'content' => $data['content'] ?? null,
             ]);
 
-            $this->syncQuestions($topic, $data);
+            $this->syncQuestionLinks($topic, $data);
             $this->storeAttachments($topic, $request);
         });
 
@@ -196,39 +203,6 @@ class TopicController extends Controller
         }
     }
 
-    /**
-     * Replaces the topic's question links: existing questions come through as
-     * ids, freshly written ones are created in the bank first.
-     */
-    private function syncQuestions(Topic $topic, array $data): void
-    {
-        $topic->questionables()->delete();
-
-        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
-
-        $newQuestions = collect($data['new_questions'] ?? [])
-            ->map(fn ($text) => trim($text))
-            ->filter();
-
-        if ($newQuestions->isNotEmpty()) {
-            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
-
-            $questionIds = $questionIds->merge(
-                $newQuestions->map(fn ($text) => QuestionBank::create([
-                    'chapter_id' => $topic->chapter_id,
-                    'question_categories_id' => $categoryId,
-                    'question' => $text,
-                ])->id)
-            );
-        }
-
-        foreach ($questionIds->unique() as $questionId) {
-            $topic->questionables()->create([
-                'chapter_id' => $topic->chapter_id,
-                'question_id' => $questionId,
-            ]);
-        }
-    }
 
     /**
      * Shared validation. The chapter is not validated here — it comes from the
@@ -241,11 +215,7 @@ class TopicController extends Controller
             'content' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'max:10240'],
-            'question_ids' => ['nullable', 'array'],
-            'question_ids.*' => ['integer', 'exists:question_bank,id'],
-            'new_questions' => ['nullable', 'array'],
-            'new_questions.*' => ['string', 'max:1000'],
-        ]);
+        ] + $this->questionLinkRules());
     }
 
     /**

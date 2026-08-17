@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksQuestions;
 use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\Guide;
@@ -17,6 +18,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class GuideController extends Controller
 {
+    use LinksQuestions;
+
     /**
      * Guide types, keyed by the enum value stored on the row.
      */
@@ -115,6 +118,8 @@ class GuideController extends Controller
 
         $data = $this->validated($request);
 
+        $this->validateNewQuestions($data);
+
         $guide = DB::transaction(function () use ($data, $request, $chapter) {
             $guide = Guide::create([
                 // The chapter comes from the chain, not from a picker in the form.
@@ -127,7 +132,7 @@ class GuideController extends Controller
                 'content' => $data['content'],
             ]);
 
-            $this->syncQuestions($guide, $data);
+            $this->syncQuestionLinks($guide, $data);
 
             return $guide;
         });
@@ -144,6 +149,8 @@ class GuideController extends Controller
 
         $data = $this->validated($request, $guide);
 
+        $this->validateNewQuestions($data);
+
         // The chapter stays as it is — it belongs to the chain, not the form.
         DB::transaction(function () use ($guide, $data) {
             $guide->update([
@@ -154,7 +161,7 @@ class GuideController extends Controller
                 'content' => $data['content'],
             ]);
 
-            $this->syncQuestions($guide, $data);
+            $this->syncQuestionLinks($guide, $data);
         });
 
         return $this->respond($request, $course, $chapter, $guide->fresh(), 'Guide updated successfully.');
@@ -175,39 +182,6 @@ class GuideController extends Controller
         return $this->respond($request, $course, $chapter, null, 'Guide deleted successfully.');
     }
 
-    /**
-     * Replaces the guide's question links: existing questions come through as
-     * ids, freshly written ones are created in the bank first.
-     */
-    private function syncQuestions(Guide $guide, array $data): void
-    {
-        $guide->questionables()->delete();
-
-        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
-
-        $newQuestions = collect($data['new_questions'] ?? [])
-            ->map(fn ($text) => trim($text))
-            ->filter();
-
-        if ($newQuestions->isNotEmpty()) {
-            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
-
-            $questionIds = $questionIds->merge(
-                $newQuestions->map(fn ($text) => QuestionBank::create([
-                    'chapter_id' => $guide->chapter_id,
-                    'question_categories_id' => $categoryId,
-                    'question' => $text,
-                ])->id)
-            );
-        }
-
-        foreach ($questionIds->unique() as $questionId) {
-            $guide->questionables()->create([
-                'chapter_id' => $guide->chapter_id,
-                'question_id' => $questionId,
-            ]);
-        }
-    }
 
     /**
      * Shared validation. On update the slug ignores the guide's own row, and a
@@ -230,11 +204,7 @@ class GuideController extends Controller
                 Rule::unique('guides', 'slug')->ignore($guide?->id),
             ],
             'content' => ['required', 'string'],
-            'question_ids' => ['nullable', 'array'],
-            'question_ids.*' => ['integer', 'exists:question_bank,id'],
-            'new_questions' => ['nullable', 'array'],
-            'new_questions.*' => ['string', 'max:1000'],
-        ]);
+        ] + $this->questionLinkRules());
     }
 
     /**

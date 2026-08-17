@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksQuestions;
 use App\Models\Chapter;
 use App\Models\Diagram;
 use App\Models\QuestionBank;
@@ -17,6 +18,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ImageController extends Controller
 {
+    use LinksQuestions;
+
     /**
      * Display the diagrams listing. The grid itself is loaded by DataTables
      * from the `diagrams.data` endpoint below.
@@ -94,6 +97,8 @@ class ImageController extends Controller
     {
         $data = $this->validated($request);
 
+        $this->validateNewQuestions($data);
+
         $diagram = DB::transaction(function () use ($data, $request) {
             $diagram = Diagram::create([
                 'chapter_id' => $data['chapter_id'] ?? null,
@@ -105,7 +110,7 @@ class ImageController extends Controller
                 'content' => $data['content'] ?? null,
             ]);
 
-            $this->syncQuestions($diagram, $data);
+            $this->syncQuestionLinks($diagram, $data);
 
             return $diagram;
         });
@@ -120,6 +125,8 @@ class ImageController extends Controller
     public function update(Request $request, Diagram $diagram)
     {
         $data = $this->validated($request, $diagram);
+
+        $this->validateNewQuestions($data);
 
         DB::transaction(function () use ($request, $diagram, $data) {
             $attributes = [
@@ -136,7 +143,7 @@ class ImageController extends Controller
             }
 
             $diagram->update($attributes);
-            $this->syncQuestions($diagram, $data);
+            $this->syncQuestionLinks($diagram, $data);
         });
 
         return $this->respond($request, $diagram->fresh(), 'Diagram updated successfully.');
@@ -156,39 +163,6 @@ class ImageController extends Controller
         return $this->respond($request, null, 'Diagram deleted successfully.');
     }
 
-    /**
-     * Replaces the diagram's question links: existing questions come through as
-     * ids, freshly written ones are created in the bank first.
-     */
-    private function syncQuestions(Diagram $diagram, array $data): void
-    {
-        $diagram->questionables()->delete();
-
-        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
-
-        $newQuestions = collect($data['new_questions'] ?? [])
-            ->map(fn ($text) => trim($text))
-            ->filter();
-
-        if ($newQuestions->isNotEmpty()) {
-            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
-
-            $questionIds = $questionIds->merge(
-                $newQuestions->map(fn ($text) => QuestionBank::create([
-                    'chapter_id' => $diagram->chapter_id,
-                    'question_categories_id' => $categoryId,
-                    'question' => $text,
-                ])->id)
-            );
-        }
-
-        foreach ($questionIds->unique() as $questionId) {
-            $diagram->questionables()->create([
-                'chapter_id' => $diagram->chapter_id,
-                'question_id' => $questionId,
-            ]);
-        }
-    }
 
     /**
      * Shared validation. The modal posts the body copy as `description`, and a
@@ -214,11 +188,7 @@ class ImageController extends Controller
                 Rule::unique('diagrams', 'slug')->ignore($diagram?->id),
             ],
             'content' => ['nullable', 'string'],
-            'question_ids' => ['nullable', 'array'],
-            'question_ids.*' => ['integer', 'exists:question_bank,id'],
-            'new_questions' => ['nullable', 'array'],
-            'new_questions.*' => ['string', 'max:1000'],
-        ]);
+        ] + $this->questionLinkRules());
     }
 
     /**

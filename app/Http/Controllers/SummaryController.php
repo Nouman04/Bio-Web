@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksQuestions;
 use App\Models\Chapter;
 use App\Models\QuestionBank;
 use App\Models\QuestionCategory;
@@ -16,6 +17,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SummaryController extends Controller
 {
+    use LinksQuestions;
+
     /**
      * Display the summaries listing. The grid itself is loaded by DataTables
      * from the `summaries.data` endpoint below.
@@ -90,6 +93,8 @@ class SummaryController extends Controller
     {
         $data = $this->validated($request);
 
+        $this->validateNewQuestions($data);
+
         $summary = DB::transaction(function () use ($data, $request) {
             $summary = Summary::create([
                 'chapter_id' => $data['chapter_id'],
@@ -100,7 +105,7 @@ class SummaryController extends Controller
                 'content' => $data['content'],
             ]);
 
-            $this->syncQuestions($summary, $data);
+            $this->syncQuestionLinks($summary, $data);
 
             return $summary;
         });
@@ -115,6 +120,8 @@ class SummaryController extends Controller
     {
         $data = $this->validated($request, $summary);
 
+        $this->validateNewQuestions($data);
+
         DB::transaction(function () use ($summary, $data) {
             $summary->update([
                 'chapter_id' => $data['chapter_id'],
@@ -124,7 +131,7 @@ class SummaryController extends Controller
                 'content' => $data['content'],
             ]);
 
-            $this->syncQuestions($summary, $data);
+            $this->syncQuestionLinks($summary, $data);
         });
 
         return $this->respond($request, $summary->fresh(), 'Summary updated successfully.');
@@ -143,40 +150,6 @@ class SummaryController extends Controller
         return $this->respond($request, null, 'Summary deleted successfully.');
     }
 
-    /**
-     * Replaces the summary's question links: existing questions come through as
-     * ids, freshly written ones are created in the bank first.
-     */
-    private function syncQuestions(Summary $summary, array $data): void
-    {
-        $summary->questionables()->delete();
-
-        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
-
-        // Newly written questions join the bank under the summary's chapter.
-        $newQuestions = collect($data['new_questions'] ?? [])
-            ->map(fn ($text) => trim($text))
-            ->filter();
-
-        if ($newQuestions->isNotEmpty()) {
-            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
-
-            $questionIds = $questionIds->merge(
-                $newQuestions->map(fn ($text) => QuestionBank::create([
-                    'chapter_id' => $summary->chapter_id,
-                    'question_categories_id' => $categoryId,
-                    'question' => $text,
-                ])->id)
-            );
-        }
-
-        foreach ($questionIds->unique() as $questionId) {
-            $summary->questionables()->create([
-                'chapter_id' => $summary->chapter_id,
-                'question_id' => $questionId,
-            ]);
-        }
-    }
 
     /**
      * Shared validation. On update the slug ignores the summary's own row, and
@@ -199,11 +172,7 @@ class SummaryController extends Controller
                 Rule::unique('summaries', 'slug')->ignore($summary?->id),
             ],
             'content' => ['required', 'string'],
-            'question_ids' => ['nullable', 'array'],
-            'question_ids.*' => ['integer', 'exists:question_bank,id'],
-            'new_questions' => ['nullable', 'array'],
-            'new_questions.*' => ['string', 'max:1000'],
-        ]);
+        ] + $this->questionLinkRules());
     }
 
     /**

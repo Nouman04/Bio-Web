@@ -129,10 +129,15 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('questions')->group(function () {
         Route::get('/', [QuestionController::class, 'index'])->name('questions');
+        Route::get('/data', [QuestionController::class, 'data'])->name('questions.data');
         // Type-ahead source for the shared question widget
         Route::get('/search', [QuestionController::class, 'search'])->name('questions.search');
+        // Dependent picker: records available for a chosen "linked to" type
+        Route::get('/linked/{type}', [QuestionController::class, 'linkedRecords'])->name('questions.linked');
         Route::get('/create', [QuestionController::class, 'create'])->name('questions.create');
         Route::post('/', [QuestionController::class, 'store'])->name('questions.store');
+        Route::put('/{question}', [QuestionController::class, 'update'])->name('questions.update');
+        Route::delete('/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
     });
 
     /*

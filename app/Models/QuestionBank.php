@@ -28,9 +28,13 @@ class QuestionBank extends Model
         return $this->belongsTo(Chapter::class);
     }
 
-    public function topic(): BelongsTo
+    /**
+     * Everywhere this question has been linked to a piece of content — a
+     * topic, summary, note, diagram or video lesson.
+     */
+    public function questionables(): HasMany
     {
-        return $this->belongsTo(Topic::class);
+        return $this->hasMany(QuestionableType::class, 'question_id');
     }
 
     public function category(): BelongsTo

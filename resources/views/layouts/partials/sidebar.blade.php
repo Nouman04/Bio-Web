@@ -55,6 +55,12 @@
             <span class="block ml-4 hide-on-collapse">Quizzes</span>
         </a>
 
+        <a href="{{ route('questions') }}"
+            class="sidebar-item {{ request()->routeIs('questions*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
+            <i class="fa-regular fa-circle-question text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
+            <span class="block ml-4 hide-on-collapse">Question Bank</span>
+        </a>
+
     </nav>
 
     {{-- Logout --}}

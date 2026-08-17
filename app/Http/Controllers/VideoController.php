@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksQuestions;
 use App\Models\Chapter;
 use App\Models\QuestionBank;
 use App\Models\QuestionCategory;
@@ -17,6 +18,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class VideoController extends Controller
 {
+    use LinksQuestions;
+
     /**
      * Display the video lessons listing. The grid itself is loaded by
      * DataTables from the `videos.data` endpoint below.
@@ -102,6 +105,8 @@ class VideoController extends Controller
     {
         $data = $this->validated($request);
 
+        $this->validateNewQuestions($data);
+
         $video = DB::transaction(function () use ($data, $request) {
             $video = VideoLesson::create([
                 'chapter_id' => $data['chapter_id'] ?? null,
@@ -116,7 +121,7 @@ class VideoController extends Controller
                 'external_link' => $data['external_link'] ?? null,
             ]);
 
-            $this->syncQuestions($video, $data);
+            $this->syncQuestionLinks($video, $data);
 
             return $video;
         });
@@ -131,6 +136,8 @@ class VideoController extends Controller
     public function update(Request $request, VideoLesson $video)
     {
         $data = $this->validated($request, $video);
+
+        $this->validateNewQuestions($data);
 
         DB::transaction(function () use ($request, $video, $data) {
             $attributes = [
@@ -150,7 +157,7 @@ class VideoController extends Controller
             }
 
             $video->update($attributes);
-            $this->syncQuestions($video, $data);
+            $this->syncQuestionLinks($video, $data);
         });
 
         return $this->respond($request, $video->fresh(), 'Video lesson updated successfully.');
@@ -170,39 +177,6 @@ class VideoController extends Controller
         return $this->respond($request, null, 'Video lesson deleted successfully.');
     }
 
-    /**
-     * Replaces the lesson's question links: existing questions come through as
-     * ids, freshly written ones are created in the bank first.
-     */
-    private function syncQuestions(VideoLesson $video, array $data): void
-    {
-        $video->questionables()->delete();
-
-        $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
-
-        $newQuestions = collect($data['new_questions'] ?? [])
-            ->map(fn ($text) => trim($text))
-            ->filter();
-
-        if ($newQuestions->isNotEmpty()) {
-            $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
-
-            $questionIds = $questionIds->merge(
-                $newQuestions->map(fn ($text) => QuestionBank::create([
-                    'chapter_id' => $video->chapter_id,
-                    'question_categories_id' => $categoryId,
-                    'question' => $text,
-                ])->id)
-            );
-        }
-
-        foreach ($questionIds->unique() as $questionId) {
-            $video->questionables()->create([
-                'chapter_id' => $video->chapter_id,
-                'question_id' => $questionId,
-            ]);
-        }
-    }
 
     /**
      * Shared validation. A lesson needs either an uploaded file or an external
@@ -239,11 +213,7 @@ class VideoController extends Controller
                 Rule::unique('video_lessons', 'slug')->ignore($video?->id),
             ],
             'description' => ['nullable', 'string'],
-            'question_ids' => ['nullable', 'array'],
-            'question_ids.*' => ['integer', 'exists:question_bank,id'],
-            'new_questions' => ['nullable', 'array'],
-            'new_questions.*' => ['string', 'max:1000'],
-        ]);
+        ] + $this->questionLinkRules());
     }
 
     /**

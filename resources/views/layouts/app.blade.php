@@ -653,7 +653,11 @@
 
                 const select = widget.querySelector('.question-widget-select');
                 const newInput = widget.querySelector('.question-widget-new-input');
+                const newType = widget.querySelector('.question-widget-new-type');
                 const addNewBtn = widget.querySelector('.question-widget-add-new');
+                const optionsBlock = widget.querySelector('.question-widget-new-options');
+                const optionList = widget.querySelector('.question-widget-option-list');
+                const optionAdd = widget.querySelector('.question-widget-option-add');
                 const newWrap = widget.querySelector('.question-widget-new-wrap');
                 const list = widget.querySelector('.question-widget-list');
                 const count = widget.querySelector('.question-widget-count');
@@ -715,9 +719,6 @@
                     picker.refreshItems();
                 };
 
-                // ── New questions: queued in a scrollable list ─────────────────
-                let newCounter = 0;
-
                 // A widget can be picker-only (no "write a new question" half),
                 // as on the flashcard builder — everything below no-ops then.
                 const canWriteNew = Boolean(list && newWrap && newInput);
@@ -731,45 +732,170 @@
                     count.textContent = `(${total})`;
                 }
 
-                function addNewQuestion(text) {
+                /* ── Composing a new question ───────────────────────────────── */
+
+                const isMcqSelected = () => newType?.selectedOptions[0]?.dataset.type === 'mcqs';
+
+                // The options block only applies to MCQs.
+                function applyComposerType() {
+                    if (!canWriteNew || !optionsBlock) return;
+
+                    const isMcq = isMcqSelected();
+                    optionsBlock.classList.toggle('hidden', !isMcq);
+                    optionsBlock.classList.toggle('flex', isMcq);
+
+                    if (isMcq) {
+                        while (optionList.children.length < 2) addComposerOption();
+                    }
+                }
+
+                function addComposerOption() {
+                    const item = document.createElement('li');
+                    item.className = 'flex items-center gap-2';
+                    item.innerHTML = `
+                        <input type="radio" class="w-4 h-4 text-primary border-outline-variant focus:ring-primary shrink-0" title="Correct answer">
+                        <input type="text" class="flex-1 bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Option text…">
+                        <button type="button" class="option-remove w-6 h-6 flex items-center justify-center rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors shrink-0">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>`;
+                    optionList.appendChild(item);
+
+                    // Radios need a shared name to behave as one group.
+                    const group = optionList.dataset.group ??= `qw-${Math.random().toString(36).slice(2)}`;
+                    optionList.querySelectorAll('input[type="radio"]').forEach(radio => { radio.name = group; });
+                }
+
+                function resetComposer() {
+                    newInput.value = '';
+                    optionList?.replaceChildren();
+                    applyComposerType();
+                }
+
+                optionAdd?.addEventListener('click', () => addComposerOption());
+
+                optionList?.addEventListener('click', (e) => {
+                    if (!e.target.closest('.option-remove')) return;
+                    e.target.closest('li').remove();
+                    while (optionList.children.length < 2) addComposerOption();
+                });
+
+                newType?.addEventListener('change', applyComposerType);
+
+                /* ── Queueing it ────────────────────────────────────────────── */
+
+                function addNewQuestion(text, typeId, typeLabel, options, correctIndex) {
                     const li = document.createElement('li');
                     li.className = 'flex items-start justify-between gap-3 bg-white dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-lg px-3 py-2';
-                    li.dataset.key = `new:${++newCounter}`;
 
                     const left = document.createElement('div');
-                    left.className = 'flex items-start gap-2 min-w-0';
+                    left.className = 'flex flex-col gap-1 min-w-0';
 
-                    const badge = document.createElement('span');
-                    badge.className = 'shrink-0 mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary';
-                    badge.textContent = 'New';
+                    const heading = document.createElement('div');
+                    heading.className = 'flex items-start gap-2 min-w-0';
+                    heading.innerHTML = `
+                        <span class="shrink-0 mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary">${typeLabel}</span>
+                        <span class="text-sm text-on-surface dark:text-slate-200 break-words"></span>`;
+                    heading.querySelector('span:last-child').textContent = text;
+                    left.appendChild(heading);
 
-                    const span = document.createElement('span');
-                    span.className = 'text-sm text-on-surface dark:text-slate-200 break-words';
-                    span.textContent = text;
-
-                    left.append(badge, span);
+                    if (options.length) {
+                        const optionLine = document.createElement('ul');
+                        optionLine.className = 'flex flex-col gap-0.5 pl-1';
+                        options.forEach((option, index) => {
+                            const row = document.createElement('li');
+                            row.className = 'text-[11px] text-on-surface-variant dark:text-slate-400 flex items-center gap-1.5';
+                            row.innerHTML = `<i class="fa-${index === correctIndex ? 'solid fa-circle-check text-tertiary' : 'regular fa-circle'} text-[9px]"></i>`;
+                            row.appendChild(document.createTextNode(option));
+                            optionLine.appendChild(row);
+                        });
+                        left.appendChild(optionLine);
+                    }
 
                     const removeBtn = document.createElement('button');
                     removeBtn.type = 'button';
                     removeBtn.className = 'question-widget-remove shrink-0 text-on-surface-variant hover:text-error transition-colors';
                     removeBtn.innerHTML = '<i class="fa-solid fa-xmark text-sm"></i>';
 
-                    const hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = `${newFieldName}[]`;
-                    hidden.value = text;
+                    // Hidden inputs carry the whole question; names are set by
+                    // renumber() so the indexes stay contiguous.
+                    const fields = document.createElement('span');
+                    fields.className = 'question-widget-fields';
+                    fields.dataset.question = text;
+                    fields.dataset.type = typeId;
+                    fields.dataset.options = JSON.stringify(options);
+                    fields.dataset.correct = correctIndex ?? '';
 
-                    li.append(left, removeBtn, hidden);
+                    li.append(left, removeBtn, fields);
                     list.appendChild(li);
-                    list.scrollTop = list.scrollHeight;
+                    renumberNewQuestions();
+                }
+
+                // Rebuilds the hidden inputs so every queued question posts as
+                // new_questions[i][…] with no gaps.
+                function renumberNewQuestions() {
+                    if (!canWriteNew) return;
+
+                    list.querySelectorAll('.question-widget-fields').forEach((fields, index) => {
+                        const prefix = `${newFieldName}[${index}]`;
+                        const options = JSON.parse(fields.dataset.options || '[]');
+                        const correct = fields.dataset.correct;
+
+                        fields.replaceChildren();
+                        fields.appendChild(hiddenField(`${prefix}[question]`, fields.dataset.question));
+                        fields.appendChild(hiddenField(`${prefix}[type]`, fields.dataset.type));
+
+                        options.forEach((option, position) => {
+                            fields.appendChild(hiddenField(`${prefix}[options][${position}]`, option));
+                        });
+
+                        if (correct !== '') {
+                            fields.appendChild(hiddenField(`${prefix}[correct_option]`, correct));
+                        }
+                    });
+
                     refreshNewList();
+                }
+
+                function hiddenField(name, value) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    return input;
                 }
 
                 function submitNewQuestion() {
                     const text = newInput.value.trim();
                     if (!text) return;
-                    addNewQuestion(text);
-                    newInput.value = '';
+
+                    const typeId = newType.value;
+                    const typeLabel = newType.selectedOptions[0]?.textContent.trim() ?? '';
+
+                    let options = [];
+                    let correctIndex = null;
+
+                    if (isMcqSelected()) {
+                        const rows = Array.from(optionList.querySelectorAll('li'));
+                        rows.forEach(row => {
+                            const value = row.querySelector('input[type="text"]').value.trim();
+                            if (!value) return;
+                            if (row.querySelector('input[type="radio"]').checked) correctIndex = options.length;
+                            options.push(value);
+                        });
+
+                        if (options.length < 2) {
+                            App.toast('warning', 'An MCQ needs at least two options.');
+                            return;
+                        }
+
+                        if (correctIndex === null) {
+                            App.toast('warning', 'Tick which option is the correct answer.');
+                            return;
+                        }
+                    }
+
+                    addNewQuestion(text, typeId, typeLabel, options, correctIndex);
+                    resetComposer();
                     newInput.focus();
                 }
 
@@ -784,12 +910,12 @@
                 list?.addEventListener('click', (e) => {
                     if (!e.target.closest('.question-widget-remove')) return;
                     e.target.closest('li').remove();
-                    refreshNewList();
+                    renumberNewQuestions();
                 });
 
                 clearBtn?.addEventListener('click', () => {
                     list.replaceChildren();
-                    refreshNewList();
+                    renumberNewQuestions();
                 });
 
                 // Lets a modal wipe the widget between openings.
@@ -798,15 +924,15 @@
                     picker.clearOptions();
                     if (canWriteNew) {
                         list.replaceChildren();
-                        newInput.value = '';
+                        resetComposer();
                     }
                     refreshNewList();
                 };
 
+                applyComposerType();
                 refreshNewList();
             });
         });
-    </script>
     </script>
 
     {{-- jQuery + DataTables (server-side grids), then SweetAlert2 and the shared
