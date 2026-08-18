@@ -100,6 +100,15 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/{guide}', [GuideController::class, 'destroy'])->name('guides.destroy');
             });
 
+            // The question bank, entered through a chapter: everything here is
+            // locked to that chapter rather than picking one in the form.
+            Route::prefix('{chapter}/questions')->group(function () {
+                Route::get('/', [QuestionController::class, 'index'])->name('courses.chapters.questions');
+                Route::get('/data', [QuestionController::class, 'data'])->name('courses.chapters.questions.data');
+                Route::get('/create', [QuestionController::class, 'create'])->name('courses.chapters.questions.create');
+                Route::post('/', [QuestionController::class, 'store'])->name('courses.chapters.questions.store');
+            });
+
             // Study notes — also scoped to the chapter they belong to
             Route::prefix('{chapter}/notes')->group(function () {
                 Route::get('/', [NoteController::class, 'index'])->name('notes');

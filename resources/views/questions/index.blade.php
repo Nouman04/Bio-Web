@@ -4,7 +4,9 @@
 @section('meta-description', 'Browse, add and maintain the question bank.')
 
 @section('page-title', 'Question Bank')
-@section('page-subtitle', 'Every question in the system, and where it is used.')
+@section('page-subtitle', $chain
+    ? 'Every question in ' . $chain['chapter']->title . ', and where it is used.'
+    : 'Every question in the system, and where it is used.')
 
 @push('styles')
 <style>
@@ -154,16 +156,32 @@
 @endpush
 
 @section('content')
+    @php
+        // Through course › chapter the bank is locked to that chapter: no
+        // chapter filter, and new questions inherit it from the URL.
+        $chainIds = $chain ? [$chain['course']->id, $chain['chapter']->id] : [];
+        $bankRoute = $chain ? route('courses.chapters.questions', $chainIds) : route('questions');
+        $dataRoute = $chain ? route('courses.chapters.questions.data', $chainIds) : route('questions.data');
+        $createRoute = $chain ? route('courses.chapters.questions.create', $chainIds) : route('questions.create');
+        $filtersOpen = request()->hasAny(array_filter([
+            'question', $chain ? null : 'chapter', 'linked_type', 'linked_id', 'difficulty', 'category', 'assignment',
+        ]));
+    @endphp
+
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        @if($chain)
+            <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']->id) }}">{{ $chain['course']->title }}</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', $chainIds) }}">{{ $chain['chapter']->title }}</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        @endif
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Question Bank</span>
     </div>
-
-    @php
-        $filtersOpen = request()->hasAny(['question', 'chapter', 'linked_type', 'linked_id', 'difficulty', 'category', 'assignment']);
-    @endphp
 
     {{-- Toolbar: Filter toggle + Add button --}}
     <div class="flex justify-end items-center gap-3 mb-4">
@@ -172,7 +190,7 @@
             title="Toggle Filters">
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
-        <a href="{{ route('questions.create') }}"
+        <a href="{{ $createRoute }}"
             class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add Questions
@@ -183,7 +201,7 @@
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
             <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-                <form id="questions-filter-form" action="{{ route('questions') }}" method="GET">
+                <form id="questions-filter-form" action="{{ $bankRoute }}" method="GET">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="flex flex-col gap-1 lg:col-span-2">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
@@ -194,17 +212,21 @@
                                     placeholder="Search question text..." type="text">
                             </div>
                         </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
-                            <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
-                                <option value="">All Chapters</option>
-                                @forelse($chapters as $chapter)
-                                    <option value="{{ $chapter->id }}" {{ ($filters['chapter'] ?? '') == $chapter->id ? 'selected' : '' }}>{{ $chapter->title }}</option>
-                                @empty
-                                    <option value="" disabled>No chapters yet</option>
-                                @endforelse
-                            </select>
-                        </div>
+                        @unless($chain)
+                            {{-- Only offered from the sidenav; through the chain
+                                 the chapter is already decided. --}}
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
+                                <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                    <option value="">All Chapters</option>
+                                    @forelse($chapters as $chapter)
+                                        <option value="{{ $chapter->id }}" {{ ($filters['chapter'] ?? '') == $chapter->id ? 'selected' : '' }}>{{ $chapter->title }}</option>
+                                    @empty
+                                        <option value="" disabled>No chapters yet</option>
+                                    @endforelse
+                                </select>
+                            </div>
+                        @endunless
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Assignment</label>
                             <select name="assignment" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
@@ -405,7 +427,7 @@
                     zeroRecords: 'No questions match these filters.',
                 },
                 ajax: {
-                    url: '{{ route('questions.data') }}',
+                    url: '{{ $dataRoute }}',
                     data: (params) => {
                         const filters = new FormData(filterForm);
                         // DataTables reserves `search`, so the filter box travels

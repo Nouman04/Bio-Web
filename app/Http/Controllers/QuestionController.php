@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\Chapter;
+use App\Models\Course;
 use App\Models\Diagram;
 use App\Models\Flashcard;
 use App\Models\Note;
@@ -55,11 +56,13 @@ class QuestionController extends Controller
 
     /**
      * Display the question bank. The grid itself is loaded by DataTables from
-     * the `questions.data` endpoint below.
+     * the `questions.data` endpoint below. Reached through course › chapter the
+     * bank is locked to that chapter; from the sidenav it spans them all.
      */
-    public function index(Request $request)
+    public function index(Request $request, ?int $course = null, ?int $chapter = null)
     {
         return view('questions.index', [
+            'chain' => $this->chain($course, $chapter),
             'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
             'categories' => QuestionCategory::orderBy('type')->get(['id', 'type']),
             'linkables' => $this->linkableOptions(),
@@ -77,12 +80,14 @@ class QuestionController extends Controller
     }
 
     /**
-     * The add-questions page — several can be entered in one submit.
+     * The add-questions page — several can be entered in one submit. The
+     * chapter is never picked here: through the chain it is fixed to the one in
+     * the URL, and from the sidenav the questions are simply left unchaptered.
      */
-    public function create()
+    public function create(?int $course = null, ?int $chapter = null)
     {
         return view('questions.create', [
-            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
+            'chain' => $this->chain($course, $chapter),
             'categories' => QuestionCategory::orderBy('type')->get(['id', 'type']),
             'difficulties' => self::DIFFICULTIES,
         ]);
@@ -91,8 +96,10 @@ class QuestionController extends Controller
     /**
      * Server-side DataTables source for the question bank.
      */
-    public function data(Request $request): JsonResponse
+    public function data(Request $request, ?int $course = null, ?int $chapter = null): JsonResponse
     {
+        $chain = $this->chain($course, $chapter);
+
         $questions = QuestionBank::query()
             ->with(['chapter:id,title', 'category:id,type', 'answer', 'options'])
             ->withCount(['questionables', 'assessments']);
@@ -103,7 +110,11 @@ class QuestionController extends Controller
             fn ($query, $term) => $query->where('question', 'like', "%{$term}%")
         );
 
-        $questions->when($request->input('chapter'), fn ($query, $id) => $query->where('chapter_id', $id));
+        // Through the chain the chapter is fixed, so the filter is ignored.
+        $chain
+            ? $questions->where('chapter_id', $chain['chapter']->id)
+            : $questions->when($request->input('chapter'), fn ($query, $id) => $query->where('chapter_id', $id));
+
         $questions->when($request->input('difficulty'), fn ($query, $level) => $query->where('difficulty_level', $level));
         $questions->when($request->input('category'), fn ($query, $id) => $query->where('question_categories_id', $id));
 
@@ -209,10 +220,12 @@ class QuestionController extends Controller
     /**
      * Store one or more questions in a single submit.
      */
-    public function store(Request $request)
+    public function store(Request $request, ?int $course = null, ?int $chapter = null)
     {
+        $chain = $this->chain($course, $chapter);
+
+        // The chapter is never posted — it comes from the URL, or from nowhere.
         $data = $request->validate([
-            'chapter_id' => ['nullable', 'integer', 'exists:chapters,id'],
             'questions' => ['required', 'array', 'min:1'],
             'questions.*.question' => ['required', 'string'],
             'questions.*.question_categories_id' => ['required', 'integer', 'exists:question_categories,id'],
@@ -227,12 +240,12 @@ class QuestionController extends Controller
             $this->validateChoices($row, "questions.{$index}");
         }
 
-        $created = DB::transaction(function () use ($data) {
+        $created = DB::transaction(function () use ($data, $chain) {
             $ids = [];
 
             foreach ($data['questions'] as $row) {
                 $question = QuestionBank::create([
-                    'chapter_id' => $data['chapter_id'] ?? null,
+                    'chapter_id' => $chain['chapter']->id ?? null,
                     'question_categories_id' => $row['question_categories_id'],
                     'question' => $row['question'],
                     'difficulty_level' => $row['difficulty_level'] ?? null,
@@ -251,7 +264,8 @@ class QuestionController extends Controller
             $request,
             null,
             $count === 1 ? 'Question added to the bank.' : "{$count} questions added to the bank.",
-            201
+            201,
+            $chain
         );
     }
 
@@ -299,6 +313,25 @@ class QuestionController extends Controller
         });
 
         return $this->respond($request, null, 'Question deleted successfully.');
+    }
+
+    /**
+     * Resolves the course › chapter chain when the bank is entered through a
+     * chapter, 404ing on a mismatched URL. Returns null for the sidenav entry,
+     * where no chapter is in play at all.
+     */
+    private function chain(?int $course, ?int $chapter): ?array
+    {
+        if (! $course || ! $chapter) {
+            return null;
+        }
+
+        $courseModel = Course::findOrFail($course);
+
+        return [
+            'course' => $courseModel,
+            'chapter' => Chapter::where('course_id', $courseModel->id)->findOrFail($chapter),
+        ];
     }
 
     /**
@@ -435,7 +468,7 @@ class QuestionController extends Controller
      * JSON for fetch/AJAX callers, a redirect back to the bank for plain form
      * posts.
      */
-    private function respond(Request $request, ?QuestionBank $question, string $message, int $status = 200)
+    private function respond(Request $request, ?QuestionBank $question, string $message, int $status = 200, ?array $chain = null)
     {
         if ($request->expectsJson()) {
             return response()->json(array_filter([
@@ -444,6 +477,10 @@ class QuestionController extends Controller
             ], fn ($value) => $value !== null), $status);
         }
 
-        return redirect()->route('questions')->with('success', $message);
+        // Back to whichever bank the request came from.
+        return $chain
+            ? redirect()->route('courses.chapters.questions', [$chain['course']->id, $chain['chapter']->id])
+                ->with('success', $message)
+            : redirect()->route('questions')->with('success', $message);
     }
 }

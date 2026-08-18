@@ -7,30 +7,49 @@
 @section('page-subtitle', 'Add as many as you like in one go.')
 
 @section('content')
+    @php
+        // Through course › chapter the bank is chapter-bound; from the sidenav
+        // it is not, and no chapter is offered at all.
+        $bankRoute = $chain
+            ? route('courses.chapters.questions', [$chain['course']->id, $chain['chapter']->id])
+            : route('questions');
+        $storeRoute = $chain
+            ? route('courses.chapters.questions.store', [$chain['course']->id, $chain['chapter']->id])
+            : route('questions.store');
+    @endphp
+
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('questions') }}">Question Bank</a>
+        @if($chain)
+            <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']->id) }}">{{ $chain['course']->title }}</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$chain['course']->id, $chain['chapter']->id]) }}">{{ $chain['chapter']->title }}</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        @endif
+        <a class="hover:text-primary transition-colors" href="{{ $bankRoute }}">Question Bank</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Add Questions</span>
     </div>
 
     <div class="glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-        <form id="add-question-form" data-ajax-form data-question-form action="{{ route('questions.store') }}" method="POST" class="p-6 md:p-8 flex flex-col gap-5">
+        <form id="add-question-form" data-ajax-form data-question-form action="{{ $storeRoute }}" method="POST" class="p-6 md:p-8 flex flex-col gap-5">
             @csrf
 
-            <div class="flex flex-col gap-1.5 max-w-md">
-                <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">
-                    Chapter <span class="font-normal text-outline">(Optional — applies to all)</span>
-                </label>
-                <select name="chapter_id" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface">
-                    <option value="">No chapter</option>
-                    @foreach($chapters as $chapter)
-                        <option value="{{ $chapter->id }}">{{ $chapter->title }}</option>
-                    @endforeach
-                </select>
-            </div>
+            @if($chain)
+                {{-- Fixed by the chain, so it is shown rather than chosen --}}
+                <div class="flex flex-col gap-1.5 max-w-md">
+                    <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</span>
+                    <div class="w-full bg-surface-container-low/60 dark:bg-slate-900/60 border border-outline-variant/50 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm text-on-surface dark:text-slate-200 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-[11px] text-outline"></i>
+                        {{ $chain['chapter']->title }}
+                        <span class="text-xs text-outline">— applies to every question below</span>
+                    </div>
+                </div>
+            @endif
 
             <div id="question-rows" class="flex flex-col gap-3"></div>
 
@@ -41,7 +60,7 @@
             </button>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/30 dark:border-slate-700">
-                <a href="{{ route('questions') }}" class="px-5 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors">
+                <a href="{{ $bankRoute }}" class="px-5 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors">
                     Cancel
                 </a>
                 <button type="submit" data-loading-text="Saving…" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
