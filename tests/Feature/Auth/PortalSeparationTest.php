@@ -102,7 +102,49 @@ class PortalSeparationTest extends TestCase
             ->assertRedirect(route('student.dashboard'));
     }
 
+    public function test_student_sidebar_logout_is_a_real_post_form(): void
+    {
+        $response = $this->actingAs($this->student())->get('/student/dashboard');
+
+        $response->assertOk();
+        // A plain <a href="/login"> would just bounce the still-signed-in
+        // student straight back to their dashboard.
+        $response->assertSee('action="' . route('logout') . '"', false);
+        $response->assertSee('name="_token"', false);
+    }
+
+    public function test_student_logout_ends_the_session_and_returns_to_the_student_login(): void
+    {
+        $response = $this->actingAs($this->student())->post('/logout');
+
+        $this->assertGuest();
+        $response->assertRedirect(route('student.login'));
+        $this->get('/student/dashboard')->assertRedirect(route('student.login'));
+    }
+
+    public function test_admin_logout_ends_the_session(): void
+    {
+        $response = $this->actingAs($this->admin())->post('/logout');
+
+        $this->assertGuest();
+        $response->assertRedirect(route('login'));
+        $this->get('/dashboard')->assertRedirect(route('login'));
+    }
+
+    public function test_the_root_url_sends_guests_to_the_student_login(): void
+    {
+        $this->get('/')->assertRedirect(route('student.login'));
+    }
+
+    public function test_the_root_url_sends_signed_in_users_to_their_own_dashboard(): void
+    {
+        $this->actingAs($this->student())->get('/')->assertRedirect(route('student.dashboard'));
+        $this->actingAs($this->admin())->get('/')->assertRedirect(route('dashboard'));
+    }
+
     public function test_guests_are_sent_to_the_login_matching_the_area(): void
+
+
     {
         $this->get('/student/dashboard')->assertRedirect(route('student.login'));
         $this->get('/dashboard')->assertRedirect(route('login'));

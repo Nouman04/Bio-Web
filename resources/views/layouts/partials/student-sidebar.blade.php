@@ -59,13 +59,16 @@
 
     </nav>
 
-    {{-- Logout (plain link — auth not active in frontend-only mode) --}}
+    {{-- Logout --}}
     <div class="mobile-fade mt-auto px-6 w-full pb-4">
-        <a href="{{ route('login') }}"
-            class="w-full flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl text-on-surface-variant dark:text-slate-300 hover:bg-error-container hover:text-on-error-container dark:hover:bg-error-container/20 dark:hover:text-error transition-all duration-300 center-on-collapse">
-            <i class="fa-solid fa-power-off text-xl w-6 text-center flex-shrink-0"></i>
-            <span class="block ml-4 hide-on-collapse">Logout</span>
-        </a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"
+                class="w-full flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl text-on-surface-variant dark:text-slate-300 hover:bg-error-container hover:text-on-error-container dark:hover:bg-error-container/20 dark:hover:text-error transition-all duration-300 center-on-collapse">
+                <i class="fa-solid fa-power-off text-xl w-6 text-center flex-shrink-0"></i>
+                <span class="block ml-4 hide-on-collapse">Logout</span>
+            </button>
+        </form>
     </div>
 
 </aside>

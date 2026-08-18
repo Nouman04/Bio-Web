@@ -82,16 +82,19 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Destroy an authenticated session.
+     * Destroy an authenticated session, returning to the portal the user came
+     * from rather than a shared landing page.
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $wasStudent = $request->user()?->isStudent();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route($wasStudent ? 'student.login' : 'login');
     }
 }
