@@ -12,12 +12,11 @@ use Illuminate\Support\Facades\Route;
 | Student Routes
 |--------------------------------------------------------------------------
 |
-| These routes are scoped under the /student prefix. Auth middleware is
-| intentionally disabled while the backend is not yet wired up — re-enable
-| by wrapping the group with ->middleware('auth') when ready.
+| These routes are scoped under the /student prefix and are for signed-in
+| students only — staff accounts are bounced back to the admin dashboard.
 |
 */
-Route::prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
@@ -50,7 +49,7 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::get('/catalog', [StudentCatalogController::class, 'index'])->name('catalog');
 
     // Resources — study materials, guides, flashcards, videos, notes
-    Route::get('/resources', [StudentResourcesController::class, 'index'])->middleware('auth')->name('resources');
+    Route::get('/resources', [StudentResourcesController::class, 'index'])->name('resources');
 
     // Demo — bare sidenav + header shell for layout/responsiveness testing
     Route::get('/demo', fn () => view('student.demo'))->name('demo');

@@ -28,19 +28,57 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle a sign-in from the admin login page. Students belong to the
+     * student portal, so their credentials are refused here even when correct.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
 
+        if (Auth::user()->isStudent()) {
+            return $this->rejectPortal(
+                $request,
+                'Students sign in from the student portal.'
+            );
+        }
+
         $request->session()->regenerate();
 
-        $home = Auth::user()->hasRole('student')
-            ? route('student.dashboard', absolute: false)
-            : route('dashboard', absolute: false);
+        return redirect()->intended(route('dashboard', absolute: false));
+    }
 
-        return redirect()->intended($home);
+    /**
+     * Handle a sign-in from the student login page. Only students get through;
+     * admin and instructor accounts are sent back to their own login.
+     */
+    public function storeStudent(LoginRequest $request): RedirectResponse
+    {
+        $request->authenticate();
+
+        if (! Auth::user()->isStudent()) {
+            return $this->rejectPortal(
+                $request,
+                'Admin accounts sign in from the administrator portal.'
+            );
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('student.dashboard', absolute: false));
+    }
+
+    /**
+     * Undo a sign-in made through the wrong portal and explain why.
+     */
+    private function rejectPortal(LoginRequest $request, string $message): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => $message]);
     }
 
     /**

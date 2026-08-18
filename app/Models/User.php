@@ -52,6 +52,33 @@ class User extends Authenticatable
     }
 
     /**
+     * Whether this account belongs to the student portal. Role names are
+     * compared case-insensitively because the seeders disagree on casing
+     * ("student" vs "Student").
+     */
+    public function isStudent(): bool
+    {
+        return $this->hasRoleNamed('student');
+    }
+
+    /**
+     * Whether this account may use the admin panel: anyone holding a role that
+     * is not the student role — admin or instructor.
+     */
+    public function isStaff(): bool
+    {
+        return $this->roles->contains(fn ($role) => strtolower($role->name) !== 'student');
+    }
+
+    /**
+     * Case-insensitive role check.
+     */
+    private function hasRoleNamed(string $name): bool
+    {
+        return $this->roles->contains(fn ($role) => strtolower($role->name) === strtolower($name));
+    }
+
+    /**
      * Get the indexable data array for the model.
      */
     public function toSearchableArray(): array

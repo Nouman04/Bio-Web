@@ -26,6 +26,9 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // Registration is the student portal's sign-up, so new accounts are
+        // students and land on the student dashboard.
+        $this->assertTrue(auth()->user()->isStudent());
+        $response->assertRedirect(route('student.dashboard', absolute: false));
     }
 }

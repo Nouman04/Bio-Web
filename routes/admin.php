@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 | Routes for the instructor/admin panel — the dashboard, course and
 | curriculum management (courses, chapters, topics, categories), the
 | question bank and assessments, media/content resources, and the
-| student roster. All routes require an authenticated session.
+| student roster. Every route requires a signed-in staff account.
 |
 | Grouped by area; permission-gated routes name the permission they need,
 | which comes from database/seeders/PermissionSeeder.php.
@@ -32,10 +32,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'staff'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'staff'])->group(function () {
 
     /*
     |----------------------------------------------------------------------

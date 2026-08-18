@@ -27,7 +27,7 @@
         @endif
 
         {{-- Login Form --}}
-        <form class="flex flex-col gap-sm" method="POST" action="{{ route('login') }}">
+        <form class="flex flex-col gap-sm" method="POST" action="{{ route('student.login.store') }}">
             @csrf
 
             {{-- Email --}}

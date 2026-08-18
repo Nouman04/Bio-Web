@@ -47,7 +47,7 @@ class GoogleController extends Controller
 
             Auth::login($user);
 
-            $home = $user->hasRole('student') ? route('student.dashboard') : route('dashboard');
+            $home = $user->isStudent() ? route('student.dashboard') : route('dashboard');
 
             return redirect()->intended($home);
 
