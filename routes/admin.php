@@ -100,6 +100,17 @@ Route::middleware(['auth', 'staff'])->group(function () {
                 Route::delete('/{guide}', [GuideController::class, 'destroy'])->name('guides.destroy');
             });
 
+            // Quizzes, entered through a chapter: the quiz is tied to that
+            // chapter rather than picking one in the form.
+            Route::prefix('{chapter}/quizzes')->group(function () {
+                Route::get('/', [QuizController::class, 'index'])->name('courses.chapters.quizzes');
+                Route::get('/data', [QuizController::class, 'data'])->name('courses.chapters.quizzes.data');
+                Route::get('/create', [QuizController::class, 'create'])->name('courses.chapters.quizzes.create');
+                Route::post('/', [QuizController::class, 'store'])->name('courses.chapters.quizzes.store');
+                Route::get('/{quiz}/edit', [QuizController::class, 'edit'])->name('courses.chapters.quizzes.edit');
+                Route::put('/{quiz}', [QuizController::class, 'update'])->name('courses.chapters.quizzes.update');
+            });
+
             // The question bank, entered through a chapter: everything here is
             // locked to that chapter rather than picking one in the form.
             Route::prefix('{chapter}/questions')->group(function () {
@@ -130,10 +141,12 @@ Route::middleware(['auth', 'staff'])->group(function () {
 
     Route::prefix('quizzes')->group(function () {
         Route::get('/', [QuizController::class, 'index'])->name('quizzes');
+        Route::get('/data', [QuizController::class, 'data'])->name('quizzes.data');
         Route::get('/create', [QuizController::class, 'create'])->name('quizzes.create');
         Route::post('/', [QuizController::class, 'store'])->name('quizzes.store');
-        Route::get('/{id}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
-        Route::put('/{id}', [QuizController::class, 'update'])->name('quizzes.update');
+        Route::get('/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
+        Route::put('/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
+        Route::delete('/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
     });
 
     Route::prefix('questions')->group(function () {

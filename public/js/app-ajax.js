@@ -193,7 +193,10 @@ window.App = (function () {
         if (event?.defaultPrevented) return;
         event?.preventDefault();
 
-        const button = form.querySelector('[type="submit"]')
+        // A form may have several submit buttons (Save Draft / Publish); the
+        // spinner belongs on the one actually pressed.
+        const button = event?.submitter
+            || form.querySelector('[type="submit"]')
             || document.querySelector(`[type="submit"][form="${form.id}"]`);
 
         syncQuillEditors(form);

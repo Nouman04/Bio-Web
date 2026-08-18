@@ -188,6 +188,22 @@ class QuestionController extends Controller
     {
         $questions = QuestionBank::query()
             ->when($request->input('q'), fn ($query, $term) => $query->where('question', 'like', "%{$term}%"))
+            // Building through a chapter chain: only that chapter's questions.
+            ->when($request->input('chapter'), fn ($query, $id) => $query->where('chapter_id', $id))
+            // A theory or MCQ quiz only offers questions of that kind.
+            ->when(
+                in_array($request->input('type'), ['theory', 'mcqs'], true),
+                fn ($query) => $query->whereHas(
+                    'category',
+                    fn ($q) => $q->where('type', $request->input('type'))
+                )
+            )
+            // Rows the caller already has on screen but has not saved yet.
+            ->when($request->input('exclude'), function ($query, $exclude) {
+                $ids = array_filter(array_map('intval', explode(',', (string) $exclude)));
+
+                $query->when($ids, fn ($q) => $q->whereNotIn('id', $ids));
+            })
             // Hide questions already attached to the assessment being built, so
             // the picker never offers a duplicate.
             ->when(
@@ -204,15 +220,22 @@ class QuestionController extends Controller
                         ->pluck('question_id'));
                 }
             )
+            ->with('category:id,type')
             ->latest('id')
             ->limit(20)
-            ->get(['id', 'question', 'difficulty_level']);
+            ->get(['id', 'question', 'difficulty_level', 'question_categories_id']);
 
         return response()->json(
             $questions->map(fn (QuestionBank $question) => [
                 'id' => $question->id,
                 'text' => $question->question,
-                'meta' => $question->difficulty_level,
+                // The raw kind, so a caller can tell whether a picked question
+                // still suits the quiz after its type is changed.
+                'type' => $question->category?->type,
+                'meta' => implode(' • ', array_filter([
+                    $question->category?->type === 'mcqs' ? 'MCQ' : ($question->category ? 'Theory' : null),
+                    $question->difficulty_level,
+                ])),
             ])
         );
     }

@@ -41,7 +41,7 @@
         $modules = [
             ['label' => 'Students', 'stat' => '240 Enrolled', 'icon' => 'fa-solid fa-users', 'bg' => 'icon-bg-indigo', 'route' => route('students')],
             ['label' => 'Summaries', 'stat' => '4 Documents', 'icon' => 'fa-solid fa-list-check', 'bg' => 'icon-bg-amber', 'route' => route('summaries')],
-            ['label' => 'Quizzes', 'stat' => '12 Active', 'icon' => 'fa-solid fa-clipboard-question', 'bg' => 'icon-bg-teal', 'route' => route('quizzes')],
+            ['label' => 'Quizzes', 'stat' => '12 Active', 'icon' => 'fa-solid fa-clipboard-question', 'bg' => 'icon-bg-teal', 'route' => route('courses.chapters.quizzes', [$courseId, $chapter['id']])],
             ['label' => 'Diagrams', 'stat' => '15 Assets', 'icon' => 'fa-regular fa-image', 'bg' => 'icon-bg-rose', 'route' => route('diagrams')],
             ['label' => 'Guides', 'stat' => '6 Manuals', 'icon' => 'fa-solid fa-book-open', 'bg' => 'icon-bg-orange', 'route' => route('guides', [$courseId, $chapter['id']])],
             ['label' => 'Study Notes', 'stat' => '22 Notes', 'icon' => 'fa-regular fa-note-sticky', 'bg' => 'icon-bg-blue', 'route' => route('notes', [$courseId, $chapter['id']])],

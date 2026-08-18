@@ -18,11 +18,13 @@ class QuizQuestion extends Model
     protected $fillable = [
         'quiz_chapter_id',
         'question_bank_id',
+        'order',
         'marks',
     ];
 
     protected $casts = [
         'marks' => 'decimal:2',
+        'order' => 'integer',
     ];
 
     public function quizChapter(): BelongsTo

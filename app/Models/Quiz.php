@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Laravel\Scout\Searchable;
 
 class Quiz extends Model
@@ -15,8 +16,42 @@ class Quiz extends Model
 
     protected $fillable = [
         'title',
+        'description',
         'type',
+        'duration',
+        'passing_score',
+        'shuffle_questions',
+        'status',
     ];
+
+    protected $casts = [
+        'shuffle_questions' => 'boolean',
+        'duration' => 'integer',
+        'passing_score' => 'integer',
+    ];
+
+    /**
+     * Quizzes are reached through a chapter, so a quiz has at most one chapter
+     * even though the pivot could hold several.
+     */
+    public function firstChapter(): ?Chapter
+    {
+        return $this->chapters->first();
+    }
+
+    /**
+     * The questions on this quiz, in the order they are answered. They hang off
+     * the quizzes_chapters rows rather than the quiz itself.
+     */
+    public function questions(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            QuizQuestion::class,
+            QuizChapter::class,
+            'quizz_id',
+            'quiz_chapter_id'
+        )->orderBy('quiz_questions.order');
+    }
 
     public function quizChapters(): HasMany
     {
