@@ -167,7 +167,7 @@
     @php
         // Through course › chapter the listing is limited to that chapter, and
         // a new quiz inherits it from the URL.
-        $chainIds = $chain ? [$chain['course']->id, $chain['chapter']->id] : [];
+        $chainIds = $chain ? [$chain['course'], $chain['chapter']] : [];
         $listRoute = $chain ? route('courses.chapters.quizzes', $chainIds) : route('quizzes');
         $dataRoute = $chain ? route('courses.chapters.quizzes.data', $chainIds) : route('quizzes.data');
         $createRoute = $chain ? route('courses.chapters.quizzes.create', $chainIds) : route('quizzes.create');
@@ -183,7 +183,7 @@
         @if($chain)
             <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']->id) }}">{{ $chain['course']->title }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']) }}">{{ $chain['course']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
             <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', $chainIds) }}">{{ $chain['chapter']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
@@ -228,7 +228,7 @@
                                 <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                     <option value="">All Chapters</option>
                                     @forelse($chapters as $chapterOption)
-                                        <option value="{{ $chapterOption->id }}" {{ ($filters['chapter'] ?? '') == $chapterOption->id ? 'selected' : '' }}>{{ $chapterOption->title }}</option>
+                                        <option value="{{ $chapterOption->uuid }}" {{ ($filters['chapter'] ?? '') == $chapterOption->uuid ? 'selected' : '' }}>{{ $chapterOption->title }}</option>
                                     @empty
                                         <option value="" disabled>No chapters yet</option>
                                     @endforelse

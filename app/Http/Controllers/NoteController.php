@@ -27,16 +27,16 @@ class NoteController extends Controller
      * course › chapter › note. The chapter comes from the URL rather than a
      * picker in the form.
      */
-    public function index(Request $request, int $course, int $chapter)
+    public function index(Request $request, Course $course, Chapter $chapter)
     {
         [$courseModel, $chapterModel] = $this->scope($course, $chapter);
 
         return view('notes.index', [
             'course' => $courseModel,
             'chapter' => $chapterModel,
-            'topics' => Topic::where('chapter_id', $chapterModel->id)->orderBy('title')->get(['id', 'title']),
+            'topics' => Topic::where('chapter_id', $chapterModel->id)->orderBy('title')->get(['id', 'uuid', 'title']),
             // Summary notes are written from one of this chapter's summaries.
-            'summaries' => Summary::where('chapter_id', $chapterModel->id)->orderBy('title')->get(['id', 'title']),
+            'summaries' => Summary::where('chapter_id', $chapterModel->id)->orderBy('title')->get(['id', 'uuid', 'title']),
             'types' => self::TYPES,
             'filters' => [
                 'title' => $request->input('title', ''),
@@ -49,12 +49,12 @@ class NoteController extends Controller
     /**
      * Server-side DataTables source for the notes of one chapter.
      */
-    public function data(Request $request, int $course, int $chapter): JsonResponse
+    public function data(Request $request, Course $course, Chapter $chapter): JsonResponse
     {
         $this->scope($course, $chapter);
 
         $notes = Note::query()
-            ->where('chapter_id', $chapter)
+            ->where('chapter_id', $chapter->id)
             ->with(['topic:id,title', 'summary:id,title']);
 
         // Filters from the filter card above the table.
@@ -65,7 +65,7 @@ class NoteController extends Controller
             });
         });
 
-        $notes->when($request->input('topic'), fn ($query, $id) => $query->where('topic_id', $id));
+        $notes->when($request->input('topic'), fn ($query, $uuid) => $query->whereRelation('topic', 'uuid', $uuid));
         $notes->when($request->input('type'), fn ($query, $type) => $query->where('type', $type));
 
         $table = DataTables::eloquent($notes)
@@ -92,7 +92,7 @@ class NoteController extends Controller
     /**
      * Store a newly created note under the chapter from the URL.
      */
-    public function store(Request $request, int $course, int $chapter)
+    public function store(Request $request, Course $course, Chapter $chapter)
     {
         $this->scope($course, $chapter);
 
@@ -115,7 +115,7 @@ class NoteController extends Controller
     /**
      * Update the given note.
      */
-    public function update(Request $request, int $course, int $chapter, Note $note)
+    public function update(Request $request, Course $course, Chapter $chapter, Note $note)
     {
         $this->scope($course, $chapter, $note);
 
@@ -137,7 +137,7 @@ class NoteController extends Controller
     /**
      * Soft delete the given note.
      */
-    public function destroy(Request $request, int $course, int $chapter, Note $note)
+    public function destroy(Request $request, Course $course, Chapter $chapter, Note $note)
     {
         $this->scope($course, $chapter, $note);
 
@@ -150,7 +150,7 @@ class NoteController extends Controller
      * Shared validation. The chapter is not validated here — it comes from the
      * URL and is checked by scope().
      */
-    private function validated(Request $request, int $chapter): array
+    private function validated(Request $request, Chapter $chapter): array
     {
         // An untouched select posts "", which would reach the integer columns
         // as an empty string rather than null.
@@ -164,7 +164,7 @@ class NoteController extends Controller
             'topic_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('topics', 'id')->where('chapter_id', $chapter),
+                Rule::exists('topics', 'id')->where('chapter_id', $chapter->id),
             ],
             'title' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::in(array_keys(self::TYPES))],
@@ -173,7 +173,7 @@ class NoteController extends Controller
             'summary_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('summaries', 'id')->where('chapter_id', $chapter),
+                Rule::exists('summaries', 'id')->where('chapter_id', $chapter->id),
             ],
             'content' => ['required', 'string'],
         ]);
@@ -183,10 +183,12 @@ class NoteController extends Controller
      * Guards the course › chapter › note chain so a mismatched URL 404s
      * instead of quietly operating on another chapter's notes.
      */
-    private function scope(int $course, int $chapter, ?Note $note = null): array
+    private function scope(Course $course, Chapter $chapter, ?Note $note = null): array
     {
-        $courseModel = Course::findOrFail($course);
-        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
+        $courseModel = $course;
+        $chapterModel = $chapter;
+
+        abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
         abort_if($note && $note->chapter_id !== $chapterModel->id, 404);
 
@@ -197,7 +199,7 @@ class NoteController extends Controller
      * JSON for fetch/AJAX callers, a redirect back to the listing for plain
      * form posts.
      */
-    private function respond(Request $request, int $course, int $chapter, ?Note $note, string $message, int $status = 200)
+    private function respond(Request $request, Course $course, Chapter $chapter, ?Note $note, string $message, int $status = 200)
     {
         if ($request->expectsJson()) {
             return response()->json(array_filter([

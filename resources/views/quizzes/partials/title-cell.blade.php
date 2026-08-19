@@ -1,8 +1,8 @@
 @php
     // Through the chain the edit page keeps the course › chapter context.
     $editRoute = ($chain ?? null)
-        ? route('courses.chapters.quizzes.edit', [$chain['course']->id, $chain['chapter']->id, $quiz->id])
-        : route('quizzes.edit', $quiz->id);
+        ? route('courses.chapters.quizzes.edit', [$chain['course'], $chain['chapter'], $quiz])
+        : route('quizzes.edit', $quiz);
 @endphp
 {{-- Title column — mirrors the chapters grid: name, then one muted meta line --}}
 @php

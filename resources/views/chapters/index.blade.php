@@ -484,7 +484,7 @@
             const form = document.getElementById('edit-chapter-form');
 
             // The row decides which chapter this submit updates.
-            form.action = `{{ url("courses/{$courseId}/chapters") }}/${trigger.dataset.id}`;
+            form.action = `{{ url("courses/{$courseId->uuid}/chapters") }}/${trigger.dataset.id}`;
             App.clearFieldErrors(form);
 
             document.getElementById('edit-chapter-num').value = trigger.dataset.num ?? '';
@@ -526,7 +526,7 @@
 
             try {
                 const payload = await App.request(
-                    `{{ url("courses/{$courseId}/chapters") }}/${trigger.dataset.id}`,
+                    `{{ url("courses/{$courseId->uuid}/chapters") }}/${trigger.dataset.id}`,
                     { method: 'DELETE' }
                 );
                 App.toast('success', payload.message || 'Chapter deleted successfully.');

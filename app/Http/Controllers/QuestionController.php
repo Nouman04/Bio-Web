@@ -59,12 +59,12 @@ class QuestionController extends Controller
      * the `questions.data` endpoint below. Reached through course › chapter the
      * bank is locked to that chapter; from the sidenav it spans them all.
      */
-    public function index(Request $request, ?int $course = null, ?int $chapter = null)
+    public function index(Request $request, ?Course $course = null, ?Chapter $chapter = null)
     {
         return view('questions.index', [
             'chain' => $this->chain($course, $chapter),
-            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
-            'categories' => QuestionCategory::orderBy('type')->get(['id', 'type']),
+            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'uuid', 'title']),
+            'categories' => QuestionCategory::orderBy('type')->get(['id', 'uuid', 'type']),
             'linkables' => $this->linkableOptions(),
             'difficulties' => self::DIFFICULTIES,
             'filters' => [
@@ -84,11 +84,11 @@ class QuestionController extends Controller
      * chapter is never picked here: through the chain it is fixed to the one in
      * the URL, and from the sidenav the questions are simply left unchaptered.
      */
-    public function create(?int $course = null, ?int $chapter = null)
+    public function create(?Course $course = null, ?Chapter $chapter = null)
     {
         return view('questions.create', [
             'chain' => $this->chain($course, $chapter),
-            'categories' => QuestionCategory::orderBy('type')->get(['id', 'type']),
+            'categories' => QuestionCategory::orderBy('type')->get(['id', 'uuid', 'type']),
             'difficulties' => self::DIFFICULTIES,
         ]);
     }
@@ -96,7 +96,7 @@ class QuestionController extends Controller
     /**
      * Server-side DataTables source for the question bank.
      */
-    public function data(Request $request, ?int $course = null, ?int $chapter = null): JsonResponse
+    public function data(Request $request, ?Course $course = null, ?Chapter $chapter = null): JsonResponse
     {
         $chain = $this->chain($course, $chapter);
 
@@ -113,10 +113,10 @@ class QuestionController extends Controller
         // Through the chain the chapter is fixed, so the filter is ignored.
         $chain
             ? $questions->where('chapter_id', $chain['chapter']->id)
-            : $questions->when($request->input('chapter'), fn ($query, $id) => $query->where('chapter_id', $id));
+            : $questions->when($request->input('chapter'), fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid));
 
         $questions->when($request->input('difficulty'), fn ($query, $level) => $query->where('difficulty_level', $level));
-        $questions->when($request->input('category'), fn ($query, $id) => $query->where('question_categories_id', $id));
+        $questions->when($request->input('category'), fn ($query, $uuid) => $query->whereRelation('category', 'uuid', $uuid));
 
         // Linked to a kind of content — optionally to one specific record.
         $questions->when($request->input('linked_type'), function ($query, $type) use ($request) {
@@ -127,7 +127,15 @@ class QuestionController extends Controller
 
             $query->whereHas('questionables', function ($link) use ($class, $request) {
                 $link->where('questionable_type', $class)
-                    ->when($request->input('linked_id'), fn ($q, $id) => $q->where('questionable_id', $id));
+                    // The picker sends the record's uuid; the morph column holds
+                    // its key, so it is looked up on the type that was chosen.
+                    ->when(
+                        $request->input('linked_id'),
+                        fn ($q, $uuid) => $q->whereIn(
+                            'questionable_id',
+                            $class::query()->where('uuid', $uuid)->select('id')
+                        )
+                    );
             });
         });
 
@@ -171,7 +179,8 @@ class QuestionController extends Controller
 
         return response()->json(
             $records->map(fn ($record) => [
-                'id' => $record->id,
+                // The chosen value travels in the query string, so it is a uuid.
+                'id' => $record->uuid,
                 'text' => \Illuminate\Support\Str::limit(
                     trim(preg_replace('/\s+/u', ' ', strip_tags((string) ($record->title ?: $record->content)))),
                     70
@@ -189,7 +198,7 @@ class QuestionController extends Controller
         $questions = QuestionBank::query()
             ->when($request->input('q'), fn ($query, $term) => $query->where('question', 'like', "%{$term}%"))
             // Building through a chapter chain: only that chapter's questions.
-            ->when($request->input('chapter'), fn ($query, $id) => $query->where('chapter_id', $id))
+            ->when($request->input('chapter'), fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid))
             // A theory or MCQ quiz only offers questions of that kind.
             ->when(
                 in_array($request->input('type'), ['theory', 'mcqs'], true),
@@ -214,9 +223,14 @@ class QuestionController extends Controller
                         return;
                     }
 
+                    // The caller sends the assessment's uuid; the morph column
+                    // holds its key.
                     $query->whereNotIn('id', Assessment::query()
                         ->where('assessmentable_type', $class)
-                        ->where('assessmentable_id', $request->input('exclude_id'))
+                        ->whereIn(
+                            'assessmentable_id',
+                            $class::query()->where('uuid', $request->input('exclude_id'))->select('id')
+                        )
                         ->pluck('question_id'));
                 }
             )
@@ -243,7 +257,7 @@ class QuestionController extends Controller
     /**
      * Store one or more questions in a single submit.
      */
-    public function store(Request $request, ?int $course = null, ?int $chapter = null)
+    public function store(Request $request, ?Course $course = null, ?Chapter $chapter = null)
     {
         $chain = $this->chain($course, $chapter);
 
@@ -343,17 +357,17 @@ class QuestionController extends Controller
      * chapter, 404ing on a mismatched URL. Returns null for the sidenav entry,
      * where no chapter is in play at all.
      */
-    private function chain(?int $course, ?int $chapter): ?array
+    private function chain(?Course $course, ?Chapter $chapter): ?array
     {
         if (! $course || ! $chapter) {
             return null;
         }
 
-        $courseModel = Course::findOrFail($course);
+        $courseModel = $course;
 
         return [
             'course' => $courseModel,
-            'chapter' => Chapter::where('course_id', $courseModel->id)->findOrFail($chapter),
+            'chapter' => $chapter,
         ];
     }
 

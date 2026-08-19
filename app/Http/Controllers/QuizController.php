@@ -30,11 +30,11 @@ class QuizController extends Controller
      * Display the quizzes listing. Reached through course › chapter it shows
      * only that chapter's quizzes; from the sidenav it shows them all.
      */
-    public function index(Request $request, ?int $course = null, ?int $chapter = null)
+    public function index(Request $request, ?Course $course = null, ?Chapter $chapter = null)
     {
         return view('quizzes.index', [
             'chain' => $this->chain($course, $chapter),
-            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
+            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'uuid', 'title']),
             'filters' => [
                 'search' => $request->input('search', ''),
                 'chapter' => $request->input('chapter', ''),
@@ -48,7 +48,7 @@ class QuizController extends Controller
     /**
      * Server-side DataTables source for the quizzes list.
      */
-    public function data(Request $request, ?int $course = null, ?int $chapter = null): JsonResponse
+    public function data(Request $request, ?Course $course = null, ?Chapter $chapter = null): JsonResponse
     {
         $chain = $this->chain($course, $chapter);
 
@@ -59,9 +59,9 @@ class QuizController extends Controller
         // Through the chain the chapter is fixed, so the filter is ignored.
         $chain
             ? $quizzes->whereHas('chapters', fn ($q) => $q->where('chapters.id', $chain['chapter']->id))
-            : $quizzes->when($request->input('chapter'), fn ($query, $id) => $query->whereHas(
+            : $quizzes->when($request->input('chapter'), fn ($query, $uuid) => $query->whereHas(
                 'chapters',
-                fn ($q) => $q->where('chapters.id', $id)
+                fn ($q) => $q->where('chapters.uuid', $uuid)
             ));
 
         // Filters from the filter card above the table.
@@ -98,7 +98,7 @@ class QuizController extends Controller
      * through the chain it is fixed to the one in the URL, and from the sidenav
      * the quiz is simply left unattached to a chapter.
      */
-    public function create(?int $course = null, ?int $chapter = null)
+    public function create(?Course $course = null, ?Chapter $chapter = null)
     {
         return view('quizzes.create', [
             'chain' => $this->chain($course, $chapter),
@@ -109,7 +109,7 @@ class QuizController extends Controller
     /**
      * Store a newly created quiz.
      */
-    public function store(Request $request, ?int $course = null, ?int $chapter = null)
+    public function store(Request $request, ?Course $course = null, ?Chapter $chapter = null)
     {
         $chain = $this->chain($course, $chapter);
         $data = $this->validated($request);
@@ -359,7 +359,7 @@ class QuizController extends Controller
 
         // One quizzes_chapters row per chapter in play, made on first use.
         $quizChapters = [];
-        $rowFor = function (?int $chapterId) use ($quiz, &$quizChapters) {
+        $rowFor = function (?Chapter $chapterId) use ($quiz, &$quizChapters) {
             $key = $chapterId ?? 0;
 
             return $quizChapters[$key] ??= QuizChapter::create([
@@ -394,17 +394,17 @@ class QuizController extends Controller
      * chapter, 404ing on a mismatched URL. Returns null for the sidenav entry,
      * where no chapter is in play at all.
      */
-    private function chain(?int $course, ?int $chapter): ?array
+    private function chain(?Course $course, ?Chapter $chapter): ?array
     {
         if (! $course || ! $chapter) {
             return null;
         }
 
-        $courseModel = Course::findOrFail($course);
+        $courseModel = $course;
 
         return [
             'course' => $courseModel,
-            'chapter' => Chapter::where('course_id', $courseModel->id)->findOrFail($chapter),
+            'chapter' => $chapter,
         ];
     }
 

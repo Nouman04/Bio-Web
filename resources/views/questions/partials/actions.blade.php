@@ -16,7 +16,7 @@
         @can('edit question')
             <button type="button"
                 onclick="openEditQuestionModal(this)"
-                data-id="{{ $question->id }}"
+                data-id="{{ $question->uuid }}"
                 data-chapter-id="{{ $question->chapter_id }}"
                 data-category-id="{{ $question->question_categories_id }}"
                 data-difficulty="{{ $question->difficulty_level }}"
@@ -32,7 +32,7 @@
             <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
             <button type="button"
                 onclick="deleteQuestion(this)"
-                data-id="{{ $question->id }}"
+                data-id="{{ $question->uuid }}"
                 data-question="{{ Str::limit(strip_tags($question->question), 40) }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
                 <i class="fa-solid fa-trash w-4"></i>

@@ -160,9 +160,9 @@
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $course->id) }}">{{ $course->title }}</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $course) }}">{{ $course->title }}</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$course->id, $chapter->id]) }}">{{ $chapter->title }}</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$course, $chapter]) }}">{{ $chapter->title }}</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Study Notes</span>
     </div>
@@ -189,7 +189,7 @@
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
             <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-                <form id="notes-filter-form" action="{{ route('notes', [$course->id, $chapter->id]) }}" method="GET">
+                <form id="notes-filter-form" action="{{ route('notes', [$course, $chapter]) }}" method="GET">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
@@ -205,7 +205,7 @@
                             <select name="topic" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Topics</option>
                                 @forelse($topics as $topic)
-                                    <option value="{{ $topic->id }}" {{ ($filters['topic'] ?? '') == $topic->id ? 'selected' : '' }}>{{ $topic->title }}</option>
+                                    <option value="{{ $topic->uuid }}" {{ ($filters['topic'] ?? '') == $topic->uuid ? 'selected' : '' }}>{{ $topic->title }}</option>
                                 @empty
                                     <option value="" disabled>No topics in this chapter</option>
                                 @endforelse
@@ -279,7 +279,7 @@
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <form id="add-note-form" data-ajax-form action="{{ route('notes.store', [$course->id, $chapter->id]) }}" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+            <form id="add-note-form" data-ajax-form action="{{ route('notes.store', [$course, $chapter]) }}" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
                 @csrf
                 <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
                     Adding to <span class="text-primary">{{ $chapter->title }}</span>
@@ -428,7 +428,7 @@
                     zeroRecords: 'No notes match these filters.',
                 },
                 ajax: {
-                    url: '{{ route('notes.data', [$course->id, $chapter->id]) }}',
+                    url: '{{ route('notes.data', [$course, $chapter]) }}',
                     data: (params) => {
                         const filters = new FormData(filterForm);
                         // DataTables reserves `search`, so the filter box travels
@@ -511,7 +511,7 @@
             const form = document.getElementById('edit-note-form');
             const id = trigger.dataset.id;
 
-            form.action = `{{ url("courses/{$course->id}/chapters/{$chapter->id}/notes") }}/${id}`;
+            form.action = `{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/notes") }}/${id}`;
             App.clearFieldErrors(form);
 
             document.getElementById('edit-note-title').value = trigger.dataset.title ?? '';
@@ -556,7 +556,7 @@
 
             try {
                 const payload = await App.request(
-                    `{{ url("courses/{$course->id}/chapters/{$chapter->id}/notes") }}/${trigger.dataset.id}`,
+                    `{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/notes") }}/${trigger.dataset.id}`,
                     { method: 'DELETE' }
                 );
                 App.toast('success', payload.message || 'Note deleted successfully.');

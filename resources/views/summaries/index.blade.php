@@ -204,7 +204,7 @@
                             <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Chapters</option>
                                 @forelse($chapters as $chapter)
-                                    <option value="{{ $chapter->id }}" {{ ($filters['chapter'] ?? '') == $chapter->id ? 'selected' : '' }}>{{ $chapter->title }}</option>
+                                    <option value="{{ $chapter->uuid }}" {{ ($filters['chapter'] ?? '') == $chapter->uuid ? 'selected' : '' }}>{{ $chapter->title }}</option>
                                 @empty
                                     <option value="" disabled>No chapters yet</option>
                                 @endforelse
@@ -215,7 +215,7 @@
                             <select name="topic" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Topics</option>
                                 @forelse($topics as $topic)
-                                    <option value="{{ $topic->id }}" {{ ($filters['topic'] ?? '') == $topic->id ? 'selected' : '' }}>{{ $topic->title }}</option>
+                                    <option value="{{ $topic->uuid }}" {{ ($filters['topic'] ?? '') == $topic->uuid ? 'selected' : '' }}>{{ $topic->title }}</option>
                                 @empty
                                     <option value="" disabled>No topics yet</option>
                                 @endforelse

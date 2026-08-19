@@ -1,6 +1,6 @@
 {{-- Title column for the courses DataTable --}}
 <div class="flex flex-col gap-0.5 min-w-0">
-    <a href="{{ route('courses.chapters', $course->id) }}"
+    <a href="{{ route('courses.chapters', $course) }}"
         class="font-semibold text-on-surface dark:text-white hover:text-primary transition-colors truncate">
         {{ $course->title }}
     </a>

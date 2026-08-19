@@ -22,7 +22,7 @@ class TopicController extends Controller
      * here is reached through course › chapter › topic. The chapter comes from
      * the URL rather than a picker in the form.
      */
-    public function index(Request $request, int $course, int $chapter)
+    public function index(Request $request, Course $course, Chapter $chapter)
     {
         [$courseModel, $chapterModel] = $this->scope($course, $chapter);
 
@@ -38,12 +38,12 @@ class TopicController extends Controller
     /**
      * Server-side DataTables source for the topics of one chapter.
      */
-    public function data(Request $request, int $course, int $chapter): JsonResponse
+    public function data(Request $request, Course $course, Chapter $chapter): JsonResponse
     {
         $this->scope($course, $chapter);
 
         $topics = Topic::query()
-            ->where('chapter_id', $chapter)
+            ->where('chapter_id', $chapter->id)
             ->withCount(['questionables', 'attachments']);
 
         // Filter from the filter card above the table.
@@ -73,7 +73,7 @@ class TopicController extends Controller
     /**
      * The questions already linked to a topic, for the edit modal's picker.
      */
-    public function questions(int $course, int $chapter, Topic $topic): JsonResponse
+    public function questions(Course $course, Chapter $chapter, Topic $topic): JsonResponse
     {
         $this->scope($course, $chapter, $topic);
 
@@ -91,7 +91,7 @@ class TopicController extends Controller
     /**
      * Store a newly created topic under the chapter from the URL.
      */
-    public function store(Request $request, int $course, int $chapter)
+    public function store(Request $request, Course $course, Chapter $chapter)
     {
         $this->scope($course, $chapter);
 
@@ -119,7 +119,7 @@ class TopicController extends Controller
      * Update the given topic. Newly uploaded files are added to the existing
      * attachments rather than replacing them.
      */
-    public function update(Request $request, int $course, int $chapter, Topic $topic)
+    public function update(Request $request, Course $course, Chapter $chapter, Topic $topic)
     {
         $this->scope($course, $chapter, $topic);
 
@@ -143,7 +143,7 @@ class TopicController extends Controller
     /**
      * Soft delete the given topic.
      */
-    public function destroy(Request $request, int $course, int $chapter, Topic $topic)
+    public function destroy(Request $request, Course $course, Chapter $chapter, Topic $topic)
     {
         $this->scope($course, $chapter, $topic);
 
@@ -158,7 +158,7 @@ class TopicController extends Controller
     /**
      * Display the question assignment page for a specific topic.
      */
-    public function assign(int $course, int $chapter, Topic $topic)
+    public function assign(Course $course, Chapter $chapter, Topic $topic)
     {
         [$courseModel, $chapterModel] = $this->scope($course, $chapter, $topic);
 
@@ -181,10 +181,12 @@ class TopicController extends Controller
      * Guards the course › chapter › topic chain so a mismatched URL 404s
      * instead of quietly operating on someone else's records.
      */
-    private function scope(int $course, int $chapter, ?Topic $topic = null): array
+    private function scope(Course $course, Chapter $chapter, ?Topic $topic = null): array
     {
-        $courseModel = Course::findOrFail($course);
-        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
+        $courseModel = $course;
+        $chapterModel = $chapter;
+
+        abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
         abort_if($topic && $topic->chapter_id !== $chapterModel->id, 404);
 
@@ -222,7 +224,7 @@ class TopicController extends Controller
      * JSON for fetch/AJAX callers, a redirect back to the listing for plain
      * form posts.
      */
-    private function respond(Request $request, int $course, int $chapter, ?Topic $topic, string $message, int $status = 200)
+    private function respond(Request $request, Course $course, Chapter $chapter, ?Topic $topic, string $message, int $status = 200)
     {
         if ($request->expectsJson()) {
             return response()->json(array_filter([

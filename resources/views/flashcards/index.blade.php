@@ -160,9 +160,9 @@
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $course->id) }}">{{ $course->title }}</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $course) }}">{{ $course->title }}</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$course->id, $chapter->id]) }}">{{ $chapter->title }}</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$course, $chapter]) }}">{{ $chapter->title }}</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Flashcards</span>
     </div>
@@ -189,7 +189,7 @@
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
             <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-                <form id="flashcards-filter-form" action="{{ route('flashcards', [$course->id, $chapter->id]) }}" method="GET">
+                <form id="flashcards-filter-form" action="{{ route('flashcards', [$course, $chapter]) }}" method="GET">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
@@ -277,7 +277,7 @@
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <form id="add-flashcard-form" data-ajax-form action="{{ route('flashcards.store', [$course->id, $chapter->id]) }}" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+            <form id="add-flashcard-form" data-ajax-form action="{{ route('flashcards.store', [$course, $chapter]) }}" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
                 @csrf
                 <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 -mb-2">
                     Adding to <span class="text-primary">{{ $chapter->title }}</span>
@@ -385,7 +385,7 @@
                     zeroRecords: 'No flashcards match these filters.',
                 },
                 ajax: {
-                    url: '{{ route('flashcards.data', [$course->id, $chapter->id]) }}',
+                    url: '{{ route('flashcards.data', [$course, $chapter]) }}',
                     data: (params) => {
                         const filters = new FormData(filterForm);
                         // DataTables reserves `search`, so the filter box travels
@@ -465,7 +465,7 @@
             recordSelect.disabled = true;
             recordSelect.innerHTML = '<option value="">Loading…</option>';
 
-            App.request(`{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards/sources") }}/${type}`)
+            App.request(`{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/flashcards/sources") }}/${type}`)
                 .then(records => {
                     recordSelect.innerHTML = '<option value="">Select a record</option>';
                     records.forEach(record => {
@@ -514,7 +514,7 @@
             const form = document.getElementById('edit-flashcard-form');
             const id = trigger.dataset.id;
 
-            form.action = `{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards") }}/${id}`;
+            form.action = `{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/flashcards") }}/${id}`;
             App.clearFieldErrors(form);
 
             document.getElementById('edit-flashcard-title').value = trigger.dataset.title ?? '';
@@ -546,7 +546,7 @@
             if (!confirmed) return;
 
             try {
-                const payload = await App.request(`{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards") }}/${trigger.dataset.id}`, { method: 'DELETE' });
+                const payload = await App.request(`{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/flashcards") }}/${trigger.dataset.id}`, { method: 'DELETE' });
                 App.toast('success', payload.message || 'Flashcard deleted successfully.');
                 flashcardsTable?.ajax.reload(null, false);
             } catch (error) {

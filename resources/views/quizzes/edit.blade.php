@@ -29,11 +29,11 @@
     @php
         // Through course › chapter the quiz belongs to that chapter; from the
         // sidenav no chapter is offered at all.
-        $chainIds = $chain ? [$chain['course']->id, $chain['chapter']->id] : [];
+        $chainIds = $chain ? [$chain['course'], $chain['chapter']] : [];
         $listRoute = $chain ? route('courses.chapters.quizzes', $chainIds) : route('quizzes');
         $storeRoute = $chain
-            ? route('courses.chapters.quizzes.update', array_merge($chainIds, [$quiz->id]))
-            : route('quizzes.update', $quiz->id);
+            ? route('courses.chapters.quizzes.update', array_merge($chainIds, [$quiz]))
+            : route('quizzes.update', $quiz);
     @endphp
 
     {{-- Breadcrumbs --}}
@@ -43,7 +43,7 @@
         @if($chain)
             <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']->id) }}">{{ $chain['course']->title }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']) }}">{{ $chain['course']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
             <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', $chainIds) }}">{{ $chain['chapter']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>

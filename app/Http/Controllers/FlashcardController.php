@@ -38,7 +38,7 @@ class FlashcardController extends Controller
      * Display the flashcards listing. The grid itself is loaded by DataTables
      * from the `flashcards.data` endpoint below.
      */
-    public function index(Request $request, int $course, int $chapter)
+    public function index(Request $request, Course $course, Chapter $chapter)
     {
         [$courseModel, $chapterModel] = $this->scope($course, $chapter);
 
@@ -57,12 +57,12 @@ class FlashcardController extends Controller
     /**
      * Server-side DataTables source for the flashcards list.
      */
-    public function data(Request $request, int $course, int $chapter): JsonResponse
+    public function data(Request $request, Course $course, Chapter $chapter): JsonResponse
     {
         $this->scope($course, $chapter);
 
         $flashcards = Flashcard::query()
-            ->where('chapter_id', $chapter)
+            ->where('chapter_id', $chapter->id)
             ->with(['chapter:id,title', 'flashcardable'])
             ->withCount('assessments');
 
@@ -113,7 +113,7 @@ class FlashcardController extends Controller
      * Records of one source type, for the dependent picker in the modal and
      * the filter card.
      */
-    public function sourceRecords(Request $request, int $course, int $chapter, string $type): JsonResponse
+    public function sourceRecords(Request $request, Course $course, Chapter $chapter, string $type): JsonResponse
     {
         $this->scope($course, $chapter);
 
@@ -138,7 +138,7 @@ class FlashcardController extends Controller
      * Step one of the flow: create the deck itself, then send the user to the
      * builder to attach questions.
      */
-    public function store(Request $request, int $course, int $chapter)
+    public function store(Request $request, Course $course, Chapter $chapter)
     {
         $this->scope($course, $chapter);
 
@@ -170,7 +170,7 @@ class FlashcardController extends Controller
     /**
      * Step two: the question builder for a deck.
      */
-    public function builder(int $course, int $chapter, Flashcard $flashcard)
+    public function builder(Course $course, Chapter $chapter, Flashcard $flashcard)
     {
         [$courseModel, $chapterModel] = $this->scope($course, $chapter, $flashcard);
 
@@ -187,7 +187,7 @@ class FlashcardController extends Controller
     /**
      * The deck's questions, in order — the builder list reloads from here.
      */
-    public function questions(int $course, int $chapter, Flashcard $flashcard): JsonResponse
+    public function questions(Course $course, Chapter $chapter, Flashcard $flashcard): JsonResponse
     {
         $this->scope($course, $chapter, $flashcard);
 
@@ -208,7 +208,7 @@ class FlashcardController extends Controller
     /**
      * Attach questions from the bank, appended after whatever is already there.
      */
-    public function addQuestions(Request $request, int $course, int $chapter, Flashcard $flashcard): JsonResponse
+    public function addQuestions(Request $request, Course $course, Chapter $chapter, Flashcard $flashcard): JsonResponse
     {
         $this->scope($course, $chapter, $flashcard);
 
@@ -244,7 +244,7 @@ class FlashcardController extends Controller
     /**
      * Persist a drag-and-drop reorder.
      */
-    public function reorderQuestions(Request $request, int $course, int $chapter, Flashcard $flashcard): JsonResponse
+    public function reorderQuestions(Request $request, Course $course, Chapter $chapter, Flashcard $flashcard): JsonResponse
     {
         $this->scope($course, $chapter, $flashcard);
 
@@ -265,7 +265,7 @@ class FlashcardController extends Controller
     /**
      * Detach one question from the deck.
      */
-    public function removeQuestion(int $course, int $chapter, Flashcard $flashcard, Assessment $assessment): JsonResponse
+    public function removeQuestion(Course $course, Chapter $chapter, Flashcard $flashcard, Assessment $assessment): JsonResponse
     {
         $this->scope($course, $chapter, $flashcard);
 
@@ -283,7 +283,7 @@ class FlashcardController extends Controller
     /**
      * Update the deck's own details.
      */
-    public function update(Request $request, int $course, int $chapter, Flashcard $flashcard)
+    public function update(Request $request, Course $course, Chapter $chapter, Flashcard $flashcard)
     {
         $this->scope($course, $chapter, $flashcard);
 
@@ -302,7 +302,7 @@ class FlashcardController extends Controller
     /**
      * Soft delete the deck and detach its questions.
      */
-    public function destroy(Request $request, int $course, int $chapter, Flashcard $flashcard)
+    public function destroy(Request $request, Course $course, Chapter $chapter, Flashcard $flashcard)
     {
         $this->scope($course, $chapter, $flashcard);
 
@@ -331,10 +331,12 @@ class FlashcardController extends Controller
      * Guards the course › chapter › flashcard chain so a mismatched URL 404s
      * instead of quietly operating on another chapter's decks.
      */
-    private function scope(int $course, int $chapter, ?Flashcard $flashcard = null): array
+    private function scope(Course $course, Chapter $chapter, ?Flashcard $flashcard = null): array
     {
-        $courseModel = Course::findOrFail($course);
-        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
+        $courseModel = $course;
+        $chapterModel = $chapter;
+
+        abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
         abort_if($flashcard && $flashcard->chapter_id !== $chapterModel->id, 404);
 
@@ -390,7 +392,7 @@ class FlashcardController extends Controller
      * JSON for fetch/AJAX callers, a redirect back to the listing for plain
      * form posts.
      */
-    private function respond(Request $request, int $course, int $chapter, ?Flashcard $flashcard, string $message, int $status = 200)
+    private function respond(Request $request, Course $course, Chapter $chapter, ?Flashcard $flashcard, string $message, int $status = 200)
     {
         if ($request->expectsJson()) {
             return response()->json(array_filter([

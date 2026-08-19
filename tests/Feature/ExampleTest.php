@@ -10,11 +10,11 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_root_url_redirects_to_a_sign_in(): void
+    public function test_the_root_url_redirects_to_the_public_home_page(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect(route('student.login'));
+        $response->assertRedirect(route('public.home'));
     }
 
 }

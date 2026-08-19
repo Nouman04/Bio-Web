@@ -159,7 +159,7 @@
     @php
         // Through course › chapter the bank is locked to that chapter: no
         // chapter filter, and new questions inherit it from the URL.
-        $chainIds = $chain ? [$chain['course']->id, $chain['chapter']->id] : [];
+        $chainIds = $chain ? [$chain['course'], $chain['chapter']] : [];
         $bankRoute = $chain ? route('courses.chapters.questions', $chainIds) : route('questions');
         $dataRoute = $chain ? route('courses.chapters.questions.data', $chainIds) : route('questions.data');
         $createRoute = $chain ? route('courses.chapters.questions.create', $chainIds) : route('questions.create');
@@ -175,7 +175,7 @@
         @if($chain)
             <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']->id) }}">{{ $chain['course']->title }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']) }}">{{ $chain['course']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
             <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', $chainIds) }}">{{ $chain['chapter']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
@@ -220,7 +220,7 @@
                                 <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                     <option value="">All Chapters</option>
                                     @forelse($chapters as $chapter)
-                                        <option value="{{ $chapter->id }}" {{ ($filters['chapter'] ?? '') == $chapter->id ? 'selected' : '' }}>{{ $chapter->title }}</option>
+                                        <option value="{{ $chapter->uuid }}" {{ ($filters['chapter'] ?? '') == $chapter->uuid ? 'selected' : '' }}>{{ $chapter->title }}</option>
                                     @empty
                                         <option value="" disabled>No chapters yet</option>
                                     @endforelse
@@ -255,7 +255,7 @@
                             <select name="category" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Types</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ ($filters['category'] ?? '') == $category->id ? 'selected' : '' }}>{{ $category->type === 'mcqs' ? 'MCQ' : 'Theory' }}</option>
+                                    <option value="{{ $category->uuid }}" {{ ($filters['category'] ?? '') == $category->uuid ? 'selected' : '' }}>{{ $category->type === 'mcqs' ? 'MCQ' : 'Theory' }}</option>
                                 @endforeach
                             </select>
                         </div>

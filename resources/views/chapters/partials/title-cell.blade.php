@@ -6,7 +6,7 @@
     $excerpt = Str::limit(trim(preg_replace('/\s+/u', ' ', $excerpt)), 70);
 @endphp
 <div class="flex flex-col gap-0.5 min-w-0">
-    <a href="{{ route('courses.chapters.dashboard', [$chapter->course_id, $chapter->id]) }}"
+    <a href="{{ route('courses.chapters.dashboard', [$chapter->course_id, $chapter]) }}"
         class="font-semibold text-on-surface dark:text-white hover:text-primary transition-colors truncate">
         {{ $chapter->title }}
     </a>

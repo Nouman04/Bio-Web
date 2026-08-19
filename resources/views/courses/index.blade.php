@@ -208,7 +208,7 @@
                             <select name="category" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Categories</option>
                                 @forelse($categories as $category)
-                                    <option value="{{ $category->id }}" {{ ($filters['category'] ?? '') == $category->id ? 'selected' : '' }}>{{ $category->title }}</option>
+                                    <option value="{{ $category->uuid }}" {{ ($filters['category'] ?? '') == $category->uuid ? 'selected' : '' }}>{{ $category->title }}</option>
                                 @empty
                                     <option value="" disabled>No categories yet</option>
                                 @endforelse
@@ -219,7 +219,7 @@
                             <select name="created_by" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Instructors</option>
                                 @forelse($instructors as $instructor)
-                                    <option value="{{ $instructor->id }}" {{ ($filters['created_by'] ?? '') == $instructor->id ? 'selected' : '' }}>{{ $instructor->name }}</option>
+                                    <option value="{{ $instructor->uuid }}" {{ ($filters['created_by'] ?? '') == $instructor->uuid ? 'selected' : '' }}>{{ $instructor->name }}</option>
                                 @empty
                                     <option value="" disabled>No instructors yet</option>
                                 @endforelse

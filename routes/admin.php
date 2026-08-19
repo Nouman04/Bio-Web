@@ -50,6 +50,10 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::put('/{course}', [CourseController::class, 'update'])->middleware('can:edit course')->name('courses.update');
         Route::delete('/{course}', [CourseController::class, 'destroy'])->middleware('can:delete course')->name('courses.destroy');
 
+        // Per-course settings page: which chapters are public
+        Route::get('/{course}/configuration', [CourseController::class, 'configuration'])->middleware('can:view course')->name('courses.configuration');
+        Route::put('/{course}/configuration', [CourseController::class, 'updateConfiguration'])->middleware('can:edit chapter')->name('courses.configuration.update');
+
         // Chapters — always scoped to their course
         Route::prefix('{course}/chapters')->group(function () {
             Route::get('/', [ChapterController::class, 'index'])->middleware('can:view course')->name('courses.chapters');

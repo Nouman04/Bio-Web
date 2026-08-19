@@ -32,14 +32,14 @@ class GuideController extends Controller
      * Display the guides listing. The grid itself is loaded by DataTables from
      * the `guides.data` endpoint below.
      */
-    public function index(Request $request, int $course, int $chapter)
+    public function index(Request $request, Course $course, Chapter $chapter)
     {
         [$courseModel, $chapterModel] = $this->scope($course, $chapter);
 
         return view('guides.index', [
             'course' => $courseModel,
             'chapter' => $chapterModel,
-            'topics' => Topic::orderBy('title')->get(['id', 'title']),
+            'topics' => Topic::orderBy('title')->get(['id', 'uuid', 'title']),
             'types' => self::TYPES,
             'filters' => [
                 'title' => $request->input('title', ''),
@@ -54,12 +54,12 @@ class GuideController extends Controller
     /**
      * Server-side DataTables source for the guides list.
      */
-    public function data(Request $request, int $course, int $chapter): JsonResponse
+    public function data(Request $request, Course $course, Chapter $chapter): JsonResponse
     {
         $this->scope($course, $chapter);
 
         $guides = Guide::query()
-            ->where('chapter_id', $chapter)
+            ->where('chapter_id', $chapter->id)
             ->with('topic:id,title')
             ->withCount('questionables');
 
@@ -69,7 +69,7 @@ class GuideController extends Controller
             fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
         );
 
-        $guides->when($request->input('topic'), fn ($query, $id) => $query->where('topic_id', $id));
+        $guides->when($request->input('topic'), fn ($query, $uuid) => $query->whereRelation('topic', 'uuid', $uuid));
         $guides->when($request->input('type'), fn ($query, $type) => $query->where('type', $type));
         $guides->when($request->input('date_from'), fn ($query, $date) => $query->whereDate('created_at', '>=', $date));
         $guides->when($request->input('date_to'), fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
@@ -94,7 +94,7 @@ class GuideController extends Controller
     /**
      * The questions already linked to a guide, for the edit modal's picker.
      */
-    public function questions(int $course, int $chapter, Guide $guide): JsonResponse
+    public function questions(Course $course, Chapter $chapter, Guide $guide): JsonResponse
     {
         $this->scope($course, $chapter, $guide);
 
@@ -112,7 +112,7 @@ class GuideController extends Controller
     /**
      * Store a newly created guide.
      */
-    public function store(Request $request, int $course, int $chapter)
+    public function store(Request $request, Course $course, Chapter $chapter)
     {
         $this->scope($course, $chapter);
 
@@ -143,7 +143,7 @@ class GuideController extends Controller
     /**
      * Update the given guide.
      */
-    public function update(Request $request, int $course, int $chapter, Guide $guide)
+    public function update(Request $request, Course $course, Chapter $chapter, Guide $guide)
     {
         $this->scope($course, $chapter, $guide);
 
@@ -170,7 +170,7 @@ class GuideController extends Controller
     /**
      * Soft delete the given guide.
      */
-    public function destroy(Request $request, int $course, int $chapter, Guide $guide)
+    public function destroy(Request $request, Course $course, Chapter $chapter, Guide $guide)
     {
         $this->scope($course, $chapter, $guide);
 
@@ -211,7 +211,7 @@ class GuideController extends Controller
      * JSON for fetch/AJAX callers, a redirect back to the listing for plain
      * form posts.
      */
-    private function respond(Request $request, int $course, int $chapter, ?Guide $guide, string $message, int $status = 200)
+    private function respond(Request $request, Course $course, Chapter $chapter, ?Guide $guide, string $message, int $status = 200)
     {
         if ($request->expectsJson()) {
             return response()->json(array_filter([
@@ -227,10 +227,12 @@ class GuideController extends Controller
      * Guards the course › chapter › guide chain so a mismatched URL 404s
      * instead of quietly operating on another chapter's guides.
      */
-    private function scope(int $course, int $chapter, ?Guide $guide = null): array
+    private function scope(Course $course, Chapter $chapter, ?Guide $guide = null): array
     {
-        $courseModel = Course::findOrFail($course);
-        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
+        $courseModel = $course;
+        $chapterModel = $chapter;
+
+        abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
         abort_if($guide && $guide->chapter_id !== $chapterModel->id, 404);
 

@@ -34,6 +34,18 @@ class Quiz extends Model
      * Quizzes are reached through a chapter, so a quiz has at most one chapter
      * even though the pivot could hold several.
      */
+
+    /**
+     * A plain-text opening line from the description, for listings and cards. The
+     * description is Quill HTML, so entities are decoded before trimming.
+     */
+    public function getExcerptAttribute(): string
+    {
+        $text = html_entity_decode(strip_tags((string) $this->description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 160);
+    }
+
     public function firstChapter(): ?Chapter
     {
         return $this->chapters->first();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -20,10 +21,10 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         return view('courses.index', [
-            'categories' => Category::orderBy('title')->get(['id', 'title']),
+            'categories' => Category::orderBy('title')->get(['id', 'uuid', 'title']),
             'instructors' => User::whereIn('id', Course::select('created_by'))
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'uuid', 'name']),
             'filters' => [
                 'search' => $request->input('search', ''),
                 'category' => $request->input('category', ''),
@@ -50,8 +51,8 @@ class CourseController extends Controller
             });
         });
 
-        $courses->when($request->input('category'), fn ($query, $id) => $query->where('category_id', $id));
-        $courses->when($request->input('created_by'), fn ($query, $id) => $query->where('created_by', $id));
+        $courses->when($request->input('category'), fn ($query, $uuid) => $query->whereRelation('category', 'uuid', $uuid));
+        $courses->when($request->input('created_by'), fn ($query, $uuid) => $query->whereRelation('creator', 'uuid', $uuid));
 
         $table = DataTables::eloquent($courses)
             ->addColumn('title_cell', fn (Course $course) => view('courses.partials.title-cell', compact('course'))->render())
@@ -101,6 +102,53 @@ class CourseController extends Controller
         $course->delete();
 
         return $this->respond($request, null, 'Course deleted successfully.');
+    }
+
+    /**
+     * The course's configuration page — currently which of its chapters are
+     * public and which are private.
+     */
+    public function configuration(Course $course)
+    {
+        return view('courses.configuration', [
+            'course' => $course,
+            'chapters' => $course->chapters()->orderBy('chapter_number')->get(),
+        ]);
+    }
+
+    /**
+     * Save the visibility chosen for each chapter. Only chapters that belong to
+     * this course are written, so a forged id cannot reach another course's.
+     */
+    public function updateConfiguration(Request $request, Course $course)
+    {
+        $data = $request->validate([
+            'chapters' => ['nullable', 'array'],
+            'chapters.*' => [Rule::in(['public', 'private'])],
+        ], [
+            'chapters.*.in' => 'A chapter can only be public or private.',
+        ]);
+
+        $chapters = $course->chapters()->pluck('id')->all();
+        $changed = 0;
+
+        foreach ($data['chapters'] ?? [] as $id => $visibility) {
+            if (! in_array((int) $id, $chapters, true)) {
+                continue;
+            }
+
+            $changed += Chapter::where('id', $id)
+                ->where('visibility', '!=', $visibility)
+                ->update(['visibility' => $visibility]);
+        }
+
+        return $this->respond(
+            $request,
+            $course->fresh(),
+            $changed === 1
+                ? '1 chapter updated.'
+                : ($changed ? "{$changed} chapters updated." : 'No changes to save.')
+        );
     }
 
     /**

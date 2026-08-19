@@ -26,8 +26,8 @@ class SummaryController extends Controller
     public function index(Request $request)
     {
         return view('summaries.index', [
-            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
-            'topics' => Topic::orderBy('title')->get(['id', 'title']),
+            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'uuid', 'title']),
+            'topics' => Topic::orderBy('title')->get(['id', 'uuid', 'title']),
             'filters' => [
                 'title' => $request->input('title', ''),
                 'chapter' => $request->input('chapter', ''),
@@ -51,8 +51,8 @@ class SummaryController extends Controller
             fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
         );
 
-        $summaries->when($request->input('chapter'), fn ($query, $id) => $query->where('chapter_id', $id));
-        $summaries->when($request->input('topic'), fn ($query, $id) => $query->where('topic_id', $id));
+        $summaries->when($request->input('chapter'), fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid));
+        $summaries->when($request->input('topic'), fn ($query, $uuid) => $query->whereRelation('topic', 'uuid', $uuid));
 
         $table = DataTables::eloquent($summaries)
             ->addColumn('title_cell', fn (Summary $summary) => view('summaries.partials.title-cell', compact('summary'))->render())

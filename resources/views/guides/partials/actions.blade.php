@@ -7,7 +7,7 @@
         @can('edit guide')
             <button type="button"
                 onclick="openEditGuideModal(this)"
-                data-id="{{ $guide->id }}"
+                data-id="{{ $guide->uuid }}"
                 data-chapter-id="{{ $guide->chapter_id }}"
                 data-topic-id="{{ $guide->topic_id }}"
                 data-type="{{ $guide->type }}"
@@ -23,7 +23,7 @@
             <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
             <button type="button"
                 onclick="deleteGuide(this)"
-                data-id="{{ $guide->id }}"
+                data-id="{{ $guide->uuid }}"
                 data-title="{{ $guide->title }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
                 <i class="fa-solid fa-trash w-4"></i>

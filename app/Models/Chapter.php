@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
 class Chapter extends Model
@@ -19,11 +20,23 @@ class Chapter extends Model
         'chapter_number',
         'description',
         'status',
+        'visibility',
     ];
 
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * A plain-text opening line from the description, for listings and cards.
+     * The description is Quill HTML, so entities are decoded before trimming.
+     */
+    public function getExcerptAttribute(): string
+    {
+        $text = html_entity_decode(strip_tags((string) $this->description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 160);
     }
 
     public function topics(): HasMany
@@ -39,6 +52,11 @@ class Chapter extends Model
     public function questionBank(): HasMany
     {
         return $this->hasMany(QuestionBank::class);
+    }
+
+    public function flashcards(): HasMany
+    {
+        return $this->hasMany(Flashcard::class);
     }
 
     public function videoLessons(): HasMany

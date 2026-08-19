@@ -7,7 +7,7 @@
         @can('edit note')
             <button type="button"
                 onclick="openEditNoteModal(this)"
-                data-id="{{ $note->id }}"
+                data-id="{{ $note->uuid }}"
                 data-topic-id="{{ $note->topic_id }}"
                 data-title="{{ $note->title }}"
                 data-type="{{ $note->type }}"
@@ -22,7 +22,7 @@
             <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
             <button type="button"
                 onclick="deleteNote(this)"
-                data-id="{{ $note->id }}"
+                data-id="{{ $note->uuid }}"
                 data-title="{{ $note->title }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
                 <i class="fa-solid fa-trash w-4"></i>

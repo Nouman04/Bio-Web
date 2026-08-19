@@ -27,8 +27,8 @@ class VideoController extends Controller
     public function index(Request $request)
     {
         return view('videos.index', [
-            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'title']),
-            'topics' => Topic::orderBy('title')->get(['id', 'title']),
+            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'uuid', 'title']),
+            'topics' => Topic::orderBy('title')->get(['id', 'uuid', 'title']),
             'filters' => [
                 'title' => $request->input('title', ''),
                 'topic' => $request->input('topic', ''),
@@ -54,7 +54,7 @@ class VideoController extends Controller
             fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
         );
 
-        $videos->when($request->input('topic'), fn ($query, $id) => $query->where('topic_id', $id));
+        $videos->when($request->input('topic'), fn ($query, $uuid) => $query->whereRelation('topic', 'uuid', $uuid));
         $videos->when($request->input('date_from'), fn ($query, $date) => $query->whereDate('created_at', '>=', $date));
         $videos->when($request->input('date_to'), fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
 

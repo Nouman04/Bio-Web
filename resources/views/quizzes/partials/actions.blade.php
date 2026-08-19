@@ -1,8 +1,8 @@
 @php
     // Through the chain the edit page keeps the course › chapter context.
     $editRoute = ($chain ?? null)
-        ? route('courses.chapters.quizzes.edit', [$chain['course']->id, $chain['chapter']->id, $quiz->id])
-        : route('quizzes.edit', $quiz->id);
+        ? route('courses.chapters.quizzes.edit', [$chain['course'], $chain['chapter'], $quiz])
+        : route('quizzes.edit', $quiz);
 @endphp
 {{-- Actions column for the quizzes DataTable --}}
 <div class="relative inline-block text-left action-dropdown">
@@ -17,7 +17,7 @@
         <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
         <button type="button"
             onclick="deleteQuiz(this)"
-            data-id="{{ $quiz->id }}"
+            data-id="{{ $quiz->uuid }}"
             data-title="{{ $quiz->title }}"
             class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
             <i class="fa-solid fa-trash w-4"></i>

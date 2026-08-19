@@ -14,14 +14,14 @@ class ChapterController extends Controller
      * Display the chapters belonging to a single course. The grid itself is
      * loaded by DataTables from the `courses.chapters.data` endpoint below.
      */
-    public function index(Request $request, int $course)
+    public function index(Request $request, Course $course)
     {
-        $courseModel = Course::findOrFail($course);
+        $courseModel = $course;
 
         return view('chapters.index', [
-            'courseId' => $courseModel->id,
+            'courseId' => $courseModel,
             'courseTitle' => $courseModel->title,
-            'stats' => $this->stats($courseModel->id),
+            'stats' => $this->stats($courseModel),
             'filters' => [
                 'title' => $request->input('title', ''),
                 'status' => $request->input('status', ''),
@@ -32,9 +32,9 @@ class ChapterController extends Controller
     /**
      * Server-side DataTables source for the chapter list of one course.
      */
-    public function data(Request $request, int $course): JsonResponse
+    public function data(Request $request, Course $course): JsonResponse
     {
-        $chapters = Chapter::query()->where('course_id', $course);
+        $chapters = Chapter::query()->where('course_id', $course->id);
 
         // Filters from the filter card above the table.
         $chapters->when(
@@ -69,16 +69,19 @@ class ChapterController extends Controller
     /**
      * Display the management dashboard hub for a single chapter.
      */
-    public function dashboard(int $course, int $chapter)
+    public function dashboard(Course $course, Chapter $chapter)
     {
-        $courseModel = Course::findOrFail($course);
-        $chapterModel = Chapter::where('course_id', $courseModel->id)->findOrFail($chapter);
+        $courseModel = $course;
+        $chapterModel = $chapter;
+
+        abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
         return view('chapters.dashboard', [
-            'courseId' => $courseModel->id,
+            'courseId' => $courseModel,
             'courseTitle' => $courseModel->title,
             'chapter' => [
-                'id' => $chapterModel->id,
+                // The public identifier: the tiles below build URLs from it.
+                'id' => $chapterModel->uuid,
                 'num' => $chapterModel->chapter_number,
                 'title' => $chapterModel->title,
                 'desc' => $chapterModel->description,
@@ -91,10 +94,10 @@ class ChapterController extends Controller
      * Chapter counts for the stat cards. Unfiltered on purpose — the cards
      * describe the course, not the current filter.
      */
-    private function stats(int $course): array
+    private function stats(Course $course): array
     {
-        $total = Chapter::where('course_id', $course)->count();
-        $drafts = Chapter::where('course_id', $course)->where('status', 'Draft')->count();
+        $total = Chapter::where('course_id', $course->id)->count();
+        $drafts = Chapter::where('course_id', $course->id)->where('status', 'Draft')->count();
 
         return [
             'total' => $total,
@@ -106,7 +109,7 @@ class ChapterController extends Controller
     /**
      * Store a newly created chapter under the given course.
      */
-    public function store(Request $request, int $course)
+    public function store(Request $request, Course $course)
     {
         $data = $this->validated($request, $course);
 
@@ -118,7 +121,7 @@ class ChapterController extends Controller
     /**
      * Update the given chapter.
      */
-    public function update(Request $request, int $course, Chapter $chapter)
+    public function update(Request $request, Course $course, Chapter $chapter)
     {
         $chapter->update($this->validated($request, $course));
 
@@ -128,7 +131,7 @@ class ChapterController extends Controller
     /**
      * Soft delete the given chapter.
      */
-    public function destroy(Request $request, int $course, Chapter $chapter)
+    public function destroy(Request $request, Course $course, Chapter $chapter)
     {
         $chapter->delete();
 
@@ -139,10 +142,10 @@ class ChapterController extends Controller
      * Shared validation. The course comes from the URL, and the modals post the
      * chapter number as `num` and the description as `desc`.
      */
-    private function validated(Request $request, int $course): array
+    private function validated(Request $request, Course $course): array
     {
         $request->merge([
-            'course_id' => $course,
+            'course_id' => $course->id,
             'chapter_number' => $request->input('chapter_number', $request->input('num')),
             'description' => $request->input('description', $request->input('desc')),
         ]);
@@ -160,7 +163,7 @@ class ChapterController extends Controller
      * JSON for fetch/AJAX callers, a redirect back to the chapter list for plain
      * form posts.
      */
-    private function respond(Request $request, int $course, ?Chapter $chapter, string $message, int $status = 200)
+    private function respond(Request $request, Course $course, ?Chapter $chapter, string $message, int $status = 200)
     {
         if ($request->expectsJson()) {
             return response()->json(array_filter([

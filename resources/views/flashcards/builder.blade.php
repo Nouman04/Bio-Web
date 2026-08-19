@@ -23,7 +23,7 @@
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6 flex-wrap">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('flashcards', [$course->id, $chapter->id]) }}">Flashcards</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('flashcards', [$course, $chapter]) }}">Flashcards</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">{{ $flashcard->title }}</span>
     </div>
@@ -48,7 +48,7 @@
                 @endif
             </div>
         </div>
-        <a href="{{ route('flashcards', [$course->id, $chapter->id]) }}" class="px-5 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors">
+        <a href="{{ route('flashcards', [$course, $chapter]) }}" class="px-5 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors">
             Done
         </a>
     </div>
@@ -65,7 +65,7 @@
                 {{-- The search excludes questions already on this deck --}}
                 <div class="question-widget flex flex-col gap-2"
                      data-field-name="question_ids"
-                     data-search-url="{{ route('questions.search', ['exclude_type' => 'flashcard', 'exclude_id' => $flashcard->id]) }}">
+                     data-search-url="{{ route('questions.search', ['exclude_type' => 'flashcard', 'exclude_id' => $flashcard]) }}">
                     <select class="question-widget-select" multiple placeholder="Type to search the question bank…" autocomplete="off"></select>
                 </div>
 
@@ -123,7 +123,7 @@
             const widget = document.querySelector('.question-widget');
 
             const shimmerTemplate = document.getElementById('question-shimmer-row');
-            const base = `{{ url("courses/{$course->id}/chapters/{$chapter->id}/flashcards/{$flashcard->id}/questions") }}`;
+            const base = `{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/flashcards/{$flashcard->uuid}/questions") }}`;
 
             // Skeleton rows stand in until the questions land, so the panel does
             // not sit empty (or flash "no questions yet") while loading.

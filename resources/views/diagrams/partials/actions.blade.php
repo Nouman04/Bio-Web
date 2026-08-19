@@ -14,7 +14,7 @@
         @can('edit diagram')
             <button type="button"
                 onclick="openEditDiagramModal(this)"
-                data-id="{{ $diagram->id }}"
+                data-id="{{ $diagram->uuid }}"
                 data-chapter-id="{{ $diagram->chapter_id }}"
                 data-topic-id="{{ $diagram->topic_id }}"
                 data-title="{{ $diagram->title }}"
@@ -30,7 +30,7 @@
             <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
             <button type="button"
                 onclick="deleteDiagram(this)"
-                data-id="{{ $diagram->id }}"
+                data-id="{{ $diagram->uuid }}"
                 data-title="{{ $diagram->title }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
                 <i class="fa-solid fa-trash w-4"></i>

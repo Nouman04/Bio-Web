@@ -11,10 +11,10 @@
         // Through course › chapter the bank is chapter-bound; from the sidenav
         // it is not, and no chapter is offered at all.
         $bankRoute = $chain
-            ? route('courses.chapters.questions', [$chain['course']->id, $chain['chapter']->id])
+            ? route('courses.chapters.questions', [$chain['course'], $chain['chapter']])
             : route('questions');
         $storeRoute = $chain
-            ? route('courses.chapters.questions.store', [$chain['course']->id, $chain['chapter']->id])
+            ? route('courses.chapters.questions.store', [$chain['course'], $chain['chapter']])
             : route('questions.store');
     @endphp
 
@@ -25,9 +25,9 @@
         @if($chain)
             <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']->id) }}">{{ $chain['course']->title }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $chain['course']) }}">{{ $chain['course']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$chain['course']->id, $chain['chapter']->id]) }}">{{ $chain['chapter']->title }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$chain['course'], $chain['chapter']]) }}">{{ $chain['chapter']->title }}</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
         @endif
         <a class="hover:text-primary transition-colors" href="{{ $bankRoute }}">Question Bank</a>

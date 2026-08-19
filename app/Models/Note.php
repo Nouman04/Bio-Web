@@ -27,6 +27,18 @@ class Note extends Model
      * The chapter summary this note was written from — only set on notes of
      * type `summary`.
      */
+
+    /**
+     * A plain-text opening line from the content, for listings and cards. The
+     * content is Quill HTML, so entities are decoded before trimming.
+     */
+    public function getExcerptAttribute(): string
+    {
+        $text = html_entity_decode(strip_tags((string) $this->content), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 160);
+    }
+
     public function summary(): BelongsTo
     {
         return $this->belongsTo(Summary::class);
