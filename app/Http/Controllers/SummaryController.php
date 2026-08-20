@@ -87,6 +87,16 @@ class SummaryController extends Controller
     }
 
     /**
+     * Read-only detail page for one summary.
+     */
+    public function show(Summary $summary)
+    {
+        return view('summaries.show', [
+            'summary' => $summary->load('chapter:id,uuid,title', 'topic:id,title', 'addedBy:id,name'),
+            'questions' => $this->linkedQuestions($summary),
+        ]);
+    }
+    /**
      * Store a newly created summary.
      */
     public function store(Request $request)

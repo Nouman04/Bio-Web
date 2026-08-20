@@ -49,7 +49,7 @@ class ChapterController extends Controller
 
         $table = DataTables::eloquent($chapters)
             ->addColumn('number_cell', fn (Chapter $chapter) => view('chapters.partials.number-cell', compact('chapter'))->render())
-            ->addColumn('title_cell', fn (Chapter $chapter) => view('chapters.partials.title-cell', compact('chapter'))->render())
+            ->addColumn('title_cell', fn (Chapter $chapter) => view('chapters.partials.title-cell', ['chapter' => $chapter, 'courseId' => $course])->render())
             ->addColumn('status_cell', fn (Chapter $chapter) => view('chapters.partials.status-cell', compact('chapter'))->render())
             ->addColumn('action', fn (Chapter $chapter) => view('chapters.partials.actions', ['chapter' => $chapter, 'courseId' => $course])->render())
             ->orderColumn('number_cell', 'chapter_number $1')

@@ -89,6 +89,38 @@ trait LinksQuestions
      * Adds one written question to the bank, with its options and answer when
      * it is an MCQ.
      */
+    /**
+     * The questions linked to a record, shaped for a detail page: the text, the
+     * answer, and the options when it is an MCQ.
+     */
+    protected function linkedQuestions(Model $record): array
+    {
+        return $record->questionables()
+            ->with('question.answer', 'question.options', 'question.category:id,type')
+            ->get()
+            ->filter(fn ($link) => $link->question)
+            ->map(function ($link) {
+                $question = $link->question;
+                $type = $question->category?->type;
+                $answer = $question->answer->first();
+
+                return [
+                    'text' => $question->question,
+                    'type' => $type === 'mcqs' ? 'MCQ' : 'Theory',
+                    'difficulty' => $question->difficulty_level,
+                    'options' => $question->options
+                        ->map(fn ($option) => [
+                            'title' => $option->title,
+                            'correct' => $answer && $answer->question_option_id === $option->id,
+                        ])
+                        ->values()->all(),
+                    'answer' => (string) ($answer?->description ?: ''),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     private function createQuestion(array $row, ?int $chapterId): QuestionBank
     {
         $question = QuestionBank::create([

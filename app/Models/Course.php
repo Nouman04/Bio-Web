@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
@@ -21,6 +22,23 @@ class Course extends Model
         'slug',
         'description',
     ];
+
+    /**
+     * What this course is sold for. Billing lives on its own row rather than in
+     * columns on the course.
+     */
+    public function plan(): HasOne
+    {
+        return $this->hasOne(CoursePlan::class);
+    }
+
+    /**
+     * Whether this course is sold as a subscription yet.
+     */
+    public function hasStripePlan(): bool
+    {
+        return (bool) $this->plan?->isSellable();
+    }
 
     /**
      * A plain-text opening line from the description, for listings and cards.

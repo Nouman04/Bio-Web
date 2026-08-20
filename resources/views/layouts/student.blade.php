@@ -231,22 +231,17 @@
 
     </main>
 
-    {{-- Global Search --}}
+    {{-- Global Search. Only what the catalogue actually exposes to a student
+         is offered, so every hit leads somewhere they can open. --}}
     @include('partials.search-modal', [
+        'searchUrl' => route('student.search'),
         'searchPlaceholder' => 'Search your courses and resources…',
-        'searchLinks' => [
-            ['label' => 'Dashboard', 'icon' => 'fa-solid fa-border-all'],
-            ['label' => 'Courses', 'icon' => 'fa-solid fa-graduation-cap'],
-            ['label' => 'Categories', 'icon' => 'fa-solid fa-book-open'],
-            ['label' => 'Topics', 'icon' => 'fa-solid fa-tags'],
-            ['label' => 'Quizzes', 'icon' => 'fa-solid fa-clipboard-question'],
-            ['label' => 'Questions', 'icon' => 'fa-regular fa-circle-question'],
-            ['label' => 'Flashcards', 'icon' => 'fa-solid fa-layer-group'],
-            ['label' => 'Video Lessons', 'icon' => 'fa-solid fa-circle-play'],
-            ['label' => 'Notes', 'icon' => 'fa-regular fa-note-sticky'],
-            ['label' => 'Guides', 'icon' => 'fa-solid fa-book-open'],
-            ['label' => 'Diagrams', 'icon' => 'fa-regular fa-image'],
-            ['label' => 'Summaries', 'icon' => 'fa-solid fa-list-check'],
+        'searchTypes' => [
+            'courses' => ['label' => 'Courses', 'icon' => 'fa-solid fa-graduation-cap'],
+            'chapters' => ['label' => 'Chapters', 'icon' => 'fa-solid fa-book-bookmark'],
+            'notes' => ['label' => 'Study Notes', 'icon' => 'fa-regular fa-note-sticky'],
+            'flashcards' => ['label' => 'Flashcards', 'icon' => 'fa-solid fa-layer-group'],
+            'quizzes' => ['label' => 'Quizzes', 'icon' => 'fa-solid fa-clipboard-question'],
         ],
     ])
 

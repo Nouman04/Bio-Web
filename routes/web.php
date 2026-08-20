@@ -26,6 +26,13 @@ Route::get('/home', [PublicPageController::class, 'home'])->name('public.home');
 Route::get('/our-courses', [PublicPageController::class, 'courses'])->name('public.courses');
 Route::get('/our-courses/instructors', [PublicPageController::class, 'instructors'])->name('public.courses.instructors');
 
+// What a subscription includes, in general
+Route::get('/subscribe', [PublicCourseController::class, 'subscribe'])->name('public.subscribe');
+
+// The plan for one course, and the handover to Stripe
+Route::get('/subscribe/{course}', [PublicCourseController::class, 'plans'])->name('public.subscribe.plans');
+Route::get('/subscribe/{course}/checkout', [PublicCourseController::class, 'checkout'])->name('public.subscribe.checkout');
+
 /*
 | The catalogue chain: course › chapters › chapter › listing › detail.
 | Private chapters are not reachable here — see PublicCourseController::scope().
@@ -35,6 +42,10 @@ Route::prefix('our-courses/{course}')->name('public.course.')->group(function ()
 
     Route::prefix('chapters/{chapter}')->name('chapter.')->group(function () {
         Route::get('/', [PublicCourseController::class, 'chapter'])->name('show');
+
+        // Where a locked chapter sends the reader
+        Route::get('/subscribe', [PublicCourseController::class, 'subscribe'])->name('subscribe');
+        Route::get('/subscribe/plan', [PublicCourseController::class, 'plans'])->name('subscribe.plans');
 
         Route::get('/notes', [PublicCourseController::class, 'notes'])->name('notes');
         Route::get('/notes/{note}', [PublicCourseController::class, 'note'])->name('notes.show');

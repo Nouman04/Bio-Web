@@ -10,6 +10,7 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\TopicController;
@@ -68,6 +69,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
                 Route::get('/', [TopicController::class, 'index'])->name('topics');
                 Route::get('/data', [TopicController::class, 'data'])->name('topics.data');
                 Route::post('/', [TopicController::class, 'store'])->name('topics.store');
+                Route::get('/{topic}', [TopicController::class, 'show'])->name('topics.show');
                 Route::get('/{topic}/assign', [TopicController::class, 'assign'])->name('topics.assign');
                 Route::get('/{topic}/questions', [TopicController::class, 'questions'])->name('topics.questions');
                 Route::put('/{topic}', [TopicController::class, 'update'])->name('topics.update');
@@ -111,6 +113,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
                 Route::get('/data', [QuizController::class, 'data'])->name('courses.chapters.quizzes.data');
                 Route::get('/create', [QuizController::class, 'create'])->name('courses.chapters.quizzes.create');
                 Route::post('/', [QuizController::class, 'store'])->name('courses.chapters.quizzes.store');
+                Route::get('/{quiz}', [QuizController::class, 'show'])->name('courses.chapters.quizzes.show');
                 Route::get('/{quiz}/edit', [QuizController::class, 'edit'])->name('courses.chapters.quizzes.edit');
                 Route::put('/{quiz}', [QuizController::class, 'update'])->name('courses.chapters.quizzes.update');
             });
@@ -129,6 +132,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
                 Route::get('/', [NoteController::class, 'index'])->name('notes');
                 Route::get('/data', [NoteController::class, 'data'])->name('notes.data');
                 Route::post('/', [NoteController::class, 'store'])->name('notes.store');
+                Route::get('/{note}', [NoteController::class, 'show'])->name('notes.show');
                 Route::put('/{note}', [NoteController::class, 'update'])->name('notes.update');
                 Route::delete('/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
             });
@@ -148,6 +152,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::get('/data', [QuizController::class, 'data'])->name('quizzes.data');
         Route::get('/create', [QuizController::class, 'create'])->name('quizzes.create');
         Route::post('/', [QuizController::class, 'store'])->name('quizzes.store');
+        Route::get('/{quiz}', [QuizController::class, 'show'])->name('quizzes.show');
         Route::get('/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
         Route::put('/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
         Route::delete('/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
@@ -178,6 +183,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::get('/', [ImageController::class, 'index'])->name('diagrams');
         Route::get('/data', [ImageController::class, 'data'])->name('diagrams.data');
         Route::post('/', [ImageController::class, 'store'])->name('diagrams.store');
+        Route::get('/{diagram}', [ImageController::class, 'show'])->name('diagrams.show');
         Route::get('/{diagram}/questions', [ImageController::class, 'questions'])->name('diagrams.questions');
         Route::put('/{diagram}', [ImageController::class, 'update'])->name('diagrams.update');
         Route::delete('/{diagram}', [ImageController::class, 'destroy'])->name('diagrams.destroy');
@@ -187,6 +193,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::get('/', [VideoController::class, 'index'])->name('videos');
         Route::get('/data', [VideoController::class, 'data'])->name('videos.data');
         Route::post('/', [VideoController::class, 'store'])->name('videos.store');
+        Route::get('/{video}', [VideoController::class, 'show'])->name('videos.show');
         Route::get('/{video}/questions', [VideoController::class, 'questions'])->name('videos.questions');
         Route::put('/{video}', [VideoController::class, 'update'])->name('videos.update');
         Route::delete('/{video}', [VideoController::class, 'destroy'])->name('videos.destroy');
@@ -198,6 +205,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::get('/', [SummaryController::class, 'index'])->name('summaries');
         Route::get('/data', [SummaryController::class, 'data'])->name('summaries.data');
         Route::post('/', [SummaryController::class, 'store'])->name('summaries.store');
+        Route::get('/{summary}', [SummaryController::class, 'show'])->name('summaries.show');
         Route::get('/{summary}/questions', [SummaryController::class, 'questions'])->name('summaries.questions');
         Route::put('/{summary}', [SummaryController::class, 'update'])->name('summaries.update');
         Route::delete('/{summary}', [SummaryController::class, 'destroy'])->name('summaries.destroy');
@@ -210,5 +218,8 @@ Route::middleware(['auth', 'staff'])->group(function () {
     */
 
     Route::get('/students', [StudentController::class, 'index'])->name('students');
+
+    // Global search behind the header's magnifier
+    Route::get('/search', [SearchController::class, 'admin'])->name('search');
 
 });

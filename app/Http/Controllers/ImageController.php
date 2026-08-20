@@ -91,6 +91,16 @@ class ImageController extends Controller
     }
 
     /**
+     * Read-only detail page for one diagram.
+     */
+    public function show(Diagram $diagram)
+    {
+        return view('diagrams.show', [
+            'diagram' => $diagram->load('chapter:id,uuid,title', 'topic:id,title', 'addedBy:id,name'),
+            'questions' => $this->linkedQuestions($diagram),
+        ]);
+    }
+    /**
      * Store a newly created diagram.
      */
     public function store(Request $request)

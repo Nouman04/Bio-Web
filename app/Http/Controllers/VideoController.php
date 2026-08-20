@@ -99,6 +99,16 @@ class VideoController extends Controller
     }
 
     /**
+     * Read-only detail page for one video lesson.
+     */
+    public function show(VideoLesson $video)
+    {
+        return view('videos.show', [
+            'video' => $video->load('chapter:id,uuid,title', 'topic:id,title', 'addedBy:id,name'),
+            'questions' => $this->linkedQuestions($video),
+        ]);
+    }
+    /**
      * Store a newly created video lesson.
      */
     public function store(Request $request)

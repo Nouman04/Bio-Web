@@ -90,6 +90,20 @@ class NoteController extends Controller
     }
 
     /**
+     * Read-only detail page for one note.
+     */
+    public function show(Course $course, Chapter $chapter, Note $note)
+    {
+        [$courseModel, $chapterModel] = $this->scope($course, $chapter, $note);
+
+        return view('notes.show', [
+            'course' => $courseModel,
+            'chapter' => $chapterModel,
+            'note' => $note->load('topic:id,title', 'summary:id,title', 'attachments'),
+        ]);
+    }
+
+    /**
      * Store a newly created note under the chapter from the URL.
      */
     public function store(Request $request, Course $course, Chapter $chapter)
@@ -100,7 +114,7 @@ class NoteController extends Controller
 
         $note = Note::create([
             // The chapter comes from the chain, not from a picker in the form.
-            'chapter_id' => $chapter,
+            'chapter_id' => $chapter->id,
             'topic_id' => $data['topic_id'] ?? null,
             // Only summary notes carry a summary.
             'summary_id' => $data['type'] === 'summary' ? ($data['summary_id'] ?? null) : null,

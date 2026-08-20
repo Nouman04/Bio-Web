@@ -401,7 +401,10 @@
 
             // List the chosen attachments, with per-file removal.
             document.querySelectorAll('.topic-attachments').forEach(input => {
-                const list = input.closest('.flex-col').querySelector('.topic-attachments-list');
+                // The list sits outside the dropzone, so scope the lookup to the
+                // form: each modal has exactly one input and one list.
+                const list = input.closest('form')?.querySelector('.topic-attachments-list');
+                if (!list) return;
 
                 function render() {
                     list.innerHTML = '';

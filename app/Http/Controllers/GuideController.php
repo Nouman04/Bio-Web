@@ -123,7 +123,7 @@ class GuideController extends Controller
         $guide = DB::transaction(function () use ($data, $request, $chapter) {
             $guide = Guide::create([
                 // The chapter comes from the chain, not from a picker in the form.
-                'chapter_id' => $chapter,
+                'chapter_id' => $chapter->id,
                 'topic_id' => $data['topic_id'] ?? null,
                 'added_by' => $request->user()->id,
                 'type' => $data['type'],

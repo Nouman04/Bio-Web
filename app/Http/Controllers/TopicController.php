@@ -101,7 +101,7 @@ class TopicController extends Controller
 
         $topic = DB::transaction(function () use ($data, $request, $chapter) {
             $topic = Topic::create([
-                'chapter_id' => $chapter,
+                'chapter_id' => $chapter->id,
                 'title' => $data['title'],
                 'content' => $data['content'] ?? null,
             ]);
@@ -153,6 +153,21 @@ class TopicController extends Controller
         });
 
         return $this->respond($request, $course, $chapter, null, 'Topic deleted successfully.');
+    }
+
+    /**
+     * Read-only detail page for one topic.
+     */
+    public function show(Course $course, Chapter $chapter, Topic $topic)
+    {
+        [$courseModel, $chapterModel] = $this->scope($course, $chapter, $topic);
+
+        return view('topics.show', [
+            'course' => $courseModel,
+            'chapter' => $chapterModel,
+            'topic' => $topic->load('attachments'),
+            'questions' => $this->linkedQuestions($topic),
+        ]);
     }
 
     /**

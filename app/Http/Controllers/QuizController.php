@@ -142,6 +142,22 @@ class QuizController extends Controller
     }
 
     /**
+     * Read-only detail page for one quiz. Reached from either entry, so the
+     * chain is untangled the same way the edit page does it.
+     */
+    public function show($course = null, $chapter = null, ?Quiz $quiz = null)
+    {
+        [$chain, $quiz] = $this->resolveEdit($course, $chapter, $quiz);
+
+        return view('quizzes.show', [
+            'chain' => $chain,
+            'quiz' => $quiz->load('chapters:id,uuid,title'),
+            'types' => self::TYPES,
+            'questions' => $this->pickedQuestions($quiz),
+        ]);
+    }
+
+    /**
      * Soft delete a quiz along with the rows that hang off it.
      */
     public function destroy(Request $request, Quiz $quiz)
@@ -229,7 +245,13 @@ class QuizController extends Controller
 
         abort_if(! $quiz instanceof Quiz, 404);
 
-        $chain = $this->chain((int) $course, (int) $chapter);
+        // These two parameters cannot be type-hinted — the sidenav route would
+        // then try to bind the quiz into the first slot — so implicit binding
+        // does not run on them and they arrive as raw uuids.
+        $chain = $this->chain(
+            $course instanceof Course ? $course : Course::where('uuid', $course)->firstOrFail(),
+            $chapter instanceof Chapter ? $chapter : Chapter::where('uuid', $chapter)->firstOrFail()
+        );
 
         // A quiz reached through a chapter has to actually be in it.
         abort_if(
@@ -247,12 +269,13 @@ class QuizController extends Controller
     private function pickedQuestions(Quiz $quiz): array
     {
         return $quiz->questions()
-            ->with('questionBank.category:id,type')
+            ->with('questionBank.category:id,type', 'questionBank.options', 'questionBank.answer')
             ->get()
             ->filter(fn (QuizQuestion $link) => $link->questionBank)
             ->map(function (QuizQuestion $link) {
                 $question = $link->questionBank;
                 $type = $question->category?->type;
+                $answer = $question->answer->first();
 
                 return [
                     'id' => $question->id,
@@ -263,6 +286,15 @@ class QuizController extends Controller
                         $type === 'mcqs' ? 'MCQ' : ($type ? 'Theory' : null),
                         $question->difficulty_level,
                     ])),
+                    // Only the detail page reads these; the edit page ignores them.
+                    'difficulty' => $question->difficulty_level,
+                    'options' => $question->options
+                        ->map(fn ($option) => [
+                            'title' => $option->title,
+                            'correct' => $answer && $answer->question_option_id === $option->id,
+                        ])
+                        ->values()->all(),
+                    'answer' => (string) ($answer?->description ?: ''),
                 ];
             })
             ->values()
@@ -359,7 +391,7 @@ class QuizController extends Controller
 
         // One quizzes_chapters row per chapter in play, made on first use.
         $quizChapters = [];
-        $rowFor = function (?Chapter $chapterId) use ($quiz, &$quizChapters) {
+        $rowFor = function (?int $chapterId) use ($quiz, &$quizChapters) {
             $key = $chapterId ?? 0;
 
             return $quizChapters[$key] ??= QuizChapter::create([
@@ -400,10 +432,11 @@ class QuizController extends Controller
             return null;
         }
 
-        $courseModel = $course;
+        // A mismatched pair is a bad URL, not a silently different chapter.
+        abort_if($chapter->course_id !== $course->id, 404);
 
         return [
-            'course' => $courseModel,
+            'course' => $course,
             'chapter' => $chapter,
         ];
     }
@@ -415,7 +448,7 @@ class QuizController extends Controller
     private function respond(Request $request, ?Quiz $quiz, string $message, int $status = 200, ?array $chain = null)
     {
         $listing = $chain
-            ? route('courses.chapters.quizzes', [$chain['course']->id, $chain['chapter']->id])
+            ? route('courses.chapters.quizzes', [$chain['course'], $chain['chapter']])
             : route('quizzes');
 
         if ($request->expectsJson()) {

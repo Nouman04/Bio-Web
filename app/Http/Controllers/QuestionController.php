@@ -363,10 +363,11 @@ class QuestionController extends Controller
             return null;
         }
 
-        $courseModel = $course;
+        // A mismatched pair is a bad URL, not a silently different chapter.
+        abort_if($chapter->course_id !== $course->id, 404);
 
         return [
-            'course' => $courseModel,
+            'course' => $course,
             'chapter' => $chapter,
         ];
     }
@@ -516,7 +517,7 @@ class QuestionController extends Controller
 
         // Back to whichever bank the request came from.
         return $chain
-            ? redirect()->route('courses.chapters.questions', [$chain['course']->id, $chain['chapter']->id])
+            ? redirect()->route('courses.chapters.questions', [$chain['course'], $chain['chapter']])
                 ->with('success', $message)
             : redirect()->route('questions')->with('success', $message);
     }

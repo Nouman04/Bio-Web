@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentCoursesController;
 use App\Http\Controllers\Student\StudentCatalogController;
@@ -50,6 +51,9 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
 
     // Resources — study materials, guides, flashcards, videos, notes
     Route::get('/resources', [StudentResourcesController::class, 'index'])->name('resources');
+
+    // Global search behind the header's magnifier
+    Route::get('/search', [SearchController::class, 'student'])->name('search');
 
     // Demo — bare sidenav + header shell for layout/responsiveness testing
     Route::get('/demo', fn () => view('student.demo'))->name('demo');

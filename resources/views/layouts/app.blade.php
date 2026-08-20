@@ -484,23 +484,25 @@
 
     </main>
 
-    {{-- Global Search --}}
+    {{-- Global Search. The keys match the groups SearchController@admin
+         returns, so a pill filters without any mapping on the client. --}}
     @include('partials.search-modal', [
+        'searchUrl' => route('search'),
         'searchPlaceholder' => 'Search modules, content, or students…',
-        'searchLinks' => [
-            ['label' => 'Dashboard', 'icon' => 'fa-solid fa-border-all'],
-            ['label' => 'Courses', 'icon' => 'fa-solid fa-graduation-cap'],
-            ['label' => 'Categories', 'icon' => 'fa-solid fa-book-open'],
-            ['label' => 'Topics', 'icon' => 'fa-solid fa-tags'],
-            ['label' => 'Quizzes', 'icon' => 'fa-solid fa-clipboard-question'],
-            ['label' => 'Questions', 'icon' => 'fa-regular fa-circle-question'],
-            ['label' => 'Flashcards', 'icon' => 'fa-solid fa-layer-group'],
-            ['label' => 'Video Lessons', 'icon' => 'fa-solid fa-circle-play'],
-            ['label' => 'Notes', 'icon' => 'fa-regular fa-note-sticky'],
-            ['label' => 'Guides', 'icon' => 'fa-solid fa-book-open'],
-            ['label' => 'Diagrams', 'icon' => 'fa-regular fa-image'],
-            ['label' => 'Summaries', 'icon' => 'fa-solid fa-list-check'],
-            ['label' => 'Students', 'icon' => 'fa-solid fa-users'],
+        'searchTypes' => [
+            'courses' => ['label' => 'Courses', 'icon' => 'fa-solid fa-graduation-cap'],
+            'chapters' => ['label' => 'Chapters', 'icon' => 'fa-solid fa-book-bookmark'],
+            'topics' => ['label' => 'Topics', 'icon' => 'fa-solid fa-tags'],
+            'quizzes' => ['label' => 'Quizzes', 'icon' => 'fa-solid fa-clipboard-question'],
+            'questions' => ['label' => 'Questions', 'icon' => 'fa-regular fa-circle-question'],
+            'flashcards' => ['label' => 'Flashcards', 'icon' => 'fa-solid fa-layer-group'],
+            'videos' => ['label' => 'Video Lessons', 'icon' => 'fa-solid fa-circle-play'],
+            'notes' => ['label' => 'Notes', 'icon' => 'fa-regular fa-note-sticky'],
+            'guides' => ['label' => 'Guides', 'icon' => 'fa-solid fa-book-open'],
+            'diagrams' => ['label' => 'Diagrams', 'icon' => 'fa-regular fa-image'],
+            'summaries' => ['label' => 'Summaries', 'icon' => 'fa-solid fa-list-check'],
+            'categories' => ['label' => 'Categories', 'icon' => 'fa-solid fa-folder-open'],
+            'students' => ['label' => 'Students', 'icon' => 'fa-solid fa-users'],
         ],
     ])
 
@@ -1042,7 +1044,39 @@
         });
     </script>
 
+    {{-- Arriving from a search hit: the listing is already filtered down to the
+         record, so open it as soon as its row is drawn. Resources managed in a
+         modal have no page of their own, so this stands in for one. --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const target = new URLSearchParams(window.location.search).get('open');
+            if (!target) return;
+
+            const started = Date.now();
+
+            function tryOpen() {
+                // The edit trigger carries the record's uuid.
+                const trigger = document.querySelector(`[onclick^="openEdit"][data-id="${CSS.escape(target)}"]`);
+
+                if (trigger) {
+                    trigger.click();
+                    // Leave the URL clean so a refresh does not reopen it.
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('open');
+                    window.history.replaceState({}, '', url);
+                    return;
+                }
+
+                // The table draws over AJAX, so wait for the row — briefly.
+                if (Date.now() - started < 6000) setTimeout(tryOpen, 150);
+            }
+
+            tryOpen();
+        });
+    </script>
+
     @stack('scripts')
+
 
 </body>
 </html>

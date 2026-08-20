@@ -7,8 +7,11 @@ use App\Models\Course;
 use App\Models\Flashcard;
 use App\Models\Note;
 use App\Models\Quiz;
+use App\Services\StripeService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Stripe\Exception\ApiErrorException;
 
 /**
  * The public catalogue, walked as a chain:
@@ -35,11 +38,79 @@ class PublicCourseController extends Controller
     {
         return view('public.catalog.chapters', [
             'course' => $course,
-            'chapters' => $course->chapters()
-                ->where('visibility', 'public')
-                ->orderBy('chapter_number')
-                ->get(),
+            // Every chapter is listed; a private one is shown locked and leads
+            // to the subscription page rather than its content.
+            'chapters' => $course->chapters()->orderBy('chapter_number')->get(),
         ]);
+    }
+
+    /**
+     * The paywall a locked chapter leads to.
+     */
+    public function subscribe(?Course $course = null, ?Chapter $chapter = null)
+    {
+        abort_if($chapter && $course && $chapter->course_id !== $course->id, 404);
+
+        return view('public.subscribe', [
+            'course' => $course,
+            'chapter' => $chapter,
+        ]);
+    }
+
+    /**
+     * Where "Start Your Subscription" leads: the plan for the course being
+     * read, and nothing else — the reader is here about this course.
+     */
+    public function plans(Course $course, ?Chapter $chapter = null, StripeService $stripe = null)
+    {
+        if ($chapter) {
+            abort_if($chapter->course_id !== $course->id, 404);
+        }
+
+        return view('public.plans', [
+            'course' => $course->loadCount('chapters')->load(['category:id,title', 'plan']),
+            'plan' => $course->plan,
+            'chapter' => $chapter,
+            'subscribed' => $stripe?->subscribedTo(request()->user(), $course) ?? false,
+        ]);
+    }
+
+    /**
+     * Hands the reader over to Stripe Checkout for this course's plan.
+     */
+    public function checkout(Request $request, Course $course, StripeService $stripe)
+    {
+        $back = route('public.course.chapters', $course);
+
+        if (! $course->hasStripePlan()) {
+            return redirect()->to($back)
+                ->with('error', 'This course is not on sale yet.');
+        }
+
+        // Subscribing needs an account, so sign in first and come straight back.
+        if (! $request->user()) {
+            $request->session()->put('url.intended', $request->fullUrl());
+
+            return redirect()->route('student.login');
+        }
+
+        if ($stripe->subscribedTo($request->user(), $course)) {
+            return redirect()->to($back)->with('success', 'You already subscribe to this course.');
+        }
+
+        try {
+            return $stripe->checkoutForCourse(
+                $request->user(),
+                $course,
+                route('public.course.chapters', $course) . '?subscribed=1',
+                route('public.subscribe.plans', $course)
+            );
+        } catch (ApiErrorException $e) {
+            report($e);
+
+            return redirect()->to($back)
+                ->with('error', 'Stripe could not start that checkout. Please try again.');
+        }
     }
 
     /**
@@ -263,7 +334,14 @@ class PublicCourseController extends Controller
     private function scope(Course $course, Chapter $chapter): void
     {
         abort_if($chapter->course_id !== $course->id, 404);
-        abort_if($chapter->visibility !== 'public', 404);
+
+        // A private chapter is listed but not readable: everything under it
+        // leads to the subscription page instead.
+        if ($chapter->visibility !== 'public') {
+            throw new HttpResponseException(
+                redirect()->route('public.course.chapter.subscribe', [$course, $chapter])
+            );
+        }
     }
 
     /**

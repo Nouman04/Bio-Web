@@ -147,12 +147,12 @@ class FlashcardController extends Controller
         $flashcard = Flashcard::create([
             'title' => $data['title'],
             // The chapter comes from the chain, not from a picker in the form.
-            'chapter_id' => $chapter,
+            'chapter_id' => $chapter->id,
             'flashcardable_type' => ($data['source_type'] ?? null) ? self::SOURCES[$data['source_type']] : null,
             'flashcardable_id' => $data['source_id'] ?? null,
         ]);
 
-        $builder = route('flashcards.builder', [$course, $chapter, $flashcard->id]);
+        $builder = route('flashcards.builder', [$course, $chapter, $flashcard]);
 
         if ($request->expectsJson()) {
             return response()->json([

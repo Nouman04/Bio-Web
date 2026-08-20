@@ -4,6 +4,10 @@
         <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
     </button>
     <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-48 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
+        <a href="{{ route('topics.show', [$courseId, $chapterId, $topic]) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
+            <i class="fa-solid fa-eye w-4 text-on-surface-variant"></i>
+            View
+        </a>
         <a href="{{ route('topics.assign', [$courseId, $chapterId, $topic]) }}" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
             <i class="fa-solid fa-list-check w-4 text-on-surface-variant"></i>
             Assign Questions
