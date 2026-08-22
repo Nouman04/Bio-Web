@@ -266,6 +266,8 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic Name</label>
                     <input name="title" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="Enter topic name">
                 </div>
+
+                @include('partials.parent-topic-picker')
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Content</label>
                     <textarea name="content" data-quill data-quill-height="220px" placeholder="Enter topic content..."></textarea>
@@ -286,7 +288,7 @@
                     </div>
                     <ul class="topic-attachments-list hidden flex-col gap-1.5 mt-1"></ul>
                 </div>
-                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)', 'qwPastPaper' => true])
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeAddTopicModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Creating…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Add Topic</button>
@@ -315,6 +317,8 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Topic Name</label>
                     <input id="edit-topic-title" name="title" type="text" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface" placeholder="Enter topic name">
                 </div>
+
+                @include('partials.parent-topic-picker')
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Content</label>
                     <textarea id="edit-topic-content" name="content" data-quill data-quill-height="220px" placeholder="Enter topic content..."></textarea>
@@ -335,7 +339,7 @@
                     </div>
                     <ul class="topic-attachments-list hidden flex-col gap-1.5 mt-1"></ul>
                 </div>
-                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)', 'qwPastPaper' => true])
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeEditTopicModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Saving…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Save Changes</button>
@@ -489,6 +493,15 @@
             }
 
             resetTopicAttachments(form);
+
+            // Pre-select the saved parent; a topic may not parent itself.
+            const parentPicker = form.querySelector('.parent-topic-picker');
+            parentPicker?.setParent?.(
+                trigger.dataset.parentId
+                    ? { id: trigger.dataset.parentId, text: trigger.dataset.parentTitle, meta: trigger.dataset.parentMeta }
+                    : null,
+                id
+            );
 
             const widget = form.querySelector('.question-widget');
             widget?.resetQuestions?.();

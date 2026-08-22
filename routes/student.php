@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Student\ProgressController;
+use App\Http\Controllers\Student\SavedContentController;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentCoursesController;
 use App\Http\Controllers\Student\StudentCatalogController;
@@ -24,7 +26,7 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
 
     // Courses — enrolled courses list
     Route::get('/courses', [StudentCoursesController::class, 'index'])->name('courses');
-    Route::get('/courses/{id}', [StudentCoursesController::class, 'show'])->name('courses.show');
+    Route::get('/courses/{course}', [StudentCoursesController::class, 'show'])->name('courses.show');
 
     // Chapters — list of chapters for a course, and individual chapter dashboard
     Route::get('/courses/{courseId}/chapters', [StudentChaptersController::class, 'index'])->name('chapters');
@@ -45,6 +47,17 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
 
     Route::get('/courses/{courseId}/chapters/{chapterId}/videos', [StudentChaptersController::class, 'videos'])->name('chapters.videos');
     Route::get('/courses/{courseId}/chapters/{chapterId}/videos/{videoId}', [StudentChaptersController::class, 'showVideo'])->name('chapters.videos.show');
+
+    Route::get('/courses/{courseId}/chapters/{chapterId}/guides', [StudentChaptersController::class, 'guides'])->name('chapters.guides');
+    Route::get('/courses/{courseId}/chapters/{chapterId}/guides/{guideId}', [StudentChaptersController::class, 'showGuide'])->name('chapters.guides.show');
+
+    // Bookmarking — saved items are listed on the resources page
+    Route::post('/saved', [SavedContentController::class, 'toggle'])->name('saved.toggle');
+
+    // Progress — what the reader did with a module, reported from the page
+    Route::post('/progress/{module}/watched', [ProgressController::class, 'watched'])->name('progress.watched');
+    Route::post('/progress/{module}/viewed', [ProgressController::class, 'viewed'])->name('progress.viewed');
+    Route::post('/progress/{module}/manual', [ProgressController::class, 'manual'])->name('progress.manual');
 
     // Catalog — browse all available courses
     Route::get('/catalog', [StudentCatalogController::class, 'index'])->name('catalog');

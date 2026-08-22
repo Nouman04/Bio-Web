@@ -44,6 +44,9 @@ class TopicController extends Controller
 
         $topics = Topic::query()
             ->where('chapter_id', $chapter->id)
+            // The edit trigger names the parent and its chapter, so both are
+            // loaded here rather than queried per row.
+            ->with('parent:id,title,chapter_id', 'parent.chapter:id,title')
             ->withCount(['questionables', 'attachments']);
 
         // Filter from the filter card above the table.
@@ -89,6 +92,37 @@ class TopicController extends Controller
     }
 
     /**
+     * Type-ahead for the parent topic picker.
+     *
+     * Deliberately not scoped to the current chapter: a topic often continues
+     * one introduced elsewhere, so every chapter is searchable and each result
+     * names the chapter and course it comes from.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $topics = Topic::query()
+            ->when($request->input('q'), fn ($query, $term) => $query->where('title', 'like', "%{$term}%"))
+            // A topic can never be its own parent.
+            ->when($request->input('exclude'), fn ($query, $uuid) => $query->where('uuid', '!=', $uuid))
+            ->with('chapter:id,title,course_id', 'chapter.course:id,title')
+            ->orderBy('title')
+            ->limit(20)
+            ->get(['id', 'uuid', 'title', 'chapter_id']);
+
+        return response()->json(
+            $topics->map(fn (Topic $topic) => [
+                'id' => $topic->id,
+                'text' => $topic->title,
+                // The chapter tag, so it is clear where a parent comes from.
+                'meta' => implode(' • ', array_filter([
+                    $topic->chapter?->title,
+                    $topic->chapter?->course?->title,
+                ])),
+            ])
+        );
+    }
+
+    /**
      * Store a newly created topic under the chapter from the URL.
      */
     public function store(Request $request, Course $course, Chapter $chapter)
@@ -102,6 +136,7 @@ class TopicController extends Controller
         $topic = DB::transaction(function () use ($data, $request, $chapter) {
             $topic = Topic::create([
                 'chapter_id' => $chapter->id,
+                'parent_topic_id' => $data['parent_topic_id'] ?? null,
                 'title' => $data['title'],
                 'content' => $data['content'] ?? null,
             ]);
@@ -129,6 +164,7 @@ class TopicController extends Controller
 
         DB::transaction(function () use ($request, $topic, $data) {
             $topic->update([
+                'parent_topic_id' => $data['parent_topic_id'] ?? null,
                 'title' => $data['title'],
                 'content' => $data['content'] ?? null,
             ]);
@@ -229,6 +265,8 @@ class TopicController extends Controller
     {
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            // A parent may live in any chapter, so it is not scoped here.
+            'parent_topic_id' => ['nullable', 'integer', 'exists:topics,id'],
             'content' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'max:10240'],

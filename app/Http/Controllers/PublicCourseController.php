@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Flashcard;
 use App\Models\Note;
 use App\Models\Quiz;
+use App\Services\ProgressService;
 use App\Services\StripeService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -54,6 +55,8 @@ class PublicCourseController extends Controller
         return view('public.subscribe', [
             'course' => $course,
             'chapter' => $chapter,
+            // Lets the payment popup name the price without a second page.
+            'plan' => $course?->loadMissing('plan')->plan,
         ]);
     }
 
@@ -102,7 +105,9 @@ class PublicCourseController extends Controller
             return $stripe->checkoutForCourse(
                 $request->user(),
                 $course,
-                route('public.course.chapters', $course) . '?subscribed=1',
+                // Stripe fills the placeholder in, so the return can verify the
+                // session rather than taking the redirect's word for it.
+                route('public.subscribe.success', $course) . '?session_id={CHECKOUT_SESSION_ID}',
                 route('public.subscribe.plans', $course)
             );
         } catch (ApiErrorException $e) {
@@ -111,6 +116,38 @@ class PublicCourseController extends Controller
             return redirect()->to($back)
                 ->with('error', 'Stripe could not start that checkout. Please try again.');
         }
+    }
+
+    /**
+     * Where Stripe sends the reader after paying.
+     *
+     * The session is checked against Stripe before anything is granted — the
+     * redirect itself proves nothing, since anyone can visit this URL.
+     */
+    public function subscribed(Request $request, Course $course, StripeService $stripe)
+    {
+        $chapters = route('public.course.chapters', $course);
+
+        if (! $request->user() || ! $sessionId = $request->query('session_id')) {
+            return redirect()->to($chapters);
+        }
+
+        try {
+            $subscription = $stripe->recordCheckout($request->user(), $course, $sessionId);
+        } catch (ApiErrorException $e) {
+            report($e);
+
+            return redirect()->to($chapters)
+                ->with('error', 'Your payment went through, but we could not confirm it here yet. It should appear shortly.');
+        }
+
+        if (! $subscription) {
+            return redirect()->route('public.subscribe.plans', $course)
+                ->with('error', 'That payment was not completed.');
+        }
+
+        return redirect()->to($chapters)
+            ->with('success', "You are subscribed to {$course->title}. Every chapter is open.");
     }
 
     /**
@@ -285,6 +322,12 @@ class PublicCourseController extends Controller
 
         $passMark = $quiz->passing_score !== null ? (float) $quiz->passing_score : null;
 
+        // Signed-in readers get the attempt counted towards their progress;
+        // ProgressService decides whether the score finishes the quiz.
+        if ($user = $request->user()) {
+            app(ProgressService::class)->attempted($user, $quiz, $earned, $total);
+        }
+
         return response()->json([
             'earned' => $this->trimNumber($earned),
             'total' => $this->trimNumber($total),
@@ -334,6 +377,12 @@ class PublicCourseController extends Controller
     private function scope(Course $course, Chapter $chapter): void
     {
         abort_if($chapter->course_id !== $course->id, 404);
+
+        // A subscriber has paid for the whole course, so visibility no longer
+        // applies to them.
+        if (app(StripeService::class)->subscribedTo(request()->user(), $course)) {
+            return;
+        }
 
         // A private chapter is listed but not readable: everything under it
         // leads to the subscription page instead.

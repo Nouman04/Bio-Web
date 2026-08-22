@@ -38,17 +38,20 @@
 
     {{-- Management Modules Grid --}}
     @php
+        // Every figure is this chapter's real count; the noun is pluralised to
+        // match it, so a tile never reads "1 Notes".
+        $tile = fn (int $n, string $noun) => $n . ' ' . Str::plural($noun, $n);
+
         $modules = [
-            ['label' => 'Students', 'stat' => '240 Enrolled', 'icon' => 'fa-solid fa-users', 'bg' => 'icon-bg-indigo', 'route' => route('students')],
-            ['label' => 'Summaries', 'stat' => '4 Documents', 'icon' => 'fa-solid fa-list-check', 'bg' => 'icon-bg-amber', 'route' => route('summaries')],
-            ['label' => 'Quizzes', 'stat' => '12 Active', 'icon' => 'fa-solid fa-clipboard-question', 'bg' => 'icon-bg-teal', 'route' => route('courses.chapters.quizzes', [$courseId, $chapter['id']])],
-            ['label' => 'Diagrams', 'stat' => '15 Assets', 'icon' => 'fa-regular fa-image', 'bg' => 'icon-bg-rose', 'route' => route('diagrams')],
-            ['label' => 'Guides', 'stat' => '6 Manuals', 'icon' => 'fa-solid fa-book-open', 'bg' => 'icon-bg-orange', 'route' => route('guides', [$courseId, $chapter['id']])],
-            ['label' => 'Study Notes', 'stat' => '22 Notes', 'icon' => 'fa-regular fa-note-sticky', 'bg' => 'icon-bg-blue', 'route' => route('notes', [$courseId, $chapter['id']])],
-            ['label' => 'Questions', 'stat' => '150 Items', 'icon' => 'fa-regular fa-circle-question', 'bg' => 'icon-bg-rose', 'route' => route('courses.chapters.questions', [$courseId, $chapter['id']])],
-            ['label' => 'Video Lessons', 'stat' => '8 Videos', 'icon' => 'fa-solid fa-circle-play', 'bg' => 'icon-bg-amber', 'route' => route('videos')],
-            ['label' => 'Topics', 'stat' => 'Sections in this chapter', 'icon' => 'fa-solid fa-tags', 'bg' => 'icon-bg-blue', 'route' => route('topics', [$courseId, $chapter['id']])],
-            ['label' => 'Flashcards', 'stat' => '4 Decks', 'icon' => 'fa-solid fa-layer-group', 'bg' => 'icon-bg-teal', 'route' => route('flashcards', [$courseId, $chapter['id']])],
+            ['label' => 'Topics', 'stat' => $tile($counts['topics'], 'Section'), 'icon' => 'fa-solid fa-tags', 'bg' => 'icon-bg-blue', 'route' => route('topics', [$courseId, $chapter['id']])],
+            ['label' => 'Study Notes', 'stat' => $tile($counts['notes'], 'Note'), 'icon' => 'fa-regular fa-note-sticky', 'bg' => 'icon-bg-blue', 'route' => route('notes', [$courseId, $chapter['id']])],
+            ['label' => 'Summaries', 'stat' => $tile($counts['summaries'], 'Document'), 'icon' => 'fa-solid fa-list-check', 'bg' => 'icon-bg-amber', 'route' => route('summaries')],
+            ['label' => 'Quizzes', 'stat' => $tile($counts['quizzes'], 'Quiz'), 'icon' => 'fa-solid fa-clipboard-question', 'bg' => 'icon-bg-teal', 'route' => route('courses.chapters.quizzes', [$courseId, $chapter['id']])],
+            ['label' => 'Questions', 'stat' => $tile($counts['questions'], 'Item'), 'icon' => 'fa-regular fa-circle-question', 'bg' => 'icon-bg-rose', 'route' => route('courses.chapters.questions', [$courseId, $chapter['id']])],
+            ['label' => 'Flashcards', 'stat' => $tile($counts['flashcards'], 'Deck'), 'icon' => 'fa-solid fa-layer-group', 'bg' => 'icon-bg-teal', 'route' => route('flashcards', [$courseId, $chapter['id']])],
+            ['label' => 'Diagrams', 'stat' => $tile($counts['diagrams'], 'Asset'), 'icon' => 'fa-regular fa-image', 'bg' => 'icon-bg-rose', 'route' => route('diagrams')],
+            ['label' => 'Guides', 'stat' => $tile($counts['guides'], 'Manual'), 'icon' => 'fa-solid fa-book-open', 'bg' => 'icon-bg-orange', 'route' => route('guides', [$courseId, $chapter['id']])],
+            ['label' => 'Video Lessons', 'stat' => $tile($counts['videos'], 'Video'), 'icon' => 'fa-solid fa-circle-play', 'bg' => 'icon-bg-amber', 'route' => route('videos')],
         ];
     @endphp
 

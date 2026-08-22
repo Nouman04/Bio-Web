@@ -48,143 +48,85 @@
         <div class="flex space-x-8" id="courseTabs">
             <button onclick="switchTab('enrolled')" id="tab-enrolled"
                 class="pb-3 text-sm font-bold border-b-2 border-primary text-primary transition-all">
-                Enrolled Courses (3)
+                Enrolled Courses ({{ $courses->count() }})
             </button>
             <button onclick="switchTab('trial')" id="tab-trial"
                 class="pb-3 text-sm font-semibold text-on-surface-variant hover:text-primary border-b-2 border-transparent transition-all">
-                Free / Trial Courses
+                Free / Trial Courses ({{ $trial->count() }})
             </button>
         </div>
-        <!-- Filters -->
-        <div class="flex items-center gap-3 pb-3">
+        {{-- Categories come from the courses on the page, so the filter never
+             offers something that would return nothing. --}}
+        <form method="GET" class="flex items-center gap-3 pb-3">
             <div class="relative">
-                <select class="appearance-none bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer ambient-shadow">
-                    <option>All Categories</option>
-                    <option>Data Science</option>
-                    <option>Design</option>
-                    <option>Development</option>
+                <select name="category" onchange="this.form.submit()"
+                    class="appearance-none bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer ambient-shadow">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $title)
+                        <option value="{{ $title }}" @selected($category === $title)>{{ $title }}</option>
+                    @endforeach
                 </select>
                 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-sm">expand_more</span>
             </div>
-            <button class="bg-surface-container-lowest border border-outline-variant/30 p-2 rounded-lg text-on-surface-variant hover:text-primary hover:border-primary/50 transition-colors ambient-shadow">
-                <span class="material-symbols-outlined text-sm">filter_list</span>
-            </button>
-        </div>
+            @if($category)
+                <a href="{{ route('student.courses') }}"
+                    class="bg-surface-container-lowest border border-outline-variant/30 p-2 rounded-lg text-on-surface-variant hover:text-primary hover:border-primary/50 transition-colors ambient-shadow flex items-center"
+                    title="Clear filter">
+                    <span class="material-symbols-outlined text-sm">filter_list_off</span>
+                </a>
+            @endif
+        </form>
     </div>
 </div>
 
 <!-- Enrolled Courses Grid -->
 <div id="panel-enrolled" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
-
-    <!-- Course Card 1 -->
-    <div class="glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col h-full bg-surface-container-lowest">
-        <div class="relative h-48 w-full shrink-0">
-            <img alt="Data Science Fundamentals"
-                 class="w-full h-full object-cover"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2FNzrWpPO-RRak3gCR120k-gE4X_DPoIZFl4ZJh-AfOoCvZ51mhvYEq4mw7YVZkiluRbaDhiP8JE7_FYeoos6mVJO9KYWXw6xMsHY1_ZBTcip-l3SwFs_wngG7t7lS7Rme6wMb1Ol_AhgjmtPYetYLZPdxb-25Zz1Si-CZYWTtc2dSou8_ebYkP-vvht5eJBXIq3oYJPQ0M-Lx987hArXRMZIOEvqkhHbh8n3AIsAF4zUjUdv8ltJ"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
-            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs text-primary font-semibold tracking-wide shadow-sm flex items-center gap-1.5">
-                <span class="material-symbols-outlined" style="font-size:16px;">bar_chart</span>
-                Data Science
+    @forelse($courses as $course)
+        @include('student.courses._card', ['course' => $course, 'progress' => $progress])
+    @empty
+        <div class="col-span-full py-20 flex flex-col items-center justify-center text-center glass-panel rounded-2xl">
+            <div class="w-32 h-32 bg-primary/5 rounded-full flex items-center justify-center mb-6">
+                <span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1;">school</span>
             </div>
+            <h3 class="text-on-surface mb-3" style="font-size:24px;line-height:32px;font-weight:600;">
+                {{ $category ? 'No courses in ' . $category : 'No courses yet' }}
+            </h3>
+            <p class="text-on-surface-variant max-w-lg mx-auto mb-8 text-lg leading-relaxed">
+                {{ $category
+                    ? 'Nothing here under that category — try another, or clear the filter.'
+                    : 'Nothing has been published yet. Check the catalog for what is coming.' }}
+            </p>
+            <a href="{{ $category ? route('student.courses') : route('student.catalog') }}"
+                class="btn-primary-gradient text-on-primary text-sm font-semibold py-3.5 px-8 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
+                {{ $category ? 'Clear the filter' : 'Browse the catalog' }}
+                <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+            </a>
         </div>
-        <div class="p-6 flex flex-col flex-1">
-            <h3 class="text-on-surface mb-3 leading-tight line-clamp-2" style="font-size:20px;line-height:28px;font-weight:600;">Advanced Machine Learning &amp; AI Integration</h3>
-            <p class="text-on-surface-variant mb-6 line-clamp-2 flex-1 text-sm leading-relaxed">Master the principles of machine learning algorithms and learn how to integrate AI seamlessly into enterprise applications.</p>
-            <div class="mt-auto">
-                <div class="flex justify-between items-center mb-2.5">
-                    <span class="text-outline text-xs font-medium">Course Progress</span>
-                    <span class="text-primary text-xs font-bold">45%</span>
-                </div>
-                <div class="w-full bg-surface-variant/50 rounded-full h-2 mb-6 overflow-hidden">
-                    <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 45%"></div>
-                </div>
-                <a href="{{ route('student.chapters', ['courseId' => 1]) }}"
-                   class="w-full btn-primary-gradient text-on-primary text-sm font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
-                    Continue Learning
-                    <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Course Card 2 -->
-    <div class="glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col h-full bg-surface-container-lowest">
-        <div class="relative h-48 w-full shrink-0">
-            <img alt="UI/UX Masterclass"
-                 class="w-full h-full object-cover"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBw3-LfauZXpQFPRBw0Ug5MXWr62WnkrxelPrnRnWbzBW1OHIh4yFI9m_QNYtnCr0ujcQzssV5FIiKUgTWTv5yXuKwJHA6nHNVHyyfwJjqjaadzXd-Wriw_pIu50SzoaXqAanUYelFPsAI6MvuOtTewpYxbt6uxnqy3Pqhl0empT4SUZgNcHbkfezZvcOBhGea7fMB1f-3OwruaYeCzt7XHzrQ6Vz2VK-KMjiq4tVBY7mUryyx6XqVk"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
-            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs text-on-secondary-container font-semibold tracking-wide shadow-sm flex items-center gap-1.5">
-                <span class="material-symbols-outlined" style="font-size:16px;">design_services</span>
-                Design
-            </div>
-        </div>
-        <div class="p-6 flex flex-col flex-1">
-            <h3 class="text-on-surface mb-3 leading-tight line-clamp-2" style="font-size:20px;line-height:28px;font-weight:600;">UI/UX Masterclass: From Concept to Prototype</h3>
-            <p class="text-on-surface-variant mb-6 line-clamp-2 flex-1 text-sm leading-relaxed">A comprehensive guide to modern interface design, user psychology, and high-fidelity prototyping using industry-standard tools.</p>
-            <div class="mt-auto">
-                <div class="flex justify-between items-center mb-2.5">
-                    <span class="text-outline text-xs font-medium">Course Progress</span>
-                    <span class="text-primary text-xs font-bold">82%</span>
-                </div>
-                <div class="w-full bg-surface-variant/50 rounded-full h-2 mb-6 overflow-hidden">
-                    <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 82%"></div>
-                </div>
-                <a href="{{ route('student.chapters', ['courseId' => 2]) }}"
-                   class="w-full btn-primary-gradient text-on-primary text-sm font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
-                    Continue Learning
-                    <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Course Card 3 -->
-    <div class="glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col h-full bg-surface-container-lowest">
-        <div class="relative h-48 w-full shrink-0">
-            <img alt="Full-Stack Cloud Architecture"
-                 class="w-full h-full object-cover"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYRrMkbiNo09_aDUoeuDMfRyT5mCCVZYLps2m72JZVVOLhkMbRkPrWnLvNO7__D8wif2eIOAp3QSm7FPZGd__VWa80MOU6jzGWIYB_dvccJgRAwtx6sDqWTJtLOAzFzLwgDsOmjWFRuBmsgqUh1gcavXx-oQeFrQt2ru13NnyLr9e9HU-PbZ7-Q1eGxUEMgou1y0hZ9KFEB2BEubf0jeyiZYRPOQr6kKQDTGsE0PQAO8dWJFyUseeC"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
-            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs text-on-tertiary-container font-semibold tracking-wide shadow-sm flex items-center gap-1.5">
-                <span class="material-symbols-outlined" style="font-size:16px;">code</span>
-                Development
-            </div>
-        </div>
-        <div class="p-6 flex flex-col flex-1">
-            <h3 class="text-on-surface mb-3 leading-tight line-clamp-2" style="font-size:20px;line-height:28px;font-weight:600;">Full-Stack Cloud Architecture</h3>
-            <p class="text-on-surface-variant mb-6 line-clamp-2 flex-1 text-sm leading-relaxed">Build scalable, resilient web applications utilizing modern cloud infrastructure, microservices, and serverless technologies.</p>
-            <div class="mt-auto">
-                <div class="flex justify-between items-center mb-2.5">
-                    <span class="text-outline text-xs font-medium">Course Progress</span>
-                    <span class="text-primary text-xs font-bold">15%</span>
-                </div>
-                <div class="w-full bg-surface-variant/50 rounded-full h-2 mb-6 overflow-hidden">
-                    <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 15%"></div>
-                </div>
-                <a href="{{ route('student.chapters', ['courseId' => 3]) }}"
-                   class="w-full btn-primary-gradient text-on-primary text-sm font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
-                    Continue Learning
-                    <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
+    @endforelse
 </div>
 
-<!-- Free / Trial Courses (hidden by default) -->
-<div id="panel-trial" class="hidden col-span-full py-20 flex flex-col items-center justify-center text-center glass-panel rounded-2xl">
-    <div class="w-32 h-32 bg-primary/5 rounded-full flex items-center justify-center mb-6 relative">
-        <div class="absolute inset-0 bg-primary/10 rounded-full animate-ping opacity-20"></div>
-        <span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1;">explore</span>
-    </div>
-    <h3 class="text-on-surface mb-3" style="font-size:24px;line-height:32px;font-weight:600;">No trial courses yet</h3>
-    <p class="text-on-surface-variant max-w-lg mx-auto mb-8 text-lg leading-relaxed">Looks like you haven't enrolled in any free or trial courses. Discover our wide range of introductory materials to get started.</p>
-    <a href="{{ route('student.catalog') }}" class="btn-primary-gradient text-on-primary text-sm font-semibold py-3.5 px-8 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
-        Explore Free Courses
-        <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-    </a>
+<!-- Free / Trial Courses -->
+<div id="panel-trial" class="hidden">
+    @if($trial->isNotEmpty())
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($trial as $course)
+                @include('student.courses._card', ['course' => $course, 'progress' => $progress])
+            @endforeach
+        </div>
+    @else
+        <div class="py-20 flex flex-col items-center justify-center text-center glass-panel rounded-2xl">
+            <div class="w-32 h-32 bg-primary/5 rounded-full flex items-center justify-center mb-6 relative">
+                <div class="absolute inset-0 bg-primary/10 rounded-full animate-ping opacity-20"></div>
+                <span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1;">explore</span>
+            </div>
+            <h3 class="text-on-surface mb-3" style="font-size:24px;line-height:32px;font-weight:600;">No trial courses yet</h3>
+            <p class="text-on-surface-variant max-w-lg mx-auto mb-8 text-lg leading-relaxed">Every course here is on a subscription plan. Discover our introductory materials in the catalog to get started.</p>
+            <a href="{{ route('student.catalog') }}" class="btn-primary-gradient text-on-primary text-sm font-semibold py-3.5 px-8 rounded-xl transition-all duration-200 inline-flex items-center gap-2">
+                Explore Free Courses
+                <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+            </a>
+        </div>
+    @endif
 </div>
 @endsection
 
@@ -205,7 +147,6 @@
             tabT.classList.remove('border-primary','text-primary');
         } else {
             trial.classList.remove('hidden');
-            trial.classList.add('flex');
             enrolled.classList.add('hidden');
             tabT.classList.add('border-primary','text-primary');
             tabT.classList.remove('border-transparent','text-on-surface-variant');

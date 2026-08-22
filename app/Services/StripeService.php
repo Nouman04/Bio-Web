@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Checkout;
+use Laravel\Cashier\Subscription;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Price;
 use Stripe\Product;
@@ -185,11 +186,93 @@ class StripeService
     }
 
     /**
+     * Records a finished Checkout session as a local subscription.
+     *
+     * Stripe's webhook does this too, but a webhook cannot reach a machine that
+     * is not on the internet — so the reader coming back from Stripe is enough
+     * on its own. Both paths key off the same Stripe subscription id, so
+     * whichever arrives first wins and the other is a no-op.
+     *
+     * Returns null when the session is not a paid subscription, so a tampered
+     * or abandoned session grants nothing.
+     *
+     * @throws ApiErrorException
+     */
+    public function recordCheckout(User $user, Course $course, string $sessionId): ?Subscription
+    {
+        $session = $this->client()->checkout->sessions->retrieve($sessionId, [
+            'expand' => ['subscription'],
+        ]);
+
+        // The session must belong to this customer, or anyone holding a session
+        // id could subscribe someone else's account.
+        if (! $session->subscription || $session->customer !== $user->stripe_id) {
+            return null;
+        }
+
+        if (! in_array($session->status, ['complete'], true)) {
+            return null;
+        }
+
+        $stripeSubscription = $session->subscription;
+        $item = $stripeSubscription->items->data[0] ?? null;
+
+        $subscription = $user->subscriptions()->updateOrCreate(
+            ['stripe_id' => $stripeSubscription->id],
+            [
+                'type' => $this->subscriptionName($course),
+                'stripe_status' => $stripeSubscription->status,
+                'stripe_price' => $item?->price?->id,
+                'quantity' => $item?->quantity,
+                'ends_at' => null,
+            ]
+        );
+
+        // Cashier reads the price off the items table for multi-price plans.
+        if ($item) {
+            $subscription->items()->updateOrCreate(
+                ['stripe_id' => $item->id],
+                [
+                    'stripe_product' => $item->price->product,
+                    'stripe_price' => $item->price->id,
+                    'quantity' => $item->quantity,
+                ]
+            );
+        }
+
+        return $subscription;
+    }
+
+    /**
      * Cashier keys a subscription by name, so each course gets its own.
      */
     public function subscriptionName(Course $course): string
     {
         return 'course_' . $course->uuid;
+    }
+
+    /**
+     * The uuids of every course this user currently subscribes to.
+     *
+     * Cashier keys each subscription as `course_{uuid}`, so the uuid is read
+     * back off the type. Only valid subscriptions count — an active one, or a
+     * cancelled one still inside its paid period.
+     *
+     * @return array<int, string>
+     */
+    public function subscribedCourseUuids(?User $user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        return $user->subscriptions
+            ->filter(fn (Subscription $subscription) => $subscription->valid())
+            ->map(fn (Subscription $subscription) => Str::after($subscription->type, 'course_'))
+            ->filter(fn (string $uuid) => $uuid !== '')
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

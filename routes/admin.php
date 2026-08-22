@@ -15,6 +15,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\VideoController;
+use App\Http\Controllers\WorksheetImportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,6 +60,15 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::prefix('{course}/chapters')->group(function () {
             Route::get('/', [ChapterController::class, 'index'])->middleware('can:view course')->name('courses.chapters');
             Route::get('/data', [ChapterController::class, 'data'])->middleware('can:view course')->name('courses.chapters.data');
+
+            // Bulk import of a past-paper question worksheet. A worksheet spans
+            // the whole syllabus, so it is imported for the course rather than
+            // for one chapter. Declared before the {chapter} routes so "import"
+            // is not read as a chapter key.
+            Route::get('/import/template', [WorksheetImportController::class, 'template'])->name('courses.import.template');
+            Route::post('/import', [WorksheetImportController::class, 'store'])->name('courses.import.store');
+            Route::get('/import/latest', [WorksheetImportController::class, 'latest'])->name('courses.import.latest');
+            Route::get('/import/{import}', [WorksheetImportController::class, 'status'])->name('courses.import.status');
             Route::get('/{chapter}/dashboard', [ChapterController::class, 'dashboard'])->middleware('can:view course')->name('courses.chapters.dashboard');
             Route::post('/', [ChapterController::class, 'store'])->middleware('can:add chapter')->name('courses.chapters.store');
             Route::put('/{chapter}', [ChapterController::class, 'update'])->middleware('can:edit chapter')->name('courses.chapters.update');
@@ -68,6 +78,10 @@ Route::middleware(['auth', 'staff'])->group(function () {
             Route::prefix('{chapter}/topics')->group(function () {
                 Route::get('/', [TopicController::class, 'index'])->name('topics');
                 Route::get('/data', [TopicController::class, 'data'])->name('topics.data');
+
+                // Parent-topic type-ahead. It searches every chapter, not just
+                // this one, so it is not scoped to the chapter in the URL.
+                Route::get('/search', [TopicController::class, 'search'])->name('topics.search');
                 Route::post('/', [TopicController::class, 'store'])->name('topics.store');
                 Route::get('/{topic}', [TopicController::class, 'show'])->name('topics.show');
                 Route::get('/{topic}/assign', [TopicController::class, 'assign'])->name('topics.assign');

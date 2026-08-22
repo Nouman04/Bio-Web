@@ -8,11 +8,32 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
 class Note extends Model
 {
     use SoftDeletes, HasUuid, Searchable;
+
+    /**
+     * The kinds of note, matching the column's enum, with the label each is
+     * shown under.
+     */
+    public const TYPES = ['exam_notes', 'summary', 'flashcards'];
+
+    public const TYPE_LABELS = [
+        'exam_notes' => 'Exam Notes',
+        'summary' => 'Summary',
+        'flashcards' => 'Flashcards',
+    ];
+
+    /**
+     * This note's kind, as a person would read it.
+     */
+    public function getTypeLabelAttribute(): string
+    {
+        return self::TYPE_LABELS[$this->type] ?? Str::headline((string) $this->type);
+    }
 
     protected $fillable = [
         'chapter_id',

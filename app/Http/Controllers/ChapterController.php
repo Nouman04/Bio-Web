@@ -76,6 +76,12 @@ class ChapterController extends Controller
 
         abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
+        // Every tile's figure, in one query rather than nine.
+        $chapterModel->loadCount([
+            'topics', 'notes', 'summaries', 'diagrams', 'guides',
+            'videoLessons', 'flashcards', 'questionBank', 'quizzes',
+        ]);
+
         return view('chapters.dashboard', [
             'courseId' => $courseModel,
             'courseTitle' => $courseModel->title,
@@ -86,6 +92,17 @@ class ChapterController extends Controller
                 'title' => $chapterModel->title,
                 'desc' => $chapterModel->description,
                 'status' => $chapterModel->status,
+            ],
+            'counts' => [
+                'topics' => $chapterModel->topics_count,
+                'notes' => $chapterModel->notes_count,
+                'summaries' => $chapterModel->summaries_count,
+                'diagrams' => $chapterModel->diagrams_count,
+                'guides' => $chapterModel->guides_count,
+                'videos' => $chapterModel->video_lessons_count,
+                'flashcards' => $chapterModel->flashcards_count,
+                'questions' => $chapterModel->question_bank_count,
+                'quizzes' => $chapterModel->quizzes_count,
             ],
         ]);
     }

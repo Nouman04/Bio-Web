@@ -6,6 +6,7 @@ use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
@@ -74,9 +75,24 @@ class Chapter extends Model
         return $this->hasMany(Diagram::class);
     }
 
+    public function summaries(): HasMany
+    {
+        return $this->hasMany(Summary::class);
+    }
+
     public function quizChapters(): HasMany
     {
         return $this->hasMany(QuizChapter::class);
+    }
+
+    /**
+     * The quizzes set on this chapter, reached through the same pivot the quiz
+     * side uses.
+     */
+    public function quizzes(): BelongsToMany
+    {
+        return $this->belongsToMany(Quiz::class, 'quizzes_chapters', 'chapter_id', 'quizz_id')
+            ->withTimestamps();
     }
 
     public function worksheetChapters(): HasMany

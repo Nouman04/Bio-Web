@@ -58,6 +58,41 @@
                     <i class="fa-solid fa-plus text-[10px]"></i> Add option
                 </button>
             </div>
+
+            {{-- Where the question came from, if it came from a past paper.
+                 Optional as a whole; once opened, everything but the source is
+                 required — see LinksQuestions::validateNewQuestions(). --}}
+            @if($qwPastPaper ?? false)
+                <div class="question-widget-paper-wrap flex flex-col gap-2 pl-3 border-l-2 border-primary/30">
+                    <label class="inline-flex items-center gap-2 self-start cursor-pointer">
+                        <input type="checkbox" class="question-widget-paper-toggle w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/40">
+                        <span class="text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant/70 dark:text-slate-500">
+                            From a past paper
+                        </span>
+                    </label>
+
+                    <div class="question-widget-paper hidden flex-col gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[10px] font-semibold uppercase tracking-wide text-outline">Date</span>
+                                <input type="date" class="question-widget-paper-date w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[10px] font-semibold uppercase tracking-wide text-outline">Paper No</span>
+                                <input type="text" class="question-widget-paper-no w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. 2">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[10px] font-semibold uppercase tracking-wide text-outline">Marks</span>
+                                <input type="number" step="0.25" min="0" class="question-widget-paper-marks w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. 6">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] font-semibold uppercase tracking-wide text-outline">Source <span class="font-normal normal-case tracking-normal">— optional</span></span>
+                            <input type="text" class="question-widget-paper-source w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-1.5 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. Cambridge IGCSE 0610">
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- Queued new questions — scrolls once the list grows --}}

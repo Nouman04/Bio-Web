@@ -1,6 +1,6 @@
 @extends('layouts.student')
 
-@section('title', 'Educational Diagrams – Chapter ' . $chapterId)
+@section('title', 'Educational Diagrams – ' . $chapter->title)
 @section('meta-description', 'Visual diagrams and illustrations for this chapter')
 
 @push('styles')
@@ -29,150 +29,140 @@
         <nav class="flex items-center gap-1.5 text-xs text-on-surface-variant mb-3 flex-wrap">
             <a href="{{ route('student.courses') }}" class="hover:text-primary transition-colors">My Courses</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
-            <a href="{{ route('student.courses.show', ['id' => $courseId]) }}" class="hover:text-primary transition-colors">Course {{ $courseId }}</a>
+            <a href="{{ route('student.courses.show', $course) }}" class="hover:text-primary transition-colors">{{ $course->title }}</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
-            <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">Chapter {{ $chapterId }}</a>
+            <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">{{ $chapter->title }}</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
             <span class="text-on-surface font-semibold">Diagrams</span>
         </nav>
         <h1 class="text-on-background" style="font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.02em;">Educational Diagrams</h1>
-        <p class="text-on-surface-variant text-base mt-2 max-w-2xl">High-resolution visual aids for complex processes in Chapter {{ $chapterId }}.</p>
+        <p class="text-on-surface-variant text-base mt-2 max-w-2xl">
+            @if($search || $topic)
+                <span class="font-semibold text-primary">{{ $diagrams->total() }}</span>
+                {{ Str::plural('diagram', $diagrams->total()) }} matched in {{ $chapter->title }}.
+            @else
+                Visual aids for the concepts covered in {{ $chapter->title }}.
+            @endif
+        </p>
     </div>
 
-    {{-- Filters --}}
-    <div class="flex flex-wrap items-center gap-3">
+    {{-- Search and topic, both handled on the server. --}}
+    <form method="GET" class="flex flex-wrap items-center gap-3">
         <div class="relative">
-            <select class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2.5 pl-4 pr-8 focus:ring-primary focus:border-primary hover:bg-surface-container-low transition-colors cursor-pointer">
-                <option>All Courses</option>
-                <option>Computer Science 101</option>
-                <option>UI/UX Masterclass</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
-                <span class="material-symbols-outlined" style="font-size:20px;">arrow_drop_down</span>
-            </div>
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:20px;">search</span>
+            <input type="search" name="search" value="{{ $search }}" placeholder="Search diagrams"
+                class="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2.5 pl-10 pr-4 focus:ring-primary focus:border-primary transition-colors w-full sm:w-56">
         </div>
-        <div class="relative">
-            <select class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2.5 pl-4 pr-8 focus:ring-primary focus:border-primary hover:bg-surface-container-low transition-colors cursor-pointer">
-                <option>All Chapters</option>
-                <option selected>Chapter {{ $chapterId }}</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
-                <span class="material-symbols-outlined" style="font-size:20px;">arrow_drop_down</span>
+        @if($topics->isNotEmpty())
+            <div class="relative">
+                <select name="topic" onchange="this.form.submit()"
+                    class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2.5 pl-4 pr-8 focus:ring-primary focus:border-primary hover:bg-surface-container-low transition-colors cursor-pointer">
+                    <option value="">All topics</option>
+                    @foreach($topics as $option)
+                        <option value="{{ $option->uuid }}" @selected($topic === $option->uuid)>{{ $option->title }}</option>
+                    @endforeach
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
+                    <span class="material-symbols-outlined" style="font-size:20px;">arrow_drop_down</span>
+                </div>
             </div>
-        </div>
-        <button class="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary hover:bg-primary/5 p-2.5 rounded-lg transition-all">
-            <span class="material-symbols-outlined" style="font-size:20px;">sort</span>
+        @endif
+        <button type="submit" class="flex items-center justify-center gap-2 bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary p-2.5 rounded-lg transition-all">
+            <span class="material-symbols-outlined" style="font-size:20px;">filter_list</span>
         </button>
-    </div>
+        @if($search || $topic)
+            <a href="{{ route('student.chapters.diagrams', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+                class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span> Clear
+            </a>
+        @endif
+    </form>
 </div>
 
 {{-- Gallery Grid --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    @forelse($diagrams as $diagram)
+        @php $viewed = $state[$diagram->id]['completed'] ?? false; @endphp
 
-    {{-- Card 1 --}}
-    <div class="glass-card rounded-xl overflow-hidden flex flex-col group relative">
-        <div class="aspect-video relative overflow-hidden bg-surface-container-lowest border-b border-outline-variant/20">
-            <img alt="Network Architecture Diagram" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3w0oGJ_0Ne6N89tMbUulMSlPoA5YxbzjzJUspil_FQuJfLdtgATPI1Q75NRfcKfYAdpJMoYm_2jHWjGWm1788qduXhSyKmbrCjGi5IAAWUTE3M7kfiUdMQ7DjMfM-LyKfKeg11CHJF0ma62dbJ7URxIpiyx9wno6ucI0mupgbVa8c5Z4HRmcYH-OxfQEkkz415C7PFGPiokC7nKbFSyIeJQMS3pSJtWFSmbZi14ysBp1k0pE20eSx"/>
-            <div class="absolute top-3 left-3 bg-tertiary-container/90 backdrop-blur text-on-tertiary text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined" style="font-size:14px;">account_tree</span>
-                Neural Nets
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
-                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
-            </button>
-        </div>
-        <div class="p-5 flex flex-col flex-1">
-            <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Network Architecture Diagram</h3>
-            <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">Layered view of inputs, hidden layers, and output nodes with connection weights annotated.</p>
-            <div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between">
-                <span class="text-outline text-xs">Added 2 days ago</span>
-                <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => 1]) }}" class="text-primary text-xs font-semibold hover:text-primary-container flex items-center gap-1 group/btn transition-colors">
-                    View Full
-                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
+        <div class="glass-card rounded-xl overflow-hidden flex flex-col group relative">
+            <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => $diagram->uuid]) }}"
+                class="aspect-video relative overflow-hidden bg-surface-container-lowest border-b border-outline-variant/20 block">
+                @if($diagram->image_url)
+                    <img alt="{{ $diagram->title }}" loading="lazy"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        src="{{ $diagram->image_url }}"/>
+                @else
+                    {{-- No image uploaded, so the tile says so rather than
+                         showing a broken picture. --}}
+                    <div class="w-full h-full flex flex-col items-center justify-center gap-1 text-outline-variant">
+                        <span class="material-symbols-outlined text-4xl">account_tree</span>
+                        <span class="text-xs">No image</span>
+                    </div>
+                @endif
 
-    {{-- Card 2 --}}
-    <div class="glass-card rounded-xl overflow-hidden flex flex-col group relative">
-        <div class="aspect-video relative overflow-hidden bg-surface-container-lowest border-b border-outline-variant/20">
-            <img alt="Gradient Descent Flow" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSss4cPy7OHyIM6UaKpoM3jUnkwByaBNvQClwnqDjiYb82CDsNlw41tZXHn7iPlTz5sG451ruvuEZbLXOrc4s738MOkxfUsSb4vEZAwb86j-ZpGAmXc76OAJ0q3LdSKHp8aS5J2V9drlO7CnyrHRl3mt6RvJsCPmnthQBaJuWZIXiQZXSN_wbegxal5Y3G6A1MIG_suUs9W5SElEo-Uuy2_MI8JGt-X9rnY2-UIT107W68GjrN58_S"/>
-            <div class="absolute top-3 left-3 bg-secondary-container/90 backdrop-blur text-on-secondary-container text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined" style="font-size:14px;">schema</span>
-                Optimization
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
-                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
-            </button>
-        </div>
-        <div class="p-5 flex flex-col flex-1">
-            <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Gradient Descent Flow</h3>
-            <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">Step-by-step visualization of weight updates descending a loss surface towards minimum.</p>
-            <div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between">
-                <span class="text-outline text-xs">Added 1 week ago</span>
-                <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => 1]) }}" class="text-primary text-xs font-semibold hover:text-primary-container flex items-center gap-1 group/btn transition-colors">
-                    View Full
-                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
+                @if($diagram->topic)
+                    <div class="absolute top-3 left-3 bg-tertiary-container/90 backdrop-blur text-on-tertiary-container text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm max-w-[70%]">
+                        <span class="material-symbols-outlined shrink-0" style="font-size:14px;">account_tree</span>
+                        <span class="truncate">{{ $diagram->topic->title }}</span>
+                    </div>
+                @endif
 
-    {{-- Card 3 --}}
-    <div class="glass-card rounded-xl overflow-hidden flex flex-col group relative">
-        <div class="aspect-video relative overflow-hidden bg-surface-container-lowest border-b border-outline-variant/20">
-            <img alt="Backpropagation Diagram" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7TjuIgojevZaNze2qHpUXqD1_QyoK9qKNlQihxyuP5HdMzGcI2ONVq6h-q5ZF-RWQgOpMvI9Kfm1efDkcflZjKr3QmQvNatx1doW44a1Qh2kjoiBUA2sMhWkxuh1R7n3uQlotyPwPsd48nJ3jlGi_cHNAAPHrIdhqbiNJ8TwlykaURZLiFhp-CRafX-4udIk_c4Ds_aseJd7vUzpz7M2Nw8uQH1cxVuurp4oKeo65egNvj-lbYLZr"/>
-            <div class="absolute top-3 left-3 bg-tertiary-container/90 backdrop-blur text-on-tertiary text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined" style="font-size:14px;">device_hub</span>
-                Training
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
-                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
-            </button>
-        </div>
-        <div class="p-5 flex flex-col flex-1">
-            <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Backpropagation Chain Rule</h3>
-            <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">Annotated diagram tracing partial derivatives from output loss back through every layer.</p>
-            <div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between">
-                <span class="text-outline text-xs">Added 2 weeks ago</span>
-                <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => 1]) }}" class="text-primary text-xs font-semibold hover:text-primary-container flex items-center gap-1 group/btn transition-colors">
-                    View Full
-                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
+                @if($viewed)
+                    <div class="absolute top-3 right-12 bg-tertiary-container/90 backdrop-blur text-on-tertiary-container p-1.5 rounded-md shadow-sm" title="You have viewed this">
+                        <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1;">check_circle</span>
+                    </div>
+                @endif
+            </a>
 
-    {{-- Card 4 --}}
-    <div class="glass-card rounded-xl overflow-hidden flex flex-col group relative">
-        <div class="aspect-video relative overflow-hidden bg-surface-container-lowest border-b border-outline-variant/20">
-            <img alt="Activation Functions Comparison" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnV_QzTpAb1OwioSzq3fYIhHlhuwGnn6FbCFqLqMTbIodBty0VwQSCZeOrto8cjWK3sBLXhrHmCidt1kdsxD_Q9pDaDAcpWx5yBiv8BpfCbBH0e_3duXJJQ7E1nCRUE9nXBPZOr-oIc-WBo3uUSEGCT-8MvKFZgV3FJw2WyGyYrZihpixxjXvO1HD_hGUmEbZmD9UtqYaefEqcQEM3hh1VFu5NMSNbsNTf0kG7cebsugc_3TkASSah"/>
-            <div class="absolute top-3 left-3 bg-primary/90 backdrop-blur text-on-primary text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined" style="font-size:14px;">functions</span>
-                Math
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm transition-colors" title="Save diagram">
-                <span class="material-symbols-outlined" style="font-size:16px;">bookmark_border</span>
-            </button>
-        </div>
-        <div class="p-5 flex flex-col flex-1">
-            <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">Activation Functions Comparison</h3>
-            <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">Side-by-side plots of Sigmoid, Tanh, ReLU and Leaky ReLU across the real number line.</p>
-            <div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between">
-                <span class="text-outline text-xs">Added 1 month ago</span>
-                <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => 1]) }}" class="text-primary text-xs font-semibold hover:text-primary-container flex items-center gap-1 group/btn transition-colors">
-                    View Full
-                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                </a>
-            </div>
-        </div>
-    </div>
+            {{-- Outside the anchor, so saving does not open the diagram. --}}
+            <x-save-button :record="$diagram"
+                class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm z-10" />
 
+            <div class="p-5 flex flex-col flex-1">
+                <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">{{ $diagram->title ?: 'Untitled diagram' }}</h3>
+                <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">
+                    {{ $diagram->content ? Str::limit(strip_tags($diagram->content), 110) : 'No description yet.' }}
+                </p>
+                <div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between gap-2">
+                    <span class="text-outline text-xs truncate">Added {{ $diagram->created_at?->diffForHumans() }}</span>
+                    <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => $diagram->uuid]) }}"
+                        class="text-primary text-xs font-semibold hover:text-primary-container flex items-center gap-1 group/btn transition-colors shrink-0">
+                        View Full
+                        <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="col-span-full glass-card rounded-xl py-20 flex flex-col items-center justify-center text-center">
+            <div class="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-5">
+                <span class="material-symbols-outlined text-primary text-4xl">{{ $search || $topic ? 'search_off' : 'account_tree' }}</span>
+            </div>
+            <h3 class="text-on-surface font-semibold text-lg mb-2">
+                {{ $search || $topic ? 'Nothing matched' : 'No diagrams yet' }}
+            </h3>
+            <p class="text-on-surface-variant text-sm max-w-md mb-6">
+                @if($search || $topic)
+                    No diagram in this chapter matches those filters.
+                @else
+                    Nothing has been published for this chapter yet. Check back soon.
+                @endif
+            </p>
+            <a href="{{ $search || $topic
+                    ? route('student.chapters.diagrams', ['courseId' => $courseId, 'chapterId' => $chapterId])
+                    : route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+                class="bg-primary text-on-primary text-sm font-semibold py-2.5 px-6 rounded-full inline-flex items-center gap-2">
+                {{ $search || $topic ? 'Clear filters' : 'Back to the chapter' }}
+                <span class="material-symbols-outlined text-sm">{{ $search || $topic ? 'restart_alt' : 'arrow_forward' }}</span>
+            </a>
+        </div>
+    @endforelse
 </div>
+
+@if($diagrams->hasPages())
+    <div class="mt-10 flex justify-center">
+        {{ $diagrams->links() }}
+    </div>
+@endif
 
 @endsection

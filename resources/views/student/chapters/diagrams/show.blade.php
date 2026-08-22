@@ -25,9 +25,9 @@
         <nav class="flex items-center gap-1.5 text-xs text-on-surface-variant flex-wrap">
             <a href="{{ route('student.courses') }}" class="hover:text-primary transition-colors">My Courses</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
-            <a href="{{ route('student.courses.show', ['id' => $courseId]) }}" class="hover:text-primary transition-colors">Course {{ $courseId }}</a>
+            <a href="{{ route('student.courses.show', $course) }}" class="hover:text-primary transition-colors">{{ $course->title }}</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
-            <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">Chapter {{ $chapterId }}</a>
+            <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">{{ $chapter->title }}</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
             <a href="{{ route('student.chapters.diagrams', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">Diagrams</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>

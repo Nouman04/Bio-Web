@@ -3,34 +3,35 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\SavedContent;
+use Illuminate\Http\Request;
 
 class StudentResourcesController extends Controller
 {
     /**
-     * Show all study resources (guides, flashcards, videos, notes, diagrams).
+     * Everything the student has bookmarked, grouped into a panel per kind.
+     *
+     * Saves whose content has since been deleted are dropped — they have
+     * nowhere to link to.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // TODO: Replace with real DB queries
-        $resources = [
-            'videos'     => collect([
-                ['id' => 1, 'title' => 'Intro to Arrays',          'duration' => '12:30'],
-                ['id' => 2, 'title' => 'CSS Grid Masterclass',     'duration' => '28:15'],
-            ]),
-            'flashcards' => collect([
-                ['id' => 1, 'title' => 'SQL Flashcards',           'cards' => 24],
-                ['id' => 2, 'title' => 'Networking Terminology',   'cards' => 40],
-            ]),
-            'notes'      => collect([
-                ['id' => 1, 'title' => 'Lecture Notes – Week 3',   'date' => '2024-03-10'],
-                ['id' => 2, 'title' => 'Algorithm Cheat Sheet',    'date' => '2024-04-01'],
-            ]),
-            'guides'     => collect([
-                ['id' => 1, 'title' => 'Git & GitHub Handbook',    'pages' => 18],
-                ['id' => 2, 'title' => 'Docker Quick Guide',       'pages' => 12],
-            ]),
-        ];
+        $types = SavedContent::TYPES;
+        $type = array_key_exists((string) $request->input('type'), $types)
+            ? $request->input('type')
+            : null;
 
-        return view('student.resources.index', compact('resources'));
+        $saved = SavedContent::where('user_id', $request->user()->id)
+            ->with('contentable.chapter.course')
+            ->latest('id')
+            ->get()
+            ->filter(fn (SavedContent $item) => $item->url !== null);
+
+        return view('student.resources.index', [
+            // Keyed by short name, in the order the panels are laid out.
+            'groups' => $saved->groupBy('type_key'),
+            'type' => $type,
+            'total' => $saved->count(),
+        ]);
     }
 }

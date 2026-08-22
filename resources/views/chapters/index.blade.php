@@ -188,12 +188,19 @@
             title="Toggle Filters">
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
+        <button type="button" onclick="openImportWorksheetModal()"
+            class="flex items-center gap-2 border border-outline-variant/40 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface dark:text-slate-200 px-5 py-2.5 rounded-full text-sm font-semibold shadow-sm hover:border-primary/40 hover:text-primary transition-colors">
+            <i class="fa-solid fa-file-arrow-up text-xs"></i>
+            Import Worksheet
+        </button>
         <button type="button" onclick="openCreateChapterModal()"
             class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             New Chapter
         </button>
     </div>
+
+    @include('chapters.partials.import-modal')
 
     {{-- Filters Card (toggleable) --}}
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">

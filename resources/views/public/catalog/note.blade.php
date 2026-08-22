@@ -25,9 +25,12 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg relative z-10">
 <!-- The note itself -->
 <article class="lg:col-span-8 glass-panel rounded-xl p-md md:p-lg">
+{{-- Counts as read once it has been open long enough, or when ticked off. --}}
+<x-module-progress :record="$note">
 <div class="prose max-w-none font-body-md text-body-md text-on-surface leading-relaxed [&_h1]:font-headline-lg [&_h2]:font-headline-md [&_h2]:text-headline-md [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-headline-md [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_img]:rounded-lg [&_a]:text-primary">
     {!! $note->content !!}
 </div>
+</x-module-progress>
 </article>
 
 <!-- Other notes in this chapter -->

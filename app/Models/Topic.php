@@ -16,6 +16,7 @@ class Topic extends Model
 
     protected $fillable = [
         'chapter_id',
+        'parent_topic_id',
         'title',
         'content',
     ];
@@ -23,6 +24,20 @@ class Topic extends Model
     public function chapter(): BelongsTo
     {
         return $this->belongsTo(Chapter::class);
+    }
+
+    /**
+     * The topic this one sits under. It may belong to another chapter, so its
+     * chapter is loaded wherever the parent is named.
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_topic_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_topic_id');
     }
 
     /**
@@ -39,6 +54,11 @@ class Topic extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(Note::class);
+    }
+
+    public function summaries(): HasMany
+    {
+        return $this->hasMany(Summary::class);
     }
 
     public function questionBank(): HasMany

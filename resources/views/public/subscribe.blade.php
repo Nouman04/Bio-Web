@@ -157,18 +157,31 @@
 <span class="font-body-md text-body-md text-on-surface-variant"><strong class="text-primary">NEW:</strong> The latest content as it is added, updated for you automatically.</span>
 </li>
 </ul>
-{{-- Straight to this course's plan. Without a course in hand there is nothing
-     to subscribe to yet, so the gallery is where to pick one. --}}
-<a href="{{ ($course ?? null)
-        ? (($chapter ?? null)
-            ? route('public.course.chapter.subscribe.plans', [$course, $chapter])
-            : route('public.subscribe.plans', $course))
-        : route('public.courses') }}"
-    class="w-full py-4 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-primary-glow hover:bg-primary/90 transition-colors scale-95 active:scale-90 flex items-center justify-center gap-2">
+{{-- A course that is actually on sale opens the payment popup here rather than
+     sending the reader through the plan page first. Without one there is
+     nothing to buy yet, so this falls back to the plan page or the gallery. --}}
+@if(($plan ?? null)?->isSellable())
+    <button type="button" data-open-payment
+        class="w-full py-4 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-primary-glow hover:bg-primary/90 transition-colors scale-95 active:scale-90 flex items-center justify-center gap-2">
                     Start Your Subscription
                     <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-</a>
+    </button>
+@else
+    <a href="{{ ($course ?? null)
+            ? (($chapter ?? null)
+                ? route('public.course.chapter.subscribe.plans', [$course, $chapter])
+                : route('public.subscribe.plans', $course))
+            : route('public.courses') }}"
+        class="w-full py-4 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-primary-glow hover:bg-primary/90 transition-colors scale-95 active:scale-90 flex items-center justify-center gap-2">
+                    Start Your Subscription
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+    </a>
+@endif
 </div>
 </div>
 </main>
+
+@if(($plan ?? null)?->isSellable())
+    @include('public._payment-modal', ['course' => $course, 'plan' => $plan])
+@endif
 @endsection

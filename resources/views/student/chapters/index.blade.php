@@ -1,7 +1,7 @@
 @extends('layouts.student')
 
-@section('title', 'Course Progress – Chapter List')
-@section('meta-description', 'Track your chapter progress for Computer Science 101')
+@section('title', $course->title . ' – Chapter List')
+@section('meta-description', 'Track your chapter progress for ' . $course->title)
 
 @push('styles')
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -33,9 +33,21 @@
             Back to My Courses
         </a>
         <h2 class="text-on-background" style="font-size:28px;line-height:36px;font-weight:600;">
-            Course Progress: Computer Science 101
+            Course Progress: {{ $course->title }}
         </h2>
+        @if($course->category)
+            <p class="text-on-surface-variant text-sm mt-1">{{ $course->category->title }}</p>
+        @endif
     </div>
+
+    {{-- Only offered when there is actually something locked to unlock. --}}
+    @if(! $subscribed && $rows->contains(fn ($row) => $row['locked']))
+        <a href="{{ route('public.subscribe.plans', $course) }}"
+            class="inline-flex items-center gap-2 bg-primary text-on-primary text-sm font-semibold py-2.5 px-5 rounded-xl shadow-sm hover:opacity-90 transition-opacity self-start">
+            <span class="material-symbols-outlined" style="font-size:18px;">lock_open_right</span>
+            Unlock every chapter
+        </a>
+    @endif
 </div>
 
 <!-- Summary Widgets -->
@@ -49,7 +61,7 @@
                 <span class="material-symbols-outlined" style="font-size:20px;">book</span>
             </div>
         </div>
-        <div class="text-on-background" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">12</div>
+        <div class="text-on-background" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">{{ $rows->count() }}</div>
     </div>
 
     <!-- Chapters Completed -->
@@ -61,12 +73,13 @@
             </div>
         </div>
         <div class="flex items-end gap-3">
-            <div class="text-on-background" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">4</div>
-            <div class="text-on-surface-variant text-sm pb-3">/ 12</div>
+            <div class="text-on-background" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">{{ $completedCount }}</div>
+            <div class="text-on-surface-variant text-sm pb-3">/ {{ $rows->count() }}</div>
         </div>
     </div>
 
     <!-- Overall Progress -->
+    @php $overall = (float) $courseProgress['progress']; @endphp
     <div class="glass-panel rounded-xl p-6">
         <div class="flex justify-between items-start mb-4">
             <span class="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">Overall Progress</span>
@@ -75,11 +88,18 @@
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <div class="text-on-background" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">33%</div>
+            <div class="text-on-background" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">{{ round($overall) }}%</div>
             <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
-                <div class="h-full bg-primary rounded-full" style="width: 33%"></div>
+                <div class="h-full bg-primary rounded-full" style="width: {{ $overall }}%"></div>
             </div>
         </div>
+        <p class="text-on-surface-variant text-xs mt-2">
+            @if($courseProgress['total_weight'] > 0)
+                {{ $courseProgress['completed_weight'] }} of {{ $courseProgress['total_weight'] }} items completed
+            @else
+                Nothing to track yet
+            @endif
+        </p>
     </div>
 
 </div>
@@ -97,144 +117,95 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant/10 text-sm">
+                @forelse($rows as $index => $row)
+                    @php
+                        $chapter = $row['chapter'];
+                        $locked = $row['locked'];
+                        $done = $row['completed'];
+                        $percent = $row['progress'];
+                        $isCurrent = $chapter->id === $currentId;
+                        // A locked chapter leads to the paywall; an open one opens.
+                        $href = $locked
+                            ? route('public.course.chapter.subscribe', [$course, $chapter])
+                            : route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapter->uuid]);
+                        $striped = $index % 2 === 1 ? 'bg-surface-container-low/20' : '';
+                    @endphp
 
-                {{-- Chapter 1 – Completed --}}
-                <tr class="chapter-row hover:bg-surface-container-lowest/60 cursor-pointer"
-                    onclick="window.location='{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => 1]) }}'">
-                    <td class="py-4 px-6">
-                        <div class="w-8 h-8 rounded-full bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary font-semibold text-xs">
-                            <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1;">check_circle</span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="text-on-background font-semibold text-sm mb-1">Introduction to Variables</div>
-                        <div class="text-on-surface-variant text-xs line-clamp-1">Understanding the basics of memory allocation and data types in modern programming languages.</div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary/10 text-tertiary text-xs font-semibold border border-tertiary/20">
-                            <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-                            Completed
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 hidden md:table-cell">
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                <div class="h-full bg-tertiary rounded-full w-full"></div>
+                    <tr class="chapter-row {{ $striped }} hover:bg-surface-container-lowest/60 cursor-pointer {{ $locked ? 'opacity-60' : '' }}"
+                        onclick="window.location='{{ $href }}'">
+                        <td class="py-4 px-6">
+                            @if($locked)
+                                <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant/50">
+                                    <span class="material-symbols-outlined" style="font-size:16px;">lock</span>
+                                </div>
+                            @elseif($done)
+                                <div class="w-8 h-8 rounded-full bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary font-semibold text-xs">
+                                    <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1;">check_circle</span>
+                                </div>
+                            @else
+                                <div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 {{ $isCurrent ? 'ring-2 ring-primary/20' : '' }} flex items-center justify-center text-primary font-semibold text-xs">
+                                    {{ $chapter->chapter_number }}
+                                </div>
+                            @endif
+                        </td>
+
+                        <td class="py-4 px-6">
+                            <div class="{{ $locked ? 'text-on-background/70' : 'text-on-background' }} font-semibold text-sm mb-1 flex items-center gap-2">
+                                {{ $chapter->title }}
+                                @if($isCurrent && ! $done)
+                                    <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Current</span>
+                                @endif
                             </div>
-                            <span class="text-on-surface-variant text-xs w-8">100%</span>
-                        </div>
-                    </td>
-                </tr>
-
-                {{-- Chapter 2 – Completed --}}
-                <tr class="chapter-row bg-surface-container-low/20 hover:bg-surface-container-lowest/60 cursor-pointer"
-                    onclick="window.location='{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => 2]) }}'">
-                    <td class="py-4 px-6">
-                        <div class="w-8 h-8 rounded-full bg-tertiary/10 border border-tertiary/20 flex items-center justify-center text-tertiary font-semibold text-xs">
-                            <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1;">check_circle</span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="text-on-background font-semibold text-sm mb-1">Control Structures &amp; Loops</div>
-                        <div class="text-on-surface-variant text-xs line-clamp-1">Mastering if/else statements, for loops, and while loops to control program flow effectively.</div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary/10 text-tertiary text-xs font-semibold border border-tertiary/20">
-                            <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-                            Completed
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 hidden md:table-cell">
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                <div class="h-full bg-tertiary rounded-full w-full"></div>
+                            <div class="{{ $locked ? 'text-on-surface-variant/70' : 'text-on-surface-variant' }} text-xs line-clamp-1">
+                                {{ $chapter->excerpt ?: 'No description yet.' }}
                             </div>
-                            <span class="text-on-surface-variant text-xs w-8">100%</span>
-                        </div>
-                    </td>
-                </tr>
+                        </td>
 
-                {{-- Chapter 3 – In Progress --}}
-                <tr class="chapter-row hover:bg-surface-container-lowest/60 cursor-pointer"
-                    onclick="window.location='{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => 3]) }}'">
-                    <td class="py-4 px-6">
-                        <div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 ring-2 ring-primary/20 flex items-center justify-center text-primary font-semibold text-xs">3</div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="text-on-background font-semibold text-sm mb-1 flex items-center gap-2">
-                            Functions and Scope
-                            <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Current</span>
-                        </div>
-                        <div class="text-on-surface-variant text-xs line-clamp-1">Creating reusable blocks of code and understanding local vs global variable scope.</div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold border border-secondary/20">
-                            <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
-                            In Progress
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 hidden md:table-cell">
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                <div class="h-full bg-secondary rounded-full" style="width: 45%"></div>
+                        <td class="py-4 px-6">
+                            @if($locked)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-semibold border border-outline-variant/30">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                    Locked
+                                </span>
+                            @elseif($done)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary/10 text-tertiary text-xs font-semibold border border-tertiary/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                    Completed
+                                </span>
+                            @elseif($percent > 0)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold border border-secondary/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+                                    In Progress
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-semibold border border-outline-variant/30">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                    Not started
+                                </span>
+                            @endif
+                        </td>
+
+                        <td class="py-4 px-6 hidden md:table-cell">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div class="h-full {{ $done ? 'bg-tertiary' : 'bg-secondary' }} rounded-full" style="width: {{ $percent }}%"></div>
+                                </div>
+                                <span class="{{ $percent > 0 ? 'text-on-surface-variant' : 'text-on-surface-variant/50' }} text-xs w-8">{{ round($percent) }}%</span>
                             </div>
-                            <span class="text-on-surface-variant text-xs w-8">45%</span>
-                        </div>
-                    </td>
-                </tr>
-
-                {{-- Chapter 4 – Locked --}}
-                <tr class="chapter-row bg-surface-container-low/20 opacity-60">
-                    <td class="py-4 px-6">
-                        <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant/50">
-                            <span class="material-symbols-outlined" style="font-size:16px;">lock</span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="text-on-background/70 font-semibold text-sm mb-1">Arrays and Data Structures</div>
-                        <div class="text-on-surface-variant/70 text-xs line-clamp-1">Storing multiple values in lists and iterating over collections of data.</div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-semibold border border-outline-variant/30">
-                            <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
-                            Locked
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 hidden md:table-cell">
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                <div class="h-full bg-outline-variant rounded-full w-0"></div>
-                            </div>
-                            <span class="text-on-surface-variant/50 text-xs w-8">0%</span>
-                        </div>
-                    </td>
-                </tr>
-
-                {{-- Chapter 5 – Locked --}}
-                <tr class="chapter-row opacity-60">
-                    <td class="py-4 px-6">
-                        <div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant/50">
-                            <span class="material-symbols-outlined" style="font-size:16px;">lock</span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="text-on-background/70 font-semibold text-sm mb-1">Object-Oriented Programming</div>
-                        <div class="text-on-surface-variant/70 text-xs line-clamp-1">Classes, objects, inheritance, and encapsulation — the pillars of OOP design.</div>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-semibold border border-outline-variant/30">
-                            <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
-                            Locked
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 hidden md:table-cell">
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden"></div>
-                            <span class="text-on-surface-variant/50 text-xs w-8">0%</span>
-                        </div>
-                    </td>
-                </tr>
-
+                            @if($row['total_weight'] > 0)
+                                <span class="text-on-surface-variant/70 text-[11px]">{{ $row['completed_weight'] }} / {{ $row['total_weight'] }} items</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="py-16 px-6 text-center">
+                            <span class="material-symbols-outlined text-5xl text-outline mb-3 block">menu_book</span>
+                            <div class="text-on-surface font-semibold mb-1">No chapters yet</div>
+                            <p class="text-on-surface-variant text-sm">This course has not been filled in yet. Check back soon.</p>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

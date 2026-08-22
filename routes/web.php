@@ -32,6 +32,8 @@ Route::get('/subscribe', [PublicCourseController::class, 'subscribe'])->name('pu
 // The plan for one course, and the handover to Stripe
 Route::get('/subscribe/{course}', [PublicCourseController::class, 'plans'])->name('public.subscribe.plans');
 Route::get('/subscribe/{course}/checkout', [PublicCourseController::class, 'checkout'])->name('public.subscribe.checkout');
+// Where Stripe returns the reader after paying
+Route::get('/subscribe/{course}/done', [PublicCourseController::class, 'subscribed'])->name('public.subscribe.success');
 
 /*
 | The catalogue chain: course › chapters › chapter › listing › detail.

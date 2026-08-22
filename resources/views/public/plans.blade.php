@@ -72,13 +72,13 @@
         <a href="{{ route('public.course.chapters', $course) }}"
             class="mt-3 text-center font-label-md text-label-md text-secondary hover:text-primary transition-colors">Go to the chapters</a>
     @elseif($plan?->isSellable())
-        {{-- Hands over to Stripe Checkout; signing in happens on the way if
-             the reader is not already. --}}
-        <a href="{{ route('public.subscribe.checkout', $course) }}"
+        {{-- Opens the payment-method popup; the gateway takes it from there,
+             and signing in happens on the way if the reader is not already. --}}
+        <button type="button" data-open-payment
             class="w-full py-4 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-primary-glow hover:bg-primary/90 transition-colors scale-95 active:scale-90 flex items-center justify-center gap-2">
             Subscribe
             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-        </a>
+        </button>
         <p class="mt-4 text-center font-label-sm text-label-sm text-on-surface-variant">
             Secure payment through Stripe. Cancel any time.
         </p>
@@ -92,4 +92,8 @@
 </article>
 </div>
 </main>
+
+@if($plan?->isSellable() && ! $subscribed)
+    @include('public._payment-modal', ['course' => $course, 'plan' => $plan])
+@endif
 @endsection

@@ -33,6 +33,15 @@ trait LinksQuestions
             'new_questions.*.options' => ['nullable', 'array'],
             'new_questions.*.options.*' => ['nullable', 'string', 'max:1000'],
             'new_questions.*.correct_option' => ['nullable', 'integer', 'min:0'],
+
+            // A past paper citation is optional as a whole. Once one is given,
+            // everything but the source is required — enforced below, because
+            // `required_with` alone would not catch a half-filled block.
+            'new_questions.*.past_paper' => ['nullable', 'array'],
+            'new_questions.*.past_paper.date' => ['nullable', 'date'],
+            'new_questions.*.past_paper.paper_no' => ['nullable', 'string', 'max:50'],
+            'new_questions.*.past_paper.marks' => ['nullable', 'numeric', 'min:0'],
+            'new_questions.*.past_paper.source' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -43,6 +52,8 @@ trait LinksQuestions
     protected function validateNewQuestions(array $data): void
     {
         foreach ($data['new_questions'] ?? [] as $index => $row) {
+            $this->validatePastPaper($row['past_paper'] ?? null, $index);
+
             if (! $this->isMcqCategory($row['type'] ?? null)) {
                 continue;
             }
@@ -73,16 +84,84 @@ trait LinksQuestions
 
         $questionIds = collect($data['question_ids'] ?? [])->map(fn ($id) => (int) $id);
 
+        // A new question may carry a past paper citation. The citation belongs
+        // to the *link*, not the question, so the two are kept together here
+        // until the link row exists to hang it on.
+        $citations = [];
+
         foreach ($data['new_questions'] ?? [] as $row) {
-            $questionIds->push($this->createQuestion($row, $record->chapter_id)->id);
+            $question = $this->createQuestion($row, $record->chapter_id);
+            $questionIds->push($question->id);
+
+            if ($paper = $this->cleanPastPaper($row['past_paper'] ?? null)) {
+                $citations[$question->id] = $paper;
+            }
         }
 
         foreach ($questionIds->unique() as $questionId) {
-            $record->questionables()->create([
+            $link = $record->questionables()->create([
                 'chapter_id' => $record->chapter_id,
                 'question_id' => $questionId,
             ]);
+
+            if (isset($citations[$questionId])) {
+                $link->pastPaper()->create($citations[$questionId]);
+            }
         }
+    }
+
+    /**
+     * A citation is either absent or complete. Half of one is a mistake worth
+     * reporting rather than quietly storing.
+     */
+    private function validatePastPaper(?array $paper, int $index): void
+    {
+        $paper = $this->cleanPastPaper($paper, false);
+
+        if ($paper === null) {
+            return;
+        }
+
+        foreach (['date' => 'a date', 'paper_no' => 'a paper number', 'marks' => 'the marks'] as $field => $name) {
+            if (($paper[$field] ?? '') === '' || $paper[$field] === null) {
+                throw ValidationException::withMessages([
+                    "new_questions.{$index}.past_paper.{$field}" => "A past paper reference needs {$name}.",
+                ]);
+            }
+        }
+    }
+
+    /**
+     * The citation as it should be stored, or null when nothing was entered.
+     *
+     * `source` is optional, so it never counts towards deciding whether a
+     * citation was given at all.
+     *
+     * @param  bool  $complete  Return null unless the required parts are present.
+     */
+    private function cleanPastPaper(?array $paper, bool $complete = true): ?array
+    {
+        if (! $paper) {
+            return null;
+        }
+
+        $values = [
+            'date' => trim((string) ($paper['date'] ?? '')),
+            'paper_no' => trim((string) ($paper['paper_no'] ?? '')),
+            'marks' => trim((string) ($paper['marks'] ?? '')),
+            'source' => trim((string) ($paper['source'] ?? '')) ?: null,
+        ];
+
+        // Nothing beyond an optional source means no citation was intended.
+        if ($values['date'] === '' && $values['paper_no'] === '' && $values['marks'] === '') {
+            return null;
+        }
+
+        if ($complete && ($values['date'] === '' || $values['paper_no'] === '' || $values['marks'] === '')) {
+            return null;
+        }
+
+        return $values;
     }
 
     /**

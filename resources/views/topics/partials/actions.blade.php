@@ -18,6 +18,9 @@
                 data-id="{{ $topic->uuid }}"
                 data-title="{{ $topic->title }}"
                 data-content="{{ $topic->content }}"
+                data-parent-id="{{ $topic->parent?->id }}"
+                data-parent-title="{{ $topic->parent?->title }}"
+                data-parent-meta="{{ $topic->parent?->chapter?->title }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
                 <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
                 Edit

@@ -12,6 +12,33 @@ class Guide extends Model
 {
     use SoftDeletes, HasUuid, Searchable;
 
+    /**
+     * The kinds of guide, matching the column's enum, with the label each is
+     * shown under.
+     */
+    public const TYPE_LABELS = [
+        'theory_guides' => 'Theory Guide',
+        'atp_guides' => 'ATP Guide',
+    ];
+
+    /**
+     * This guide's kind, as a person would read it.
+     */
+    public function getTypeLabelAttribute(): string
+    {
+        return self::TYPE_LABELS[$this->type] ?? 'Guide';
+    }
+
+    /**
+     * A plain-text opening line from the content, for listings and cards.
+     */
+    public function getExcerptAttribute(): string
+    {
+        $text = html_entity_decode(strip_tags((string) $this->content), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 160);
+    }
+
     protected $fillable = [
         'chapter_id',
         'topic_id',

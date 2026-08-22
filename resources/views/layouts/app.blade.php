@@ -647,6 +647,65 @@
             window.addEventListener('resize', closeActionMenu);
             document.addEventListener('scroll', closeActionMenu, true);
 
+            // ── Parent Topic picker (Tom Select over every chapter) ────────────
+            document.querySelectorAll('.parent-topic-picker').forEach(picker => {
+                const select = picker.querySelector('.parent-topic-select');
+                const searchUrl = picker.dataset.searchUrl;
+                const fieldName = picker.dataset.fieldName || 'parent_topic_id';
+
+                if (!select) return;
+
+                const control = new TomSelect(select, {
+                    valueField: 'id',
+                    labelField: 'text',
+                    searchField: 'text',
+                    maxItems: 1,
+                    maxOptions: 20,
+                    loadThrottle: 300,
+                    // The modal body scrolls, so the dropdown hangs off <body>
+                    // rather than being clipped by it.
+                    dropdownParent: 'body',
+                    onInitialize() { this.input.name = fieldName; },
+                    load(query, callback) {
+                        const url = new URL(searchUrl, window.location.origin);
+                        url.searchParams.set('q', query);
+                        if (picker.dataset.excludeUuid) {
+                            url.searchParams.set('exclude', picker.dataset.excludeUuid);
+                        }
+
+                        fetch(url, {
+                            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                            credentials: 'same-origin',
+                        })
+                            .then(response => response.json())
+                            .then(callback)
+                            .catch(() => callback());
+                    },
+                    render: {
+                        // The chapter tag is the point of this picker: two
+                        // chapters often name a topic the same way.
+                        option: (data, escape) => `<div class="py-2 px-3">
+                                <div class="text-sm text-on-surface dark:text-slate-200">${escape(data.text)}</div>
+                                ${data.meta ? `<div class="text-[11px] text-primary mt-0.5"><i class="fa-solid fa-book-bookmark text-[9px] mr-1"></i>${escape(data.meta)}</div>` : ''}
+                            </div>`,
+                        item: (data, escape) => `<div>${escape(data.text)}${data.meta ? ` <span class="text-[11px] text-on-surface-variant">— ${escape(data.meta)}</span>` : ''}</div>`,
+                    },
+                });
+
+                // Editing: pre-select the saved parent, and keep the topic from
+                // being offered as its own parent.
+                picker.setParent = (parent, ownUuid) => {
+                    picker.dataset.excludeUuid = ownUuid || '';
+                    control.clear(true);
+                    control.clearOptions();
+                    control.loadedSearches = {};
+
+                    if (parent) {
+                        control.addOption({ id: parent.id, text: parent.text, meta: parent.meta });
+                        control.addItem(parent.id, true);
+                    }
+                };
+            });
             // ── Question Widget (Tom Select search + queued new questions) ─────
             document.querySelectorAll('.question-widget').forEach(widget => {
                 const fieldName = widget.dataset.fieldName || 'question_ids';
@@ -664,6 +723,10 @@
                 const list = widget.querySelector('.question-widget-list');
                 const count = widget.querySelector('.question-widget-count');
                 const clearBtn = widget.querySelector('.question-widget-clear');
+                // Optional past-paper citation, only rendered where the host
+                // page asked for it.
+                const paperToggle = widget.querySelector('.question-widget-paper-toggle');
+                const paperBlock = widget.querySelector('.question-widget-paper');
 
                 // ── Existing questions: type-ahead against the question bank ──
                 const picker = new TomSelect(select, {
@@ -770,8 +833,24 @@
                 function resetComposer() {
                     newInput.value = '';
                     optionList?.replaceChildren();
+
+                    if (paperToggle) {
+                        paperToggle.checked = false;
+                        applyPaperVisibility();
+                        widget.querySelectorAll('.question-widget-paper input').forEach(i => { i.value = ''; });
+                    }
+
                     applyComposerType();
                 }
+
+                function applyPaperVisibility() {
+                    if (!paperBlock) return;
+                    const on = Boolean(paperToggle?.checked);
+                    paperBlock.classList.toggle('hidden', !on);
+                    paperBlock.classList.toggle('flex', on);
+                }
+
+                paperToggle?.addEventListener('change', applyPaperVisibility);
 
                 optionAdd?.addEventListener('click', () => addComposerOption());
 
@@ -785,7 +864,7 @@
 
                 /* ── Queueing it ────────────────────────────────────────────── */
 
-                function addNewQuestion(text, typeId, typeLabel, options, correctIndex) {
+                function addNewQuestion(text, typeId, typeLabel, options, correctIndex, paper) {
                     const li = document.createElement('li');
                     li.className = 'flex items-start justify-between gap-3 bg-white dark:bg-slate-800 border border-outline-variant/40 dark:border-slate-700 rounded-lg px-3 py-2';
 
@@ -813,6 +892,17 @@
                         left.appendChild(optionLine);
                     }
 
+                    if (paper) {
+                        const cite = document.createElement('div');
+                        cite.className = 'text-[11px] text-primary flex items-center gap-1.5 pl-1';
+                        cite.innerHTML = '<i class="fa-solid fa-file-lines text-[9px]"></i>';
+                        cite.appendChild(document.createTextNode(
+                            ['Paper ' + paper.paper_no, paper.date, paper.marks + ' marks', paper.source]
+                                .filter(Boolean).join(' \u00b7 ')
+                        ));
+                        left.appendChild(cite);
+                    }
+
                     const removeBtn = document.createElement('button');
                     removeBtn.type = 'button';
                     removeBtn.className = 'question-widget-remove shrink-0 text-on-surface-variant hover:text-error transition-colors';
@@ -826,6 +916,7 @@
                     fields.dataset.type = typeId;
                     fields.dataset.options = JSON.stringify(options);
                     fields.dataset.correct = correctIndex ?? '';
+                    fields.dataset.paper = paper ? JSON.stringify(paper) : '';
 
                     li.append(left, removeBtn, fields);
                     list.appendChild(li);
@@ -845,6 +936,17 @@
                         fields.replaceChildren();
                         fields.appendChild(hiddenField(`${prefix}[question]`, fields.dataset.question));
                         fields.appendChild(hiddenField(`${prefix}[type]`, fields.dataset.type));
+
+                        // The citation rides along with its question, so the
+                        // server can tie it to the link row it creates.
+                        if (fields.dataset.paper) {
+                            const paper = JSON.parse(fields.dataset.paper);
+                            Object.entries(paper).forEach(([key, value]) => {
+                                if (value !== '' && value !== null) {
+                                    fields.appendChild(hiddenField(`${prefix}[past_paper][${key}]`, value));
+                                }
+                            });
+                        }
 
                         options.forEach((option, position) => {
                             fields.appendChild(hiddenField(`${prefix}[options][${position}]`, option));
@@ -896,7 +998,24 @@
                         }
                     }
 
-                    addNewQuestion(text, typeId, typeLabel, options, correctIndex);
+                    let paper = null;
+
+                    if (paperToggle?.checked) {
+                        paper = {
+                            date: widget.querySelector('.question-widget-paper-date')?.value ?? '',
+                            paper_no: widget.querySelector('.question-widget-paper-no')?.value.trim() ?? '',
+                            marks: widget.querySelector('.question-widget-paper-marks')?.value ?? '',
+                            source: widget.querySelector('.question-widget-paper-source')?.value.trim() ?? '',
+                        };
+
+                        // Source is the only optional part of a citation.
+                        if (!paper.date || !paper.paper_no || paper.marks === '') {
+                            App.toast('warning', 'A past paper reference needs a date, paper number and marks.');
+                            return;
+                        }
+                    }
+
+                    addNewQuestion(text, typeId, typeLabel, options, correctIndex, paper);
                     resetComposer();
                     newInput.focus();
                 }

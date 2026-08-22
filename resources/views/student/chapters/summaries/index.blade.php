@@ -1,6 +1,6 @@
 @extends('layouts.student')
 
-@section('title', 'Learning Summaries – Chapter ' . $chapterId)
+@section('title', 'Learning Summaries – ' . $chapter->title)
 @section('meta-description', 'Review condensed takeaways and key concepts for this chapter')
 
 @push('styles')
@@ -29,195 +29,136 @@
         <nav class="flex items-center gap-1.5 text-xs text-on-surface-variant mb-3 flex-wrap">
             <a href="{{ route('student.courses') }}" class="hover:text-primary transition-colors">My Courses</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
-            <a href="{{ route('student.courses.show', ['id' => $courseId]) }}" class="hover:text-primary transition-colors">Course {{ $courseId }}</a>
+            <a href="{{ route('student.courses.show', $course) }}" class="hover:text-primary transition-colors">{{ $course->title }}</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
-            <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">Chapter {{ $chapterId }}</a>
+            <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="hover:text-primary transition-colors">{{ $chapter->title }}</a>
             <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
             <span class="text-on-surface font-semibold">Summaries</span>
         </nav>
         <h1 class="text-on-background" style="font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.01em;">Learning Summaries</h1>
-        <p class="text-on-surface-variant text-base mt-1 max-w-2xl">Review condensed takeaways and key concepts from Chapter {{ $chapterId }} to reinforce your knowledge.</p>
+        <p class="text-on-surface-variant text-base mt-1 max-w-2xl">
+            @if($search || $topic)
+                <span class="font-semibold text-primary">{{ $summaries->total() }}</span>
+                {{ Str::plural('summary', $summaries->total()) }} matched in {{ $chapter->title }}.
+            @else
+                Review condensed takeaways and key concepts from {{ $chapter->title }} to reinforce your knowledge.
+            @endif
+        </p>
     </div>
 
-    {{-- View Toggle --}}
-    <div class="flex flex-wrap gap-4 items-center shrink-0">
-        <div class="flex items-center bg-surface-container-lowest border border-outline-variant rounded-lg p-1">
-            <button class="px-4 py-1.5 bg-surface-container-low text-primary rounded text-sm font-semibold flex items-center gap-2">
-                <span class="material-symbols-outlined" style="font-size:18px;">grid_view</span> Grid
+        {{-- Search and topic, both handled on the server. --}}
+        <form method="GET" class="flex flex-wrap gap-3 items-center shrink-0">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">search</span>
+                <input type="search" name="search" value="{{ $search }}" placeholder="Search summaries"
+                    class="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary transition-all w-full sm:w-56">
+            </div>
+            @if($topics->isNotEmpty())
+                <div class="relative">
+                    <select name="topic" onchange="this.form.submit()"
+                        class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary transition-all cursor-pointer">
+                        <option value="">All topics</option>
+                        @foreach($topics as $option)
+                            <option value="{{ $option->uuid }}" @selected($topic === $option->uuid)>{{ $option->title }}</option>
+                        @endforeach
+                    </select>
+                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">expand_more</span>
+                </div>
+            @endif
+            <button type="submit" class="bg-primary-container text-on-primary-container text-sm font-semibold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-colors">
+                <span class="material-symbols-outlined" style="font-size:18px;">filter_list</span> Filter
             </button>
-            <button class="px-4 py-1.5 text-on-surface-variant hover:text-on-surface rounded text-sm font-semibold flex items-center gap-2 transition-colors">
-                <span class="material-symbols-outlined" style="font-size:18px;">list</span> List
-            </button>
-        </div>
-    </div>
+            @if($search || $topic)
+                <a href="{{ route('student.chapters.summaries', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+                    class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span> Clear
+                </a>
+            @endif
+        </form>
 </div>
 
-{{-- Summary Cards Grid (Bento Style) --}}
+{{-- Summary Cards Grid --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @forelse($summaries as $summary)
+        @php
+            $read = $state[$summary->id]['completed'] ?? false;
+            // Written out in full rather than interpolated, so the classes
+            // survive a Tailwind build that scans source for literal names.
+            $accents = [
+                'bg-tertiary-container/20 text-tertiary',
+                'bg-primary-container/20 text-primary',
+                'bg-secondary-container/20 text-secondary',
+            ];
+            $accent = $accents[$loop->index % count($accents)];
+        @endphp
 
-    {{-- Card 1 --}}
-    <article class="glass-card rounded-2xl p-6 flex flex-col h-full group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex gap-2">
-                <span class="px-2.5 py-1 bg-tertiary-container/20 text-tertiary rounded text-xs font-bold tracking-wider uppercase">ML-401</span>
-                <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
-                <span class="material-symbols-outlined">bookmark_border</span>
-            </button>
-        </div>
-        <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">Neural Network Architectures</h3>
-        <p class="text-on-surface-variant text-sm mb-6 line-clamp-3 flex-1">
-            Overview of feedforward, convolutional, and recurrent architectures. Key takeaway: architecture choice depends on data modality — images → CNN, sequences → RNN/LSTM, general → MLP.
-        </p>
-        <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto">
-            <div class="flex items-center gap-2 text-on-surface-variant">
-                <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                <span class="text-xs font-medium">8 min read</span>
-            </div>
-            <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => 1]) }}" class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                Review <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-            </a>
-        </div>
-    </article>
-
-    {{-- Card 2 --}}
-    <article class="glass-card rounded-2xl p-6 flex flex-col h-full group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex gap-2">
-                <span class="px-2.5 py-1 bg-primary-container/20 text-primary rounded text-xs font-bold tracking-wider uppercase">CS101</span>
-                <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="is-saved text-primary transition-colors" title="Save summary">
-                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">bookmark</span>
-            </button>
-        </div>
-        <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">Activation Functions Deep Dive</h3>
-        <p class="text-on-surface-variant text-sm mb-6 line-clamp-3 flex-1">
-            Sigmoid saturates at extremes causing vanishing gradients. ReLU avoids this but can "die." Leaky ReLU and ELU are practical alternatives for deep architectures.
-        </p>
-        <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto">
-            <div class="flex items-center gap-2 text-on-surface-variant">
-                <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                <span class="text-xs font-medium">5 min read</span>
-            </div>
-            <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => 1]) }}" class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                Review <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-            </a>
-        </div>
-    </article>
-
-    {{-- Card 3 (highlighted) --}}
-    <article class="glass-card rounded-2xl p-6 flex flex-col h-full group border-l-4 border-l-secondary-container">
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex gap-2">
-                <span class="px-2.5 py-1 bg-secondary-container/20 text-secondary rounded text-xs font-bold tracking-wider uppercase">ML-401</span>
-                <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
-                <span class="material-symbols-outlined">bookmark_border</span>
-            </button>
-        </div>
-        <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">Loss Functions Explained</h3>
-        <p class="text-on-surface-variant text-sm mb-6 line-clamp-3 flex-1">
-            Cross-entropy ideal for classification; penalises confident wrong answers heavily. MSE for regression. Huber loss blends both — robust to outliers while remaining differentiable everywhere.
-        </p>
-        <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto">
-            <div class="flex items-center gap-2 text-on-surface-variant">
-                <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                <span class="text-xs font-medium">12 min read</span>
-            </div>
-            <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => 1]) }}" class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                Review <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
-            </a>
-        </div>
-    </article>
-
-    {{-- Card 4 – Wide / Trending --}}
-    <article class="glass-card rounded-2xl p-6 flex flex-col md:flex-row gap-6 h-full group lg:col-span-2">
-        <div class="flex-1 flex flex-col">
-            <div class="flex justify-between items-start mb-4">
-                <div class="flex gap-2">
-                    <span class="px-2.5 py-1 bg-tertiary-container/20 text-tertiary rounded text-xs font-bold tracking-wider uppercase">ML-401</span>
-                    <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
+        <article class="glass-card rounded-2xl p-6 flex flex-col h-full group">
+            <div class="flex justify-between items-start mb-4 gap-2">
+                <div class="flex gap-2 flex-wrap min-w-0">
+                    @if($summary->topic)
+                        <span class="px-2.5 py-1 {{ $accent }} rounded text-xs font-bold tracking-wider uppercase truncate max-w-[12rem]">{{ $summary->topic->title }}</span>
+                    @endif
+                    <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapter->chapter_number }}</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2 py-1 bg-error-container/50 text-on-error-container rounded text-xs font-semibold flex items-center gap-1">
-                        <span class="material-symbols-outlined" style="font-size:14px;">local_fire_department</span> Trending
-                    </span>
-                    <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
-                        <span class="material-symbols-outlined">bookmark_border</span>
-                    </button>
+                <div class="flex items-center gap-2 shrink-0">
+                    @if($read)
+                        <span class="inline-flex items-center gap-1 text-tertiary text-xs font-semibold" title="You have read this">
+                            <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1;">check_circle</span>
+                            Read
+                        </span>
+                    @endif
+                    <x-save-button :record="$summary" class="text-on-surface-variant hover:text-primary" />
                 </div>
             </div>
-            <h3 class="text-on-surface font-semibold text-lg mb-2 group-hover:text-primary transition-colors">Backpropagation: The Full Picture</h3>
-            <p class="text-on-surface-variant text-sm mb-6 flex-1">
-                A comprehensive walkthrough of the chain rule applied layer-by-layer. Covers forward pass, loss computation, and backward pass weight updates. Essential reading before any model training. Includes annotated maths and worked examples.
-            </p>
+
+            <div class="flex flex-col flex-1 mb-6">
+                <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">{{ $summary->title ?: 'Untitled summary' }}</h3>
+                <p class="text-on-surface-variant text-sm line-clamp-3 flex-1">{{ $summary->excerpt ?: 'No content yet.' }}</p>
+            </div>
+
             <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto">
-                <div class="flex items-center gap-4 text-on-surface-variant">
-                    <div class="flex items-center gap-1">
-                        <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                        <span class="text-xs font-medium">15 min read</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="material-symbols-outlined" style="font-size:16px;">attachment</span>
-                        <span class="text-xs font-medium">3 Assets</span>
-                    </div>
+                <div class="flex items-center gap-2 text-on-surface-variant">
+                    <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
+                    <span class="text-xs font-medium">{{ $summary->reading_minutes }} min read</span>
                 </div>
-                <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => 1]) }}" class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                    Go to deep dive <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+                <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => $summary->uuid]) }}"
+                    class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
+                    Review <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
                 </a>
             </div>
-        </div>
-        <div class="w-full md:w-1/3 rounded-xl overflow-hidden bg-surface-container-low relative min-h-[140px] hidden md:block">
-            <div class="w-full h-full bg-gradient-to-br from-primary/20 to-tertiary-container/30 absolute inset-0 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary/50" style="font-size:64px;">auto_stories</span>
+        </article>
+    @empty
+        <div class="col-span-full glass-card rounded-2xl py-20 flex flex-col items-center justify-center text-center">
+            <div class="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-5">
+                <span class="material-symbols-outlined text-primary text-4xl">
+                    {{ $search || $topic ? 'search_off' : 'description' }}
+                </span>
             </div>
-        </div>
-    </article>
-
-    {{-- Card 5 --}}
-    <article class="glass-card rounded-2xl p-6 flex flex-col h-full group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex gap-2">
-                <span class="px-2.5 py-1 bg-primary-container/20 text-primary rounded text-xs font-bold tracking-wider uppercase">Design</span>
-                <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapterId }}</span>
-            </div>
-            <button onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors" title="Save summary">
-                <span class="material-symbols-outlined">bookmark_border</span>
-            </button>
-        </div>
-        <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">Overfitting &amp; Regularisation</h3>
-        <p class="text-on-surface-variant text-sm mb-6 line-clamp-3 flex-1">
-            Dropout, L1/L2 penalties, and early stopping explained. The bias-variance tradeoff governs model generalisation — high variance → overfitting, high bias → underfitting.
-        </p>
-        <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto">
-            <div class="flex items-center gap-2 text-on-surface-variant">
-                <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                <span class="text-xs font-medium">6 min read</span>
-            </div>
-            <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => 1]) }}" class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                Review <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+            <h3 class="text-on-surface font-semibold text-lg mb-2">
+                {{ $search || $topic ? 'Nothing matched' : 'No summaries yet' }}
+            </h3>
+            <p class="text-on-surface-variant text-sm max-w-md mb-6">
+                @if($search || $topic)
+                    No summary in this chapter matches those filters.
+                @else
+                    Nothing has been published for this chapter yet. Check back soon.
+                @endif
+            </p>
+            <a href="{{ $search || $topic
+                    ? route('student.chapters.summaries', ['courseId' => $courseId, 'chapterId' => $chapterId])
+                    : route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+                class="bg-primary text-on-primary text-sm font-semibold py-2.5 px-6 rounded-full inline-flex items-center gap-2">
+                {{ $search || $topic ? 'Clear filters' : 'Back to the chapter' }}
+                <span class="material-symbols-outlined text-sm">{{ $search || $topic ? 'restart_alt' : 'arrow_forward' }}</span>
             </a>
         </div>
-    </article>
-
+    @endforelse
 </div>
 
-{{-- Pagination --}}
-<div class="mt-10 flex justify-center">
-    <div class="flex items-center gap-2">
-        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors disabled:opacity-40" disabled>
-            <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-        <button class="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-on-primary text-sm font-semibold shadow-sm">1</button>
-        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors text-sm">2</button>
-        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors text-sm">3</button>
-        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
-            <span class="material-symbols-outlined">chevron_right</span>
-        </button>
+@if($summaries->hasPages())
+    <div class="mt-10 flex justify-center">
+        {{ $summaries->links() }}
     </div>
-</div>
+@endif
 
 @endsection

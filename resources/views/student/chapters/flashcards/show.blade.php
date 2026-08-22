@@ -1,6 +1,6 @@
 @extends('layouts.student')
 
-@section('title', 'Flashcard Practice')
+@section('title', $deck->title . ' – Flashcard Practice')
 
 @push('styles')
 <style>
@@ -50,128 +50,110 @@
 </style>
 @endpush
 
-@php
-    $cards = [
-        1 => [
-            'question' => 'What is the time complexity of searching for an element in an unsorted array?',
-            'answer' => 'O(n)',
-            'explanation' => 'In the worst case, you might have to check every single element in the array to find the target value, making the time complexity linear.',
-        ],
-        2 => [
-            'question' => 'What is the time complexity of searching for an element in a sorted array using binary search?',
-            'answer' => 'O(log n)',
-            'explanation' => 'Binary search halves the remaining search space with each comparison, so the number of steps grows logarithmically with the input size.',
-        ],
-        3 => [
-            'question' => 'What is the time complexity of inserting an element at the end of a dynamic array?',
-            'answer' => 'O(1) amortized',
-            'explanation' => 'Appending is constant time on average, since the array only needs to resize (and copy) occasionally as it grows.',
-        ],
-        4 => [
-            'question' => 'What is the time complexity of inserting an element at the beginning of an array?',
-            'answer' => 'O(n)',
-            'explanation' => 'Every existing element must shift one position to the right to make room, which takes time proportional to the array size.',
-        ],
-        5 => [
-            'question' => 'What is the space complexity of a typical array-based data structure?',
-            'answer' => 'O(n)',
-            'explanation' => 'Memory usage grows linearly with the number of elements stored, since each element occupies its own contiguous slot.',
-        ],
-    ];
-    $totalCards = count($cards);
-    $flashcardId = max(1, min($totalCards, (int) $flashcardId));
-    $card = $cards[$flashcardId];
-    $progress = round(($flashcardId / $totalCards) * 100);
-@endphp
-
 @section('content')
 <div class="flex-1 flex flex-col items-center justify-center relative py-8">
+
     <!-- Breadcrumb back to list -->
-    <div class="w-full max-w-3xl mb-8 flex items-center justify-between">
-        <a href="{{ route('student.chapters.flashcards', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}" class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 group w-max">
+    <div class="w-full max-w-3xl mb-6 flex items-center justify-between gap-4">
+        <a href="{{ route('student.chapters.flashcards', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+            class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 group w-max">
             <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform text-sm">arrow_back</span>
             <span class="text-sm font-semibold">Exit Study Mode</span>
         </a>
-        <button id="saveCardBtn" onclick="toggleSaveIcon(this)" class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2" title="Save card">
-            <span class="material-symbols-outlined text-sm">bookmark_border</span>
-            <span class="text-sm font-semibold" data-save-label="Save Card">Save Card</span>
-        </button>
+        <span class="text-on-surface-variant text-xs truncate">{{ $chapter->title }}</span>
+    </div>
+
+    <div class="w-full max-w-3xl mb-6">
+        <h1 class="text-on-background" style="font-size:24px;line-height:32px;font-weight:700;">{{ $deck->title }}</h1>
     </div>
 
     <!-- Background decorative elements -->
     <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10"></div>
 
-    <!-- Progress Bar Container -->
-    <div class="w-full max-w-3xl mb-6">
-        <div class="flex justify-between mb-2">
-            <span class="text-sm text-on-surface-variant" id="progressLabel">Progress &middot; Card {{ $flashcardId }} of {{ $totalCards }}</span>
-            <span class="text-sm text-primary font-semibold" id="progressPercent">{{ $progress }}%</span>
+    @if($cards->isEmpty())
+        <div class="w-full max-w-3xl glass-panel rounded-xl py-20 flex flex-col items-center text-center">
+            <div class="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-5">
+                <span class="material-symbols-outlined text-primary text-4xl">style</span>
+            </div>
+            <h2 class="text-on-surface font-semibold text-lg mb-2">This deck is empty</h2>
+            <p class="text-on-surface-variant text-sm max-w-md mb-6">No questions have been added to it yet.</p>
+            <a href="{{ route('student.chapters.flashcards', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+                class="bg-primary text-on-primary text-sm font-semibold py-2.5 px-6 rounded-full inline-flex items-center gap-2">
+                Back to the decks <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
         </div>
-        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden shadow-inner">
-            <div id="progressBarFill" class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-500 ease-out shadow-sm" style="width: {{ $progress }}%;"></div>
-        </div>
-    </div>
+    @else
+        @php $first = $cards->first(); @endphp
 
-    <!-- Flashcard Container -->
-    <div id="flashcardStage" class="w-full max-w-3xl h-[400px] mb-6 group cursor-pointer" onclick="toggleFlip()">
-        <div id="flashcardInner" class="fc-squish relative w-full h-full text-center shadow-xl rounded-xl glass-panel hover:shadow-2xl hover:shadow-primary/10">
-            <!-- Question card -->
-            <div class="fc-question absolute w-full h-full bg-surface-container-lowest rounded-xl p-8 flex flex-col items-center justify-center border border-on-surface/5">
-                <span class="absolute top-6 left-6 text-sm text-on-surface-variant uppercase tracking-wide flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">help_outline</span>
-                    Question
-                </span>
-                <h2 id="cardQuestion" class="text-2xl font-semibold text-on-background mt-4">{{ $card['question'] }}</h2>
-                <div class="absolute bottom-6 w-full flex justify-center opacity-50 group-hover:opacity-100 transition-opacity">
-                    <span class="text-sm font-semibold text-primary flex items-center gap-2 bg-primary/5 px-4 py-1.5 rounded-full">
-                        <span class="material-symbols-outlined text-base">touch_app</span>
-                        Tap to reveal answer
+        <!-- Progress Bar Container -->
+        <div class="w-full max-w-3xl mb-6">
+            <div class="flex justify-between mb-2">
+                <span class="text-sm text-on-surface-variant" id="progressLabel">Progress &middot; Card 1 of {{ $cards->count() }}</span>
+                <span class="text-sm text-primary font-semibold" id="progressPercent">{{ round(100 / $cards->count()) }}%</span>
+            </div>
+            <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden shadow-inner">
+                <div id="progressBarFill" class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-500 ease-out shadow-sm"
+                    style="width: {{ round(100 / $cards->count()) }}%;"></div>
+            </div>
+        </div>
+
+        <!-- Flashcard Container -->
+        <div id="flashcardStage" class="w-full max-w-3xl h-[400px] mb-6 group cursor-pointer" onclick="toggleFlip()">
+            <div id="flashcardInner" class="fc-squish relative w-full h-full text-center shadow-xl rounded-xl glass-panel hover:shadow-2xl hover:shadow-primary/10">
+                <!-- Question card -->
+                <div class="fc-question absolute w-full h-full bg-surface-container-lowest rounded-xl p-8 flex flex-col items-center justify-center border border-on-surface/5">
+                    <span class="absolute top-6 left-6 text-sm text-on-surface-variant uppercase tracking-wide flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">help_outline</span>
+                        Question
                     </span>
+                    <h2 id="cardQuestion" class="text-2xl font-semibold text-on-background mt-4 px-4">{{ $first['question'] }}</h2>
+                    <div class="absolute bottom-6 w-full flex justify-center opacity-50 group-hover:opacity-100 transition-opacity">
+                        <span class="text-sm font-semibold text-primary flex items-center gap-2 bg-primary/5 px-4 py-1.5 rounded-full">
+                            <span class="material-symbols-outlined text-base">touch_app</span>
+                            Tap to reveal answer
+                        </span>
+                    </div>
+                </div>
+                <!-- Answer card -->
+                <div class="fc-answer absolute w-full h-full bg-surface-container-lowest rounded-xl p-8 flex flex-col items-center justify-center border-2 border-primary/20 overflow-y-auto">
+                    <span class="absolute top-6 left-6 text-sm font-semibold text-primary uppercase tracking-wide flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">lightbulb</span>
+                        Answer
+                    </span>
+                    {{-- Sized down from the mockup's 5xl: a real answer is a
+                         sentence, not a big-O symbol. --}}
+                    <p id="cardAnswer" class="text-2xl text-primary font-bold px-4 mt-6">{{ $first['answer'] }}</p>
+                    <p id="cardExplanation" class="text-base text-on-surface-variant mt-4 max-w-lg px-4">{{ $first['explanation'] }}</p>
                 </div>
             </div>
-            <!-- Answer card -->
-            <div class="fc-answer absolute w-full h-full bg-surface-container-lowest rounded-xl p-8 flex flex-col items-center justify-center border-2 border-primary/20">
-                <span class="absolute top-6 left-6 text-sm font-semibold text-primary uppercase tracking-wide flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">lightbulb</span>
-                    Answer
-                </span>
-                <p id="cardAnswer" class="text-5xl text-primary font-bold">{{ $card['answer'] }}</p>
-                <p id="cardExplanation" class="text-lg text-on-surface-variant mt-4 max-w-lg">{{ $card['explanation'] }}</p>
+        </div>
+
+        <!-- Controls Area -->
+        <div class="w-full max-w-3xl flex flex-col gap-4">
+            <div class="flex justify-between items-center bg-surface glass-panel px-6 py-4 rounded-xl shadow-sm">
+                <button id="prevBtn" type="button" onclick="goToCard(-1)"
+                    class="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-on-surface-variant/40 pointer-events-none">
+                    <span class="material-symbols-outlined text-sm">arrow_back_ios_new</span>
+                    Previous
+                </button>
+                <button id="nextBtn" type="button" onclick="goToCard(1)"
+                    class="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors {{ $cards->count() > 1 ? 'text-on-surface hover:text-primary hover:bg-primary/5' : 'text-on-surface-variant/40 pointer-events-none' }}">
+                    Next
+                    <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
+                </button>
             </div>
         </div>
-    </div>
-
-    <!-- Controls Area -->
-    <div class="w-full max-w-3xl flex flex-col gap-4">
-        <!-- Navigation Controls -->
-        <div class="flex justify-between items-center bg-surface glass-panel px-6 py-4 rounded-xl shadow-sm">
-            <a id="prevBtn" href="{{ $flashcardId > 1 ? route('student.chapters.flashcards.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'flashcardId' => $flashcardId - 1]) : '#' }}"
-               onclick="return goToCard(-1)"
-               class="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors {{ $flashcardId > 1 ? 'text-on-surface-variant hover:text-primary hover:bg-primary/5' : 'text-on-surface-variant/40 pointer-events-none' }}">
-                <span class="material-symbols-outlined text-sm">arrow_back_ios_new</span>
-                Previous
-            </a>
-            <a id="nextBtn" href="{{ $flashcardId < $totalCards ? route('student.chapters.flashcards.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'flashcardId' => $flashcardId + 1]) : '#' }}"
-               onclick="return goToCard(1)"
-               class="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors {{ $flashcardId < $totalCards ? 'text-on-surface hover:text-primary hover:bg-primary/5' : 'text-on-surface-variant/40 pointer-events-none' }}">
-                Next
-                <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
-            </a>
-        </div>
-    </div>
+    @endif
 </div>
 
+@if($cards->isNotEmpty())
 @push('scripts')
 <script>
+    // The deck's cards, in the order they were arranged.
     const fcCards = @json($cards);
-    const fcTotal = {{ $totalCards }};
-    let fcCurrentId = {{ $flashcardId }};
+    const fcTotal = fcCards.length;
+    let fcIndex = 0;
     let fcAnimating = false;
-    const fcBaseUrl = '{{ route('student.chapters.flashcards.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'flashcardId' => '__ID__']) }}';
-
-    function fcUrlFor(id) {
-        return fcBaseUrl.replace('__ID__', id);
-    }
 
     // Pinch the card flat (scaleX), swap which of the two cards is showing,
     // then release it back open — a purely 2D "flip" with no 3D transform
@@ -187,38 +169,23 @@
         }, 150);
     }
 
-    function fcResetSaveButton() {
-        const saveBtn = document.getElementById('saveCardBtn');
-        if (!saveBtn) return;
-        saveBtn.classList.remove('is-saved');
-        const icon = saveBtn.querySelector('.material-symbols-outlined');
-        icon.textContent = 'bookmark_border';
-        icon.style.fontVariationSettings = "'FILL' 0";
-        icon.style.color = '';
-        const label = saveBtn.querySelector('[data-save-label]');
-        if (label) label.textContent = label.dataset.saveLabel;
-    }
-
-    function fcRenderCard(id) {
-        const card = fcCards[id];
+    function fcRender(index) {
+        const card = fcCards[index];
 
         document.getElementById('cardQuestion').textContent = card.question;
         document.getElementById('cardAnswer').textContent = card.answer;
         document.getElementById('cardExplanation').textContent = card.explanation;
 
-        const progress = Math.round((id / fcTotal) * 100);
-        document.getElementById('progressLabel').textContent = 'Progress · Card ' + id + ' of ' + fcTotal;
+        const position = index + 1;
+        const progress = Math.round((position / fcTotal) * 100);
+        document.getElementById('progressLabel').textContent = 'Progress · Card ' + position + ' of ' + fcTotal;
         document.getElementById('progressPercent').textContent = progress + '%';
         document.getElementById('progressBarFill').style.width = progress + '%';
 
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-
-        const prevEnabled = id > 1;
-        const nextEnabled = id < fcTotal;
-
-        prevBtn.href = prevEnabled ? fcUrlFor(id - 1) : '#';
-        nextBtn.href = nextEnabled ? fcUrlFor(id + 1) : '#';
+        const prevEnabled = index > 0;
+        const nextEnabled = index < fcTotal - 1;
 
         prevBtn.classList.toggle('pointer-events-none', !prevEnabled);
         prevBtn.classList.toggle('text-on-surface-variant/40', !prevEnabled);
@@ -231,14 +198,14 @@
         nextBtn.classList.toggle('text-on-surface', nextEnabled);
         nextBtn.classList.toggle('hover:text-primary', nextEnabled);
         nextBtn.classList.toggle('hover:bg-primary/5', nextEnabled);
-
-        fcResetSaveButton();
-        history.replaceState(null, '', fcUrlFor(id));
     }
 
     function goToCard(direction) {
-        const targetId = fcCurrentId + direction;
-        if (fcAnimating || targetId < 1 || targetId > fcTotal) return false;
+        const target = fcIndex + direction;
+
+        if (fcAnimating || target < 0 || target > fcTotal - 1) {
+            return false;
+        }
 
         fcAnimating = true;
         const stage = document.getElementById('flashcardStage');
@@ -251,8 +218,8 @@
         stage.classList.add(outClass);
 
         setTimeout(() => {
-            fcCurrentId = targetId;
-            fcRenderCard(fcCurrentId);
+            fcIndex = target;
+            fcRender(fcIndex);
 
             stage.classList.remove(outClass);
             const inClass = direction > 0 ? 'fc-anim-in-from-right' : 'fc-anim-in-from-left';
@@ -269,6 +236,15 @@
 
         return false;
     }
+
+    // Arrow keys step the deck; space flips the card.
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') { goToCard(1); }
+        else if (event.key === 'ArrowLeft') { goToCard(-1); }
+        else if (event.key === ' ') { event.preventDefault(); toggleFlip(); }
+    });
 </script>
 @endpush
+@endif
+
 @endsection

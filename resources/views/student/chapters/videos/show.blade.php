@@ -1,6 +1,6 @@
 @extends('layouts.student')
 
-@section('title', 'Video Lesson')
+@section('title', $video->title . ' – Video Lesson')
 
 @push('styles')
 <style>
@@ -32,65 +32,74 @@
         <nav class="flex text-xs text-on-surface-variant items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
             <a class="hover:text-primary transition-colors" href="{{ route('student.courses') }}">My Courses</a>
             <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-            <a class="hover:text-primary transition-colors" href="{{ route('student.courses.show', ['id' => $courseId]) }}">Course {{ $courseId }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('student.courses.show', $course) }}">{{ $course->title }}</a>
             <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-            <a class="hover:text-primary transition-colors" href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}">Chapter {{ $chapterId }}</a>
+            <a class="hover:text-primary transition-colors" href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}">{{ $chapter->title }}</a>
             <span class="material-symbols-outlined text-[16px]">chevron_right</span>
             <a class="hover:text-primary transition-colors" href="{{ route('student.chapters.videos', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}">Videos</a>
             <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-            <span class="text-on-surface font-medium">Introduction to Neural Networks</span>
+            <span class="text-on-surface font-medium">{{ $video->title }}</span>
         </nav>
 
-        <!-- Video Player Area -->
-        <div class="w-full aspect-video bg-black rounded-xl overflow-hidden relative shadow-md group">
-            <div class="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-60 transition-opacity duration-500" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBolCo2H6-_iR_cYuHoazt2xHwJDoDlAlkZYgVrGYh1h0jnIRuG_nXCim_h1uSceBeu_BzjxJNyNn66eSIgpR4-y-VWAE6h2JQJPRsHh86nx8ph8hSQMxASMc9APwopcEGX_i71oEkROYqMBOo_7NedHQIIgu5X27yF-u90PKRUnXRHlCGvs6Eis75E_LZ9uxxpvWicgeBlHnRbESThwHGnL5XCwtKExwnC342xl8Qjv-S-lt4ONZc_')"></div>
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <button class="w-20 h-20 rounded-full bg-primary/90 text-white flex items-center justify-center backdrop-blur-md shadow-lg transform group-hover:scale-110 transition-transform duration-300 pointer-events-auto cursor-pointer border border-white/20">
-                    <span class="material-symbols-outlined text-4xl ml-2" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
-                </button>
-            </div>
-            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="w-full h-1.5 bg-white/30 rounded-full overflow-hidden cursor-pointer">
-                    <div class="h-full bg-primary w-1/3 relative">
-                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow"></div>
-                    </div>
+        {{-- The real player. Wrapped so watching reports back: progress.js
+             reports as it plays and completes the lesson at 90%. --}}
+        <x-module-progress :record="$video">
+            @if($video->video_url && ! $video->is_external)
+                <video controls preload="metadata"
+                    class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-md"
+                    src="{{ $video->video_url }}"></video>
+            @elseif($video->is_external)
+                <div class="w-full aspect-video bg-black rounded-xl overflow-hidden relative shadow-md flex flex-col items-center justify-center gap-4">
+                    <span class="material-symbols-outlined text-white/70" style="font-size:64px;">play_circle</span>
+                    <a href="{{ $video->video_url }}" target="_blank" rel="noopener"
+                        class="bg-primary text-on-primary font-semibold text-sm px-6 py-2.5 rounded-full inline-flex items-center gap-2">
+                        Watch on the host site
+                        <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                    </a>
+                    <p class="text-white/60 text-xs">Hosted elsewhere — tick it off below when you have finished.</p>
                 </div>
-                <div class="flex justify-between items-center text-white mt-2">
-                    <div class="flex items-center gap-4">
-                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">pause</span></button>
-                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">volume_up</span></button>
-                        <span class="text-sm font-medium">12:45 / 45:30</span>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">closed_caption</span></button>
-                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">settings</span></button>
-                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">fullscreen</span></button>
-                    </div>
+            @else
+                <div class="w-full aspect-video bg-black rounded-xl overflow-hidden relative shadow-md flex flex-col items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-white/40" style="font-size:56px;">videocam_off</span>
+                    <p class="text-white/60 text-sm">This lesson has no video file yet.</p>
                 </div>
-            </div>
-        </div>
+            @endif
+        </x-module-progress>
 
         <!-- Lesson Info -->
         <div class="flex flex-col gap-4 bg-surface-container-lowest p-6 rounded-xl glass-panel relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-container"></div>
             <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-on-surface mb-2">Introduction to Neural Networks</h1>
-                    <p class="text-sm text-on-surface-variant max-w-3xl">In this foundational lesson, we explore the biological inspiration behind artificial neural networks, deconstruct the architecture of a perceptron, and introduce the concept of activation functions and backpropagation.</p>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                        @if($video->topic)
+                            <span class="bg-secondary-container/20 text-secondary px-2 py-0.5 rounded text-xs uppercase tracking-wider">{{ $video->topic->title }}</span>
+                        @endif
+                        @if($done)
+                            <span class="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded text-xs font-semibold">Completed</span>
+                        @elseif($watched > 0)
+                            <span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-semibold">{{ $watched }}% watched</span>
+                        @endif
+                        <span class="text-on-surface-variant text-xs">Added {{ $video->created_at?->diffForHumans() }}</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-on-surface mb-2">{{ $video->title }}</h1>
+                    <p class="text-sm text-on-surface-variant max-w-3xl">{{ $video->description ? strip_tags($video->description) : 'No description for this lesson yet.' }}</p>
                 </div>
-                <button onclick="toggleSaveIcon(this)" class="flex items-center justify-center gap-2 bg-primary/10 text-primary font-semibold text-sm px-6 py-2 rounded-full hover:bg-primary hover:text-white transition-colors shadow-sm whitespace-nowrap">
-                    <span class="material-symbols-outlined">bookmark_border</span>
-                    <span data-save-label="Save Lesson">Save Lesson</span>
-                </button>
             </div>
-            <div class="h-px bg-outline-variant/30 w-full my-2"></div>
-            <div class="flex items-center gap-4">
-                <img class="w-10 h-10 rounded-full object-cover border-2 border-surface-container-highest shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB58RdVU6WnpVB74Ci3p7cEud9I-cdQWrn8hMCp6RwTe9DScw4_5GWhGR3wlc-xfAW0HUS43XFd0X_jUS0RvgaWy22hovzZh5xxFCOmWy_ruKma8LN_gwlOzecMwDyeIq9DWQ-eoWg-t0kpr0YarmofUtCyR5ByIfeD83QftTAfcHSxXMW3swCzYGoSiZfF8-hGbowzyRbUolx6oOJ9ly2ZQN-O8o5AbQfhsNME0IW4GN-4vZMuY25k" alt="Instructor"/>
-                <div>
-                    <div class="text-sm font-semibold text-on-surface">Dr. Alan Turing</div>
-                    <div class="text-xs text-on-surface-variant">Lead Instructor</div>
+
+            @if($video->addedBy)
+                <div class="h-px bg-outline-variant/30 w-full my-2"></div>
+                <div class="flex items-center gap-4">
+                    {{-- No avatar column, so the initial stands in for a photo. --}}
+                    <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold border-2 border-surface-container-highest shadow-sm shrink-0">
+                        {{ Str::upper(Str::substr($video->addedBy->name, 0, 1)) }}
+                    </div>
+                    <div>
+                        <div class="text-sm font-semibold text-on-surface">{{ $video->addedBy->name }}</div>
+                        <div class="text-xs text-on-surface-variant">Instructor</div>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 
@@ -103,41 +112,70 @@
                     <span class="material-symbols-outlined text-primary">format_list_bulleted</span>
                     Chapter Playlist
                 </h3>
-                <span class="text-xs text-on-surface-variant bg-surface-container py-1 px-2 rounded-md">2/8 Lessons</span>
+                <span class="text-xs text-on-surface-variant bg-surface-container py-1 px-2 rounded-md">
+                    {{ $completedCount }}/{{ $playlist->count() }} {{ Str::plural('Lesson', $playlist->count()) }}
+                </span>
             </div>
             <div class="flex flex-col max-h-[400px] overflow-y-auto p-2 scrollbar-hide space-y-1">
-                <!-- Completed -->
-                <a class="flex gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group items-start" href="#">
-                    <div class="mt-1 text-tertiary">
-                        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-semibold text-on-surface-variant line-through group-hover:text-primary transition-colors">History of AI Paradigms</h4>
-                        <p class="text-xs text-on-surface-variant/70 mt-1">18:20 • Completed</p>
-                    </div>
-                </a>
-                <!-- Active -->
-                <div class="flex gap-3 p-3 rounded-lg bg-primary/10 border-l-4 border-primary items-start">
-                    <div class="mt-1 text-primary relative flex h-5 w-5 items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-20"></span>
-                        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-semibold text-primary">Introduction to Neural Networks</h4>
-                        <p class="text-xs text-primary/80 mt-1">45:30 • Currently Watching</p>
-                    </div>
-                </div>
-                <!-- Up Next -->
-                <a class="flex gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group items-start" href="#">
-                    <div class="mt-1 text-outline-variant">
-                        <span class="material-symbols-outlined text-[20px]">lock</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">Forward Propagation Mechanics</h4>
-                        <p class="text-xs text-on-surface-variant mt-1">32:15 • Up Next</p>
-                    </div>
-                </a>
+                @foreach($playlist as $lesson)
+                    @php
+                        $isCurrent = $lesson->id === $video->id;
+                        $lessonDone = $state[$lesson->id]['completed'] ?? false;
+                        $lessonWatched = $state[$lesson->id]['progress'] ?? 0;
+                    @endphp
+
+                    @if($isCurrent)
+                        <div class="flex gap-3 p-3 rounded-lg bg-primary/10 border-l-4 border-primary items-start">
+                            <div class="mt-1 text-primary relative flex h-5 w-5 items-center justify-center shrink-0">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-20"></span>
+                                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-semibold text-primary">{{ $lesson->title }}</h4>
+                                <p class="text-xs text-primary/80 mt-1">
+                                    Currently watching
+                                    @if($lessonWatched > 0)
+                                        &middot; {{ $lessonWatched }}%
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        <a class="flex gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group items-start"
+                            href="{{ route('student.chapters.videos.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'videoId' => $lesson->uuid]) }}">
+                            <div class="mt-1 shrink-0 {{ $lessonDone ? 'text-tertiary' : 'text-outline-variant' }}">
+                                <span class="material-symbols-outlined text-[20px]"
+                                    @if($lessonDone) style="font-variation-settings: 'FILL' 1;" @endif>
+                                    {{ $lessonDone ? 'check_circle' : 'play_circle' }}
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-semibold {{ $lessonDone ? 'text-on-surface-variant line-through' : 'text-on-surface' }} group-hover:text-primary transition-colors">{{ $lesson->title }}</h4>
+                                <p class="text-xs text-on-surface-variant/70 mt-1">
+                                    @if($lessonDone)
+                                        Completed
+                                    @elseif($lessonWatched > 0)
+                                        {{ $lessonWatched }}% watched
+                                    @else
+                                        Not started
+                                    @endif
+                                </p>
+                            </div>
+                        </a>
+                    @endif
+                @endforeach
             </div>
+
+            @if($next)
+                <a href="{{ route('student.chapters.videos.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'videoId' => $next->uuid]) }}"
+                    class="p-4 border-t border-outline-variant/10 flex items-center justify-between gap-2 hover:bg-surface-container-low transition-colors group">
+                    <span class="min-w-0">
+                        <span class="block text-on-surface-variant text-xs">Up next</span>
+                        <span class="block text-on-surface text-sm font-semibold truncate group-hover:text-primary transition-colors">{{ $next->title }}</span>
+                    </span>
+                    <span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform shrink-0">arrow_forward</span>
+                </a>
+            @endif
         </div>
 
         <!-- Resources Section -->
@@ -147,15 +185,32 @@
                 Lesson Resources
             </h3>
             <div class="grid grid-cols-1 gap-3">
-                <a class="flex items-center p-3 rounded-lg border border-outline-variant/20 hover:border-primary/50 hover:bg-surface-container-low transition-all group" href="#">
-                    <div class="w-10 h-10 rounded-md bg-error/10 text-error flex items-center justify-center mr-3">
-                        <span class="material-symbols-outlined">quiz</span>
+                @if($quiz)
+                    <a href="{{ route($quiz->type === 'mcqs' ? 'public.course.chapter.mcqs.show' : 'public.course.chapter.theory.show', [$course, $chapter, $quiz]) }}"
+                        class="flex items-center p-3 rounded-lg border border-outline-variant/20 hover:border-primary/50 hover:bg-surface-container-low transition-all group">
+                        <div class="w-10 h-10 rounded-md bg-error/10 text-error flex items-center justify-center mr-3 shrink-0">
+                            <span class="material-symbols-outlined">quiz</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors truncate">{{ $quiz->title }}</div>
+                            <div class="text-xs text-on-surface-variant">
+                                {{ $quiz->questions_count }} {{ Str::plural('question', $quiz->questions_count) }}@if($quiz->duration) &middot; {{ $quiz->duration }} mins @endif
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors shrink-0">arrow_forward_ios</span>
+                    </a>
+                @endif
+
+                <a href="{{ route('student.chapters.show', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
+                    class="flex items-center p-3 rounded-lg border border-outline-variant/20 hover:border-primary/50 hover:bg-surface-container-low transition-all group">
+                    <div class="w-10 h-10 rounded-md bg-secondary/10 text-secondary flex items-center justify-center mr-3 shrink-0">
+                        <span class="material-symbols-outlined">dashboard</span>
                     </div>
-                    <div class="flex-1">
-                        <div class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">Chapter Quiz</div>
-                        <div class="text-xs text-on-surface-variant">Test your knowledge (10 mins)</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">Back to the chapter</div>
+                        <div class="text-xs text-on-surface-variant">Notes, flashcards and more</div>
                     </div>
-                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors shrink-0">arrow_forward_ios</span>
                 </a>
             </div>
         </div>
