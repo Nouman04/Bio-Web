@@ -6,6 +6,28 @@
  * layouts/student.blade.php; the layout keeps only what is genuinely its own.
  */
 
+/* ── The rail ─────────────────────────────────────────────────────────────
+   The sidebar is the brand surface: #001330 in both themes. Everything on it
+   is therefore light, and the tokens below are the only place that decides
+   how light. Sitting here rather than on the elements is what stops the two
+   rails drifting apart, which is how they got out of step before. */
+:root {
+    --rail-bg: #001330;
+    --rail-line: rgba(255, 255, 255, 0.09);
+    --rail-idle: rgba(226, 236, 250, 0.72);
+    --rail-hover-bg: rgba(255, 255, 255, 0.07);
+    --rail-hover-ink: #ffffff;
+    --rail-active-bg: rgba(128, 178, 255, 0.15);
+    --rail-active-ink: #80b2ff;
+    --rail-muted: rgba(226, 236, 250, 0.42);
+}
+
+.sidebar-rail {
+    background: var(--rail-bg);
+    color: var(--rail-idle);
+    border-right: 1px solid var(--rail-line);
+}
+
 /* ── The active item ──────────────────────────────────────────────────────
    A tinted pill plus a rail marker down the left edge. The marker grows out
    of nothing rather than appearing, so moving between pages reads as motion. */
@@ -22,7 +44,7 @@
     width: 3px;
     height: 0;
     border-radius: 0 99px 99px 0;
-    background: var(--sidebar-accent, #4648d4);
+    background: var(--sidebar-accent, var(--rail-active-ink));
     transform: translateY(-50%);
     transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -30,15 +52,17 @@
 .sidebar-item.active::before { height: 1.5rem; }
 .sidebar-item:hover:not(.active)::before { height: 0.75rem; opacity: 0.45; }
 
-.sidebar-item.active {
-    background: rgba(70, 72, 212, 0.1);
-    color: #4648d4;
-    font-weight: 600;
+.sidebar-item { color: var(--rail-idle); }
+
+.sidebar-item:hover:not(.active) {
+    background: var(--rail-hover-bg);
+    color: var(--rail-hover-ink);
 }
 
-.dark .sidebar-item.active {
-    background: rgba(70, 72, 212, 0.22);
-    color: #c7c8ff;
+.sidebar-item.active {
+    background: var(--rail-active-bg);
+    color: var(--rail-active-ink);
+    font-weight: 600;
 }
 
 /* Hovering nudges the row toward the content it opens. */
@@ -53,6 +77,8 @@
 /* ── Counts ─────────────────────────────────────────────────────────────── */
 .sidebar-badge {
     flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.13);
+    color: #dbe7f7;
     min-width: 1.375rem;
     padding: 0.0625rem 0.375rem;
     border-radius: 99px;
@@ -102,8 +128,9 @@
         transform: translateY(-50%) translateX(-4px);
         padding: 0.375rem 0.75rem;
         border-radius: 0.625rem;
-        background: rgb(30, 30, 45);
+        background: #002866;
         color: #fff;
+        border: 1px solid var(--rail-line);
         font-size: 0.75rem;
         font-weight: 600;
         white-space: nowrap;
@@ -128,10 +155,17 @@
     transition: background-color 0.2s ease;
 }
 
-.sidebar-user:hover { background: rgba(118, 117, 134, 0.08); }
-.dark .sidebar-user:hover { background: rgba(148, 163, 184, 0.1); }
+.sidebar-user:hover { background: var(--rail-hover-bg); }
 
-.sidebar-logout { transition: color 0.2s ease, background-color 0.2s ease; }
+.sidebar-logout {
+    color: var(--rail-idle);
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.sidebar-logout:hover {
+    background: rgba(220, 38, 38, 0.16);
+    color: #ffb4ab;
+}
 
 /* ── Nav scroll area ────────────────────────────────────────────────────── */
 .sidebar-nav-scroll {
@@ -143,8 +177,8 @@
 
 .sidebar-nav-scroll::-webkit-scrollbar { width: 5px; }
 .sidebar-nav-scroll::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav-scroll::-webkit-scrollbar-thumb { background: rgba(118, 117, 134, 0.25); border-radius: 99px; }
-.sidebar-nav-scroll::-webkit-scrollbar-thumb:hover { background: rgba(118, 117, 134, 0.45); }
+.sidebar-nav-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 99px; }
+.sidebar-nav-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.32); }
 
 /* The tooltip has to escape the scroll box to be seen. */
 @media (min-width: 1024px) {
@@ -241,4 +275,58 @@
         padding-left: 0;
         padding-right: 0;
     }
+}
+/* ── The rest of the rail's furniture ─────────────────────────────────────
+   Each of these replaced a light-surface utility that was spelled out on the
+   element itself; the markup now carries only the hook. */
+.sidebar-brand { color: #ffffff; }
+.sidebar-brand-sub { color: var(--rail-muted); }
+.sidebar-group-label { color: var(--rail-muted); }
+.sidebar-divider { border-top: 1px solid var(--rail-line); }
+
+.sidebar-avatar {
+    background: var(--rail-active-bg);
+    color: var(--rail-active-ink);
+}
+
+.sidebar-user-name { color: #ffffff; }
+.sidebar-user-sub { color: var(--rail-muted); }
+
+.sidebar-toggle {
+    background: #002866;
+    border: 1px solid var(--rail-line);
+    color: var(--rail-idle);
+}
+
+.sidebar-toggle:hover {
+    background: #0041a3;
+    color: #ffffff;
+}
+
+.sidebar-close { color: var(--rail-idle); }
+.sidebar-close:hover { background: var(--rail-hover-bg); color: #ffffff; }
+
+/* The logo is a light mark on a light bag; on navy it needs its own plate. */
+.sidebar-rail img { border-radius: 0.75rem; }
+/* ── The rail in the dark theme ───────────────────────────────────────────
+   #001330 is the brand navy, and against a light page it reads as a strong
+   dark plane. Against the dark theme's own page it does not: measured on a
+   render, rail against content came out at 1.04:1 — the rail simply vanished.
+
+   So in the dark it lifts instead of sinking, to surface-container-high from
+   the same ramp every other panel uses (1.21:1 against the page), with a
+   firmer hairline to draw the edge. The inks are already light and stay put:
+   they measure 12.4:1 idle, 6.8:1 active and 14.7:1 on hover against it. */
+.dark {
+    --rail-bg: #1a2842;
+    --rail-line: rgba(255, 255, 255, 0.13);
+}
+
+/* The chrome that sat on the deeper navy needs to lift with it. */
+.dark .sidebar-toggle { background: #22314d; }
+.dark .sidebar-toggle:hover { background: #0041a3; }
+
+@media (min-width: 1024px) {
+    .dark #sidebar.collapsed .sidebar-item::after,
+    .dark html.sidebar-was-collapsed #sidebar .sidebar-item::after { background: #0a1120; }
 }

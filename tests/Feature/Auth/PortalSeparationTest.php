@@ -31,12 +31,12 @@ class PortalSeparationTest extends TestCase
     {
         $student = $this->student();
 
-        $response = $this->from('/login')->post('/login', [
+        $response = $this->from('/admin/login')->post('/admin/login', [
             'email' => $student->email,
             'password' => 'test@123',
         ]);
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect('/admin/login');
         $response->assertSessionHasErrors('email');
         $this->assertGuest();
     }
@@ -72,7 +72,7 @@ class PortalSeparationTest extends TestCase
     {
         $admin = $this->admin();
 
-        $response = $this->post('/login', [
+        $response = $this->post('/admin/login', [
             'email' => $admin->email,
             'password' => 'test@123',
         ]);
@@ -127,8 +127,8 @@ class PortalSeparationTest extends TestCase
         $response = $this->actingAs($this->admin())->post('/logout');
 
         $this->assertGuest();
-        $response->assertRedirect(route('login'));
-        $this->get('/dashboard')->assertRedirect(route('login'));
+        $response->assertRedirect(route('admin.login'));
+        $this->get('/dashboard')->assertRedirect(route('admin.login'));
     }
 
     public function test_the_root_url_sends_everyone_to_the_public_home_page(): void
@@ -141,7 +141,7 @@ class PortalSeparationTest extends TestCase
     public function test_guests_are_sent_to_the_login_matching_the_area(): void
     {
         $this->get('/student/dashboard')->assertRedirect(route('student.login'));
-        $this->get('/dashboard')->assertRedirect(route('login'));
+        $this->get('/dashboard')->assertRedirect(route('admin.login'));
     }
 
     public function test_signed_in_users_are_sent_home_from_the_login_pages(): void

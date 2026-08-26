@@ -18,7 +18,7 @@
     .cover h1 { font-size: 22pt; letter-spacing: -0.3px; }
     .cover .sub { font-size: 11pt; color: #767586; margin-bottom: 18px; }
 
-    .rule { border: 0; border-top: 2px solid #4648d4; margin: 10px 0 16px; }
+    .rule { border: 0; border-top: 2px solid #001330; margin: 10px 0 16px; }
     .thin-rule { border: 0; border-top: 1px solid #e0e3e5; margin: 14px 0; }
 
     table.meta { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
@@ -34,7 +34,7 @@
         text-align: center;
         background: #fafaff;
     }
-    .tiles .n { font-size: 18pt; font-weight: bold; color: #4648d4; display: block; }
+    .tiles .n { font-size: 18pt; font-weight: bold; color: #001330; display: block; }
     .tiles .l { font-size: 8pt; color: #767586; text-transform: uppercase; letter-spacing: 0.5px; }
 
     .chip {
@@ -55,7 +55,7 @@
         display: inline-block;
         min-width: 22px;
         font-weight: bold;
-        color: #4648d4;
+        color: #001330;
     }
     .q .text { font-weight: 600; }
     .q .marks { float: right; font-size: 9pt; color: #45464f; white-space: nowrap; }

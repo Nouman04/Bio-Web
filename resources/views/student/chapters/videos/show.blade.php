@@ -11,7 +11,7 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
     .hover-shadow:hover {
-        box-shadow: 0px 10px 30px rgba(70, 72, 212, 0.08);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
         transform: translateY(-2px);
     }
     .scrollbar-hide::-webkit-scrollbar {

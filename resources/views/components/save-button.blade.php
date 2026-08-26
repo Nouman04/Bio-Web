@@ -43,7 +43,7 @@
         title="{{ $saved ? 'Saved — click to remove' : 'Save for later' }}"
         {{ $attributes->merge(['class' => 'transition-colors ' . $class]) }}>
         <span class="material-symbols-outlined"
-            @if($saved) style="font-variation-settings:'FILL' 1;color:#4648d4;" @endif>
+            @if($saved) style="font-variation-settings:'FILL' 1;color:#001330;" @endif>
             {{ $saved ? 'bookmark' : 'bookmark_border' }}
         </span>
         @if($label)
@@ -94,7 +94,7 @@
 
                     icon.textContent = result.saved ? 'bookmark' : 'bookmark_border';
                     icon.style.fontVariationSettings = result.saved ? "'FILL' 1" : "'FILL' 0";
-                    icon.style.color = result.saved ? '#4648d4' : '';
+                    icon.style.color = result.saved ? '#001330' : '';
 
                     if (label) {
                         label.textContent = result.saved ? 'Saved' : label.dataset.saveLabel;

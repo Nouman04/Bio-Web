@@ -7,6 +7,8 @@
     <title>@yield('title', 'Sign In') | EduAdmin LMS</title>
 
     {{-- Tailwind CSS --}}
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
     {{-- Google Fonts --}}
@@ -20,53 +22,53 @@
             theme: {
                 extend: {
                     colors: {
-                        "on-secondary-fixed": "#2a1700",
-                        "on-error": "#ffffff",
-                        "tertiary-fixed-dim": "#4edea3",
-                        "on-tertiary-fixed-variant": "#005236",
-                        "surface-container-lowest": "#ffffff",
-                        "surface": "#f7f9fb",
-                        "on-primary-fixed": "#07006c",
-                        "surface-bright": "#f7f9fb",
-                        "on-tertiary-fixed": "#002113",
-                        "inverse-primary": "#c0c1ff",
-                        "background": "#f7f9fb",
-                        "outline": "#767586",
-                        "surface-container-low": "#f2f4f6",
-                        "inverse-on-surface": "#eff1f3",
-                        "surface-variant": "#e0e3e5",
-                        "on-error-container": "#93000a",
-                        "secondary-fixed-dim": "#ffb95f",
-                        "outline-variant": "#c7c4d7",
-                        "on-secondary-container": "#684000",
-                        "tertiary": "#006c49",
-                        "surface-container-high": "#e6e8ea",
-                        "primary-container": "#6063ee",
-                        "error-container": "#ffdad6",
-                        "primary-fixed": "#e1e0ff",
-                        "on-tertiary-container": "#000703",
-                        "secondary-container": "#fea619",
-                        "error": "#ba1a1a",
-                        "surface-container": "#eceef0",
-                        "on-primary-container": "#fffbff",
-                        "inverse-surface": "#2d3133",
-                        "on-secondary-fixed-variant": "#653e00",
-                        "surface-container-highest": "#e0e3e5",
-                        "tertiary-container": "#00885d",
-                        "tertiary-fixed": "#6ffbbe",
-                        "on-primary-fixed-variant": "#2f2ebe",
-                        "on-primary": "#ffffff",
-                        "on-surface": "#191c1e",
-                        "surface-dim": "#d8dadc",
-                        "secondary": "#855300",
-                        "on-tertiary": "#ffffff",
-                        "primary-fixed-dim": "#c0c1ff",
-                        "on-surface-variant": "#464554",
-                        "surface-tint": "#494bd6",
-                        "primary": "#4648d4",
-                        "on-secondary": "#ffffff",
-                        "secondary-fixed": "#ffddb8",
-                        "on-background": "#191c1e"
+                        "on-secondary-fixed": "rgb(var(--c-on-secondary-fixed) / <alpha-value>)",
+                        "on-error": "rgb(var(--c-on-error) / <alpha-value>)",
+                        "tertiary-fixed-dim": "rgb(var(--c-tertiary-fixed-dim) / <alpha-value>)",
+                        "on-tertiary-fixed-variant": "rgb(var(--c-on-tertiary-fixed-variant) / <alpha-value>)",
+                        "surface-container-lowest": "rgb(var(--c-surface-container-lowest) / <alpha-value>)",
+                        "surface": "rgb(var(--c-surface) / <alpha-value>)",
+                        "on-primary-fixed": "rgb(var(--c-on-primary-fixed) / <alpha-value>)",
+                        "surface-bright": "rgb(var(--c-surface-bright) / <alpha-value>)",
+                        "on-tertiary-fixed": "rgb(var(--c-on-tertiary-fixed) / <alpha-value>)",
+                        "inverse-primary": "rgb(var(--c-inverse-primary) / <alpha-value>)",
+                        "background": "rgb(var(--c-background) / <alpha-value>)",
+                        "outline": "rgb(var(--c-outline) / <alpha-value>)",
+                        "surface-container-low": "rgb(var(--c-surface-container-low) / <alpha-value>)",
+                        "inverse-on-surface": "rgb(var(--c-inverse-on-surface) / <alpha-value>)",
+                        "surface-variant": "rgb(var(--c-surface-variant) / <alpha-value>)",
+                        "on-error-container": "rgb(var(--c-on-error-container) / <alpha-value>)",
+                        "secondary-fixed-dim": "rgb(var(--c-secondary-fixed-dim) / <alpha-value>)",
+                        "outline-variant": "rgb(var(--c-outline-variant) / <alpha-value>)",
+                        "on-secondary-container": "rgb(var(--c-on-secondary-container) / <alpha-value>)",
+                        "tertiary": "rgb(var(--c-tertiary) / <alpha-value>)",
+                        "surface-container-high": "rgb(var(--c-surface-container-high) / <alpha-value>)",
+                        "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
+                        "error-container": "rgb(var(--c-error-container) / <alpha-value>)",
+                        "primary-fixed": "rgb(var(--c-primary-fixed) / <alpha-value>)",
+                        "on-tertiary-container": "rgb(var(--c-on-tertiary-container) / <alpha-value>)",
+                        "secondary-container": "rgb(var(--c-secondary-container) / <alpha-value>)",
+                        "error": "rgb(var(--c-error) / <alpha-value>)",
+                        "surface-container": "rgb(var(--c-surface-container) / <alpha-value>)",
+                        "on-primary-container": "rgb(var(--c-on-primary-container) / <alpha-value>)",
+                        "inverse-surface": "rgb(var(--c-inverse-surface) / <alpha-value>)",
+                        "on-secondary-fixed-variant": "rgb(var(--c-on-secondary-fixed-variant) / <alpha-value>)",
+                        "surface-container-highest": "rgb(var(--c-surface-container-highest) / <alpha-value>)",
+                        "tertiary-container": "rgb(var(--c-tertiary-container) / <alpha-value>)",
+                        "tertiary-fixed": "rgb(var(--c-tertiary-fixed) / <alpha-value>)",
+                        "on-primary-fixed-variant": "rgb(var(--c-on-primary-fixed-variant) / <alpha-value>)",
+                        "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
+                        "on-surface": "rgb(var(--c-on-surface) / <alpha-value>)",
+                        "surface-dim": "rgb(var(--c-surface-dim) / <alpha-value>)",
+                        "secondary": "rgb(var(--c-secondary) / <alpha-value>)",
+                        "on-tertiary": "rgb(var(--c-on-tertiary) / <alpha-value>)",
+                        "primary-fixed-dim": "rgb(var(--c-primary-fixed-dim) / <alpha-value>)",
+                        "on-surface-variant": "rgb(var(--c-on-surface-variant) / <alpha-value>)",
+                        "surface-tint": "rgb(var(--c-surface-tint) / <alpha-value>)",
+                        "primary": "rgb(var(--c-primary) / <alpha-value>)",
+                        "on-secondary": "rgb(var(--c-on-secondary) / <alpha-value>)",
+                        "secondary-fixed": "rgb(var(--c-secondary-fixed) / <alpha-value>)",
+                        "on-background": "rgb(var(--c-on-background) / <alpha-value>)"
                     },
                     borderRadius: {
                         "DEFAULT": "1rem",
@@ -102,7 +104,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(70, 72, 212, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 19, 48, 0.05);
         }
         .bg-pattern {
             background-color: #f7f9fb;
@@ -115,11 +117,11 @@
         }
         .input-field:focus-within {
             background-color: #ffffff;
-            border-color: #4648d4;
-            box-shadow: 0 0 0 2px #c0c1ff;
+            border-color: #001330;
+            box-shadow: 0 0 0 2px #80b2ff;
         }
         .mesh-gradient {
-            background-color: #4648d4;
+            background-color: #001330;
             background-image:
                 radial-gradient(at 40% 20%, hsla(240,100%,74%,1) 0px, transparent 50%),
                 radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%),

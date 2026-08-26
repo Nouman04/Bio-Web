@@ -27,7 +27,7 @@
 
         {{-- The count, hidden while there is nothing to report. --}}
         <span id="notification-count"
-            class="absolute -top-1 -right-1 min-w-[1.15rem] h-[1.15rem] px-1 rounded-full bg-error text-white text-[10px] font-bold leading-[1.15rem] text-center border-2 border-surface-container-lowest dark:border-slate-800 {{ $unread ? '' : 'hidden' }}">
+            class="notification-count absolute -top-1 -right-1 min-w-[1.15rem] h-[1.15rem] px-1 rounded-full text-[10px] font-bold leading-[1.15rem] text-center {{ $unread ? '' : 'hidden' }}">
             {{ $unread > 99 ? '99+' : $unread }}
         </span>
     </button>

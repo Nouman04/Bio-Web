@@ -10,9 +10,9 @@
 <style>
     /* Drag handle affordances for the sortable question list */
     .question-row { transition: box-shadow 0.15s ease, border-color 0.15s ease; }
-    .question-row:hover { border-color: rgba(70, 72, 212, 0.35); }
+    .question-row:hover { border-color: rgba(0, 19, 48, 0.35); }
     .question-row.sortable-ghost { opacity: 0.4; }
-    .question-row.sortable-chosen { box-shadow: 0 10px 30px rgba(99, 102, 241, 0.12); }
+    .question-row.sortable-chosen { box-shadow: 0 10px 30px rgba(0, 19, 48, 0.12); }
     .question-drag { cursor: grab; }
     .question-drag:active { cursor: grabbing; }
 </style>

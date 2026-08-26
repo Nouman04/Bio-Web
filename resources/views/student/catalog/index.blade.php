@@ -16,8 +16,8 @@
     }
     .glass-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0px 10px 30px rgba(99,102,241,0.08);
-        border-color: rgba(99,102,241,0.2);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
+        border-color: rgba(0, 19, 48, 0.2);
     }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -106,7 +106,7 @@
     @forelse($courses as $course)
         @php
             $palettes = [
-                ['#4648d4', '#7c3aed'], ['#0891b2', '#4648d4'], ['#c026d3', '#7c3aed'],
+                ['#001330', '#7c3aed'], ['#0891b2', '#001330'], ['#c026d3', '#7c3aed'],
                 ['#059669', '#0891b2'], ['#ea580c', '#c026d3'],
             ];
             $palette = $palettes[$course['tint']];

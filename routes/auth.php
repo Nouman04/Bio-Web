@@ -17,16 +17,27 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    // Students are the ones who arrive here, so the bare /login is theirs.
+    // The name is kept because the framework and older links both reach for
+    // route('login'); it simply lands on the student form now.
+    Route::get('login', fn () => redirect()->route('student.login'))
         ->name('login');
 
     Route::get('student/login', [AuthenticatedSessionController::class, 'createStudent'])
         ->name('student.login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
-
     Route::post('student/login', [AuthenticatedSessionController::class, 'storeStudent'])
         ->name('student.login.store');
+
+    // Staff sign in at their own address.
+    Route::get('admin/login', [AuthenticatedSessionController::class, 'create'])
+        ->name('admin.login');
+
+    Route::post('admin/login', [AuthenticatedSessionController::class, 'store'])
+        ->name('admin.login.store');
+
+    // The old staff endpoint, kept so a bookmarked form still submits.
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

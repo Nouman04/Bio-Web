@@ -25,7 +25,7 @@
     @class([
         'sidebar-item group relative flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300',
         'active' => $active,
-        'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' => ! $active,
+        // Idle, hover and active states all live in public/css/sidebar.css.
     ])
     @if($active) aria-current="page" @endif>
 

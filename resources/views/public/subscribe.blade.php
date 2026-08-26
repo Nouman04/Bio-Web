@@ -92,7 +92,7 @@
 </div>
 
 <!-- Premium Card -->
-<div class="bg-glass-bg backdrop-blur-2xl border-2 border-primary/20 rounded-xl p-8 flex flex-col relative shadow-primary-glow transform md:-translate-y-4 z-10 transition-all duration-300 hover:shadow-[0_15px_30px_-5px_rgba(70,72,212,0.1)] hover:border-primary/40">
+<div class="bg-glass-bg backdrop-blur-2xl border-2 border-primary/20 rounded-xl p-8 flex flex-col relative shadow-primary-glow transform md:-translate-y-4 z-10 transition-all duration-300 hover:shadow-[0_15px_30px_-5px_rgba(0, 19, 48, 0.1)] hover:border-primary/40">
 <!-- Highlight Badge -->
 <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-sm text-label-sm px-4 py-1 rounded-full shadow-md whitespace-nowrap">
                     Most Popular Choice

@@ -52,7 +52,7 @@
         toggleBtn?.addEventListener('click', () => {
             const isOn = toggleBtn.classList.toggle('is-on');
             toggleIcon.textContent = isOn ? 'toggle_on' : 'toggle_off';
-            toggleIcon.style.color = isOn ? '#4648d4' : '';
+            toggleIcon.style.color = isOn ? '#001330' : '';
             toggleLabel.textContent = isOn ? 'On' : 'Off';
         });
     });

@@ -66,7 +66,7 @@
             </label>
 
             {{-- Primary Action --}}
-            <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded-DEFAULT mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(70,72,212,0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
+            <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded-DEFAULT mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(0, 19, 48, 0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
                 Sign In
                 <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
@@ -97,7 +97,7 @@
                 New here? <a class="text-primary font-semibold hover:underline hover:text-primary-container transition-colors" href="{{ route('register') }}">Create account</a>
             </p>
             <p class="text-xs text-outline mt-xs">
-                Administrator? <a class="text-secondary hover:text-primary transition-colors" href="{{ route('login') }}">Sign in here</a>
+                Administrator? <a class="text-secondary hover:text-primary transition-colors" href="{{ route('admin.login') }}">Sign in here</a>
             </p>
         </div>
     </div>

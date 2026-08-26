@@ -21,10 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Send unauthenticated visitors to the branded login page for the
-        // area they were trying to reach (student vs admin).
+        // area they were trying to reach (student vs admin). The bare /login
+        // now forwards to the student form, so staff areas name theirs.
         $middleware->redirectGuestsTo(fn ($request) => $request->is('student/*')
             ? route('student.login')
-            : route('login'));
+            : route('admin.login'));
 
         // And send already-signed-in visitors to their own home, so a student
         // who opens /login never lands on the admin dashboard.

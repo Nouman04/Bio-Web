@@ -18,12 +18,12 @@
         min-height: 50px;
     }
     .ts-wrapper.focus .ts-control {
-        border-color: #4648d4;
-        box-shadow: 0 0 0 3px rgba(70, 72, 212, 0.15);
+        border-color: #001330;
+        box-shadow: 0 0 0 3px rgba(0, 19, 48, 0.15);
     }
     .ts-wrapper .ts-control > .item {
-        background: #e1e0ff;
-        color: #2c2abc;
+        background: #c2daff;
+        color: #001330;
         border: none;
         border-radius: 9999px;
         padding: 2px 10px;
@@ -33,11 +33,11 @@
     .ts-dropdown {
         border: 1px solid #c6c5d7;
         border-radius: 1rem;
-        box-shadow: 0 12px 32px -8px rgba(70, 72, 212, 0.25);
+        box-shadow: 0 12px 32px -8px rgba(0, 19, 48, 0.25);
         overflow: hidden;
     }
     .ts-dropdown .option { padding: 0.6rem 1rem; font-size: 14px; }
-    .ts-dropdown .active { background: rgba(70, 72, 212, 0.08); color: #2c2abc; }
+    .ts-dropdown .active { background: rgba(0, 19, 48, 0.08); color: #001330; }
 </style>
 @endpush
 
@@ -80,7 +80,7 @@
 
                 <div class="flex items-center gap-3">
                     <button type="submit"
-                        class="bg-primary text-on-primary px-8 py-3 rounded-full font-label-md hover:bg-primary-container transition-all duration-300 active:scale-95 shadow-[0_4px_14px_0_rgba(70,72,212,0.39)] whitespace-nowrap">
+                        class="bg-primary text-on-primary px-8 py-3 rounded-full font-label-md hover:bg-primary-container transition-all duration-300 active:scale-95 shadow-[0_4px_14px_0_rgba(0, 19, 48, 0.39)] whitespace-nowrap">
                         Search
                     </button>
                     @if($filters['search'] || $filters['instructors']->isNotEmpty())

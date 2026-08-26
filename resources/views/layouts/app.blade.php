@@ -9,6 +9,8 @@
     <meta name="description" content="@yield('meta-description', 'EduAdmin - Learning Management System Administration Panel')">
 
     {{-- Tailwind CSS --}}
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
     {{-- Google Fonts --}}
@@ -39,53 +41,53 @@
             theme: {
                 extend: {
                     colors: {
-                        "on-secondary-fixed": "#2a1700",
-                        "on-error": "#ffffff",
-                        "tertiary-fixed-dim": "#4edea3",
-                        "on-tertiary-fixed-variant": "#005236",
-                        "surface-container-lowest": "#ffffff",
-                        "surface": "#f7f9fb",
-                        "on-primary-fixed": "#07006c",
-                        "surface-bright": "#f7f9fb",
-                        "on-tertiary-fixed": "#002113",
-                        "inverse-primary": "#c0c1ff",
-                        "background": "#f7f9fb",
-                        "outline": "#767586",
-                        "surface-container-low": "#f2f4f6",
-                        "inverse-on-surface": "#eff1f3",
-                        "surface-variant": "#e0e3e5",
-                        "on-error-container": "#93000a",
-                        "secondary-fixed-dim": "#ffb95f",
-                        "outline-variant": "#c7c4d7",
-                        "on-secondary-container": "#684000",
-                        "tertiary": "#006c49",
-                        "surface-container-high": "#e6e8ea",
-                        "primary-container": "#6063ee",
-                        "error-container": "#ffdad6",
-                        "primary-fixed": "#e1e0ff",
-                        "on-tertiary-container": "#000703",
-                        "secondary-container": "#fea619",
-                        "error": "#ba1a1a",
-                        "surface-container": "#eceef0",
-                        "on-primary-container": "#fffbff",
-                        "inverse-surface": "#2d3133",
-                        "on-secondary-fixed-variant": "#653e00",
-                        "surface-container-highest": "#e0e3e5",
-                        "tertiary-container": "#00885d",
-                        "tertiary-fixed": "#6ffbbe",
-                        "on-primary-fixed-variant": "#2f2ebe",
-                        "on-primary": "#ffffff",
-                        "on-surface": "#191c1e",
-                        "surface-dim": "#d8dadc",
-                        "secondary": "#855300",
-                        "on-tertiary": "#ffffff",
-                        "primary-fixed-dim": "#c0c1ff",
-                        "on-surface-variant": "#464554",
-                        "surface-tint": "#494bd6",
-                        "primary": "#4648d4",
-                        "on-secondary": "#ffffff",
-                        "secondary-fixed": "#ffddb8",
-                        "on-background": "#191c1e"
+                        "on-secondary-fixed": "rgb(var(--c-on-secondary-fixed) / <alpha-value>)",
+                        "on-error": "rgb(var(--c-on-error) / <alpha-value>)",
+                        "tertiary-fixed-dim": "rgb(var(--c-tertiary-fixed-dim) / <alpha-value>)",
+                        "on-tertiary-fixed-variant": "rgb(var(--c-on-tertiary-fixed-variant) / <alpha-value>)",
+                        "surface-container-lowest": "rgb(var(--c-surface-container-lowest) / <alpha-value>)",
+                        "surface": "rgb(var(--c-surface) / <alpha-value>)",
+                        "on-primary-fixed": "rgb(var(--c-on-primary-fixed) / <alpha-value>)",
+                        "surface-bright": "rgb(var(--c-surface-bright) / <alpha-value>)",
+                        "on-tertiary-fixed": "rgb(var(--c-on-tertiary-fixed) / <alpha-value>)",
+                        "inverse-primary": "rgb(var(--c-inverse-primary) / <alpha-value>)",
+                        "background": "rgb(var(--c-background) / <alpha-value>)",
+                        "outline": "rgb(var(--c-outline) / <alpha-value>)",
+                        "surface-container-low": "rgb(var(--c-surface-container-low) / <alpha-value>)",
+                        "inverse-on-surface": "rgb(var(--c-inverse-on-surface) / <alpha-value>)",
+                        "surface-variant": "rgb(var(--c-surface-variant) / <alpha-value>)",
+                        "on-error-container": "rgb(var(--c-on-error-container) / <alpha-value>)",
+                        "secondary-fixed-dim": "rgb(var(--c-secondary-fixed-dim) / <alpha-value>)",
+                        "outline-variant": "rgb(var(--c-outline-variant) / <alpha-value>)",
+                        "on-secondary-container": "rgb(var(--c-on-secondary-container) / <alpha-value>)",
+                        "tertiary": "rgb(var(--c-tertiary) / <alpha-value>)",
+                        "surface-container-high": "rgb(var(--c-surface-container-high) / <alpha-value>)",
+                        "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
+                        "error-container": "rgb(var(--c-error-container) / <alpha-value>)",
+                        "primary-fixed": "rgb(var(--c-primary-fixed) / <alpha-value>)",
+                        "on-tertiary-container": "rgb(var(--c-on-tertiary-container) / <alpha-value>)",
+                        "secondary-container": "rgb(var(--c-secondary-container) / <alpha-value>)",
+                        "error": "rgb(var(--c-error) / <alpha-value>)",
+                        "surface-container": "rgb(var(--c-surface-container) / <alpha-value>)",
+                        "on-primary-container": "rgb(var(--c-on-primary-container) / <alpha-value>)",
+                        "inverse-surface": "rgb(var(--c-inverse-surface) / <alpha-value>)",
+                        "on-secondary-fixed-variant": "rgb(var(--c-on-secondary-fixed-variant) / <alpha-value>)",
+                        "surface-container-highest": "rgb(var(--c-surface-container-highest) / <alpha-value>)",
+                        "tertiary-container": "rgb(var(--c-tertiary-container) / <alpha-value>)",
+                        "tertiary-fixed": "rgb(var(--c-tertiary-fixed) / <alpha-value>)",
+                        "on-primary-fixed-variant": "rgb(var(--c-on-primary-fixed-variant) / <alpha-value>)",
+                        "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
+                        "on-surface": "rgb(var(--c-on-surface) / <alpha-value>)",
+                        "surface-dim": "rgb(var(--c-surface-dim) / <alpha-value>)",
+                        "secondary": "rgb(var(--c-secondary) / <alpha-value>)",
+                        "on-tertiary": "rgb(var(--c-on-tertiary) / <alpha-value>)",
+                        "primary-fixed-dim": "rgb(var(--c-primary-fixed-dim) / <alpha-value>)",
+                        "on-surface-variant": "rgb(var(--c-on-surface-variant) / <alpha-value>)",
+                        "surface-tint": "rgb(var(--c-surface-tint) / <alpha-value>)",
+                        "primary": "rgb(var(--c-primary) / <alpha-value>)",
+                        "on-secondary": "rgb(var(--c-on-secondary) / <alpha-value>)",
+                        "secondary-fixed": "rgb(var(--c-secondary-fixed) / <alpha-value>)",
+                        "on-background": "rgb(var(--c-on-background) / <alpha-value>)"
                     },
                     borderRadius: {
                         "DEFAULT": "0.25rem",
@@ -340,16 +342,16 @@
         .question-widget .ts-control::-webkit-scrollbar-thumb:hover { background: rgba(118, 117, 134, 0.45); }
         .dark .question-widget .ts-control::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); }
         .question-widget .ts-wrapper.focus .ts-control {
-            border-color: #4648d4;
-            box-shadow: 0 0 0 1px rgba(70, 72, 212, 0.35);
+            border-color: #001330;
+            box-shadow: 0 0 0 1px rgba(0, 19, 48, 0.35);
         }
         .question-widget .ts-control > .item {
             display: inline-flex;
             align-items: center;
             gap: 0.375rem;
             max-width: 100%;
-            background: rgba(70, 72, 212, 0.08);
-            color: #4648d4;
+            background: rgba(0, 19, 48, 0.08);
+            color: #001330;
             border: none;
             border-radius: 9999px;
             padding: 0.1875rem 0.5rem 0.1875rem 0.625rem;
@@ -379,22 +381,22 @@
             margin-top: 0.25rem;
             font-size: 0.875rem;
         }
-        .ts-dropdown .active { background: rgba(70, 72, 212, 0.08); }
+        .ts-dropdown .active { background: rgba(0, 19, 48, 0.08); }
         .dark .question-widget .ts-control {
             background: rgb(30, 41, 59);
             border-color: rgb(51, 65, 85);
             color: rgb(226, 232, 240);
         }
         .dark .question-widget .ts-control > .item {
-            background: rgba(70, 72, 212, 0.28);
-            color: #c0c1ff;
+            background: rgba(0, 19, 48, 0.28);
+            color: #80b2ff;
         }
         .dark .ts-dropdown {
             background: rgb(30, 41, 59);
             border-color: rgb(51, 65, 85);
             color: rgb(226, 232, 240);
         }
-        .dark .ts-dropdown .active { background: rgba(70, 72, 212, 0.3); }
+        .dark .ts-dropdown .active { background: rgba(0, 19, 48, 0.3); }
         .question-widget .ts-control input::placeholder { color: #767586; }
 
         /* ── Quill editor ──────────────────────────────────────────────────── */

@@ -15,7 +15,7 @@
         border: 1px solid rgba(255, 255, 255, 0.4);
     }
     .table-row-hover:hover {
-        box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
         transform: translateY(-1px);
         transition: all 0.2s ease;
     }

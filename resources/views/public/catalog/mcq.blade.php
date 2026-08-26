@@ -8,9 +8,9 @@
 <style>
     /* ── Answering ───────────────────────────────────────────────────────── */
     .mcq-option { transition: border-color .2s, background-color .2s, color .2s; }
-    .mcq-option:not(.is-locked):hover { border-color: rgba(70, 72, 212, .4); background-color: rgba(70, 72, 212, .03); }
-    .mcq-option.is-picked { border-color: #4648d4; background-color: rgba(70, 72, 212, .06); }
-    .mcq-option.is-picked .mcq-bullet { border-color: #4648d4; color: #4648d4; }
+    .mcq-option:not(.is-locked):hover { border-color: rgba(0, 19, 48, .4); background-color: rgba(0, 19, 48, .03); }
+    .mcq-option.is-picked { border-color: #001330; background-color: rgba(0, 19, 48, .06); }
+    .mcq-option.is-picked .mcq-bullet { border-color: #001330; color: #001330; }
 
     /* ── After marking ───────────────────────────────────────────────────────
        The options themselves stay neutral; the card says whether it was right,
@@ -121,7 +121,7 @@
 <div id="submit-bar" class="glass-panel rounded-xl p-md flex flex-col sm:flex-row items-center justify-between gap-md">
 <p id="answered-count" class="font-label-md text-label-md text-on-surface-variant">0 of {{ $questions->count() }} answered</p>
 <button id="quiz-submit" type="submit"
-    class="w-full sm:w-auto flex items-center justify-center gap-sm py-sm px-lg rounded-full font-label-md text-label-md bg-primary text-on-primary hover:bg-surface-tint shadow-[0_4px_14px_0_rgba(70,72,212,0.39)] transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+    class="w-full sm:w-auto flex items-center justify-center gap-sm py-sm px-lg rounded-full font-label-md text-label-md bg-primary text-on-primary hover:bg-surface-tint shadow-[0_4px_14px_0_rgba(0, 19, 48, 0.39)] transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
 <span class="material-symbols-outlined">assignment_turned_in</span>
                 Submit answers
             </button>

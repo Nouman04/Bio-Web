@@ -21,8 +21,8 @@
                         "on-surface-variant": "#464554",
                         "on-tertiary": "#ffffff",
                         "on-error-container": "#93000a",
-                        "primary-container": "#4648d4",
-                        "inverse-primary": "#c0c1ff",
+                        "primary-container": "#0041a3",
+                        "inverse-primary": "#80b2ff",
                         "surface-container-lowest": "#ffffff",
                         "background": "#f7f9fb",
                         "outline-variant": "#c6c5d7",
@@ -30,7 +30,7 @@
                         "tertiary-fixed": "#ffdadb",
                         "secondary": "#516072",
                         "on-tertiary-fixed-variant": "#920029",
-                        "primary-fixed": "#e1e0ff",
+                        "primary-fixed": "#c2daff",
                         "secondary-container": "#d1e1f7",
                         "surface-container": "#eceef0",
                         "on-secondary-fixed-variant": "#394859",
@@ -43,12 +43,12 @@
                         "on-secondary-container": "#556476",
                         "error-container": "#ffdad6",
                         "on-secondary-fixed": "#0d1d2c",
-                        "primary-fixed-dim": "#c0c1ff",
+                        "primary-fixed-dim": "#80b2ff",
                         "on-tertiary-container": "#ffc7ca",
                         "surface": "#f7f9fb",
-                        "primary": "#2c2abc",
+                        "primary": "#001330",
                         "surface-dim": "#d8dadc",
-                        "on-primary-fixed-variant": "#2e2ebe",
+                        "on-primary-fixed-variant": "#002866",
                         "secondary-fixed": "#d4e4f9",
                         "surface-container-high": "#e6e8ea",
                         "surface-bright": "#f7f9fb",
@@ -56,17 +56,17 @@
                         "on-primary": "#ffffff",
                         "on-surface": "#191c1e",
                         "outline": "#767586",
-                        "on-primary-fixed": "#06006c",
+                        "on-primary-fixed": "#001330",
                         "glass-stroke": "rgba(0, 0, 0, 0.05)",
-                        "primary-glow": "rgba(70, 72, 212, 0.15)",
+                        "primary-glow": "rgba(0, 19, 48, 0.15)",
                         "tertiary": "#8e0028",
                         "surface-variant": "#e0e3e5",
                         "on-secondary": "#ffffff",
                         "inverse-on-surface": "#eff1f3",
                         "glass-bg": "rgba(255, 255, 255, 0.8)",
                         "tertiary-fixed-dim": "#ffb2b7",
-                        "on-primary-container": "#d1d1ff",
-                        "surface-tint": "#484bd6"
+                        "on-primary-container": "#ffffff",
+                        "surface-tint": "#001a42"
                     },
                     "borderRadius": {
                         "DEFAULT": "1rem",
@@ -115,7 +115,7 @@
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 24px -2px rgba(70, 72, 212, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 24px -2px rgba(0, 19, 48, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
         }
         .glass-nav {
             background: rgba(255, 255, 255, 0.85);
@@ -129,7 +129,7 @@
             right: -100px;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(70,72,212,0.15) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(0, 19, 48, 0.15) 0%, rgba(255,255,255,0) 70%);
             border-radius: 50%;
             z-index: -1;
             pointer-events: none;
@@ -146,7 +146,7 @@
             pointer-events: none;
         }
         .btn-glow:hover {
-            box-shadow: 0 0 20px 0 rgba(70, 72, 212, 0.4);
+            box-shadow: 0 0 20px 0 rgba(0, 19, 48, 0.4);
         }
     </style>@stack('styles')
 </head>

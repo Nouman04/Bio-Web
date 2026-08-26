@@ -50,7 +50,7 @@
 
             <x-auth-session-status class="mb-md" :status="session('status')" />
 
-            <form action="{{ route('login') }}" class="space-y-md" method="POST">
+            <form action="{{ route('admin.login.store') }}" class="space-y-md" method="POST">
                 @csrf
 
                 {{-- Email Field --}}

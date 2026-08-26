@@ -29,7 +29,7 @@
                     @foreach ($element as $page => $url)
                         @if ($page == $paginator->currentPage())
                             <span aria-current="page"
-                                class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary font-label-md font-bold shadow-[0_4px_14px_0_rgba(70,72,212,0.39)]">{{ $page }}</span>
+                                class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary font-label-md font-bold shadow-[0_4px_14px_0_rgba(0,19,48,0.39)]">{{ $page }}</span>
                         @else
                             <a href="{{ $url }}"
                                 class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-primary/10 hover:text-primary font-label-md transition-colors">{{ $page }}</a>

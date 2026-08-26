@@ -73,7 +73,7 @@
             </div>
 
             {{-- Primary Action --}}
-            <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded-DEFAULT mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(70,72,212,0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
+            <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded-DEFAULT mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(0, 19, 48, 0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
                 Create Account
                 <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>

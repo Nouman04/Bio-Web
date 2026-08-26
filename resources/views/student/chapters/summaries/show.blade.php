@@ -10,7 +10,7 @@
         border: 1px solid rgba(255, 255, 255, 0.4);
     }
     .glass-hover:hover {
-        box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
         transform: translateY(-2px);
         transition: all 0.3s ease;
     }

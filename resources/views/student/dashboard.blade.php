@@ -13,17 +13,17 @@
         border: 1px solid rgba(255, 255, 255, 0.4);
     }
     .glass-panel-hover:hover {
-        box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
         transform: translateY(-2px);
         transition: all 0.3s ease;
     }
     .btn-primary-gradient {
-        background: linear-gradient(135deg, #4648d4, #6063ee);
-        box-shadow: 0px 4px 15px rgba(70, 72, 212, 0.2);
+        background: linear-gradient(135deg, #001330, #0041a3);
+        box-shadow: 0px 4px 15px rgba(0, 19, 48, 0.2);
     }
     .btn-primary-gradient:hover {
-        background: linear-gradient(135deg, #6063ee, #4648d4);
-        box-shadow: 0px 6px 20px rgba(70, 72, 212, 0.3);
+        background: linear-gradient(135deg, #0041a3, #001330);
+        box-shadow: 0px 6px 20px rgba(0, 19, 48, 0.3);
         transform: translateY(-1px);
     }
     /* The ring animates from empty to wherever the student actually is. */
@@ -213,9 +213,9 @@
 
             <div class="relative w-40 h-40 flex items-center justify-center mb-4">
                 <svg class="progress-ring w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" fill="transparent" r="40" stroke="#e0e3e5" stroke-width="8"></circle>
+                    <circle class="progress-ring-track" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
                     <circle class="value" cx="50" cy="50" fill="transparent" r="40"
-                        stroke="#4648d4"
+                        stroke="#001330"
                         stroke-dasharray="{{ round($ring, 1) }}"
                         stroke-dashoffset="{{ round($ring * (1 - min(100, $overall['progress']) / 100), 1) }}"
                         stroke-linecap="round" stroke-width="8"></circle>

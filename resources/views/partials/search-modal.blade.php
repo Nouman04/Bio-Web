@@ -106,11 +106,11 @@
     .search-pill:hover { background-color: #e0e3e5; }
     .dark .search-pill:hover { background-color: #1e293b; }
     .search-pill.is-active {
-        background-color: #4648d4;
+        background-color: #001330;
         color: #ffffff;
         border-color: transparent;
     }
-    .search-pill.is-active:hover { background-color: #4648d4; }
+    .search-pill.is-active:hover { background-color: #001330; }
 
     /* The tick only shows on a chosen module */
     .search-pill-tick { display: none; }
@@ -137,8 +137,8 @@
         100% { background-position: 0 50%; }
     }
 
-    .search-hit.is-highlighted { background-color: rgba(70, 72, 212, 0.08); }
-    .dark .search-hit.is-highlighted { background-color: rgba(70, 72, 212, 0.20); }
+    .search-hit.is-highlighted { background-color: rgba(0, 19, 48, 0.08); }
+    .dark .search-hit.is-highlighted { background-color: rgba(0, 19, 48, 0.20); }
 </style>
 
 @push('scripts')

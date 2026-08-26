@@ -134,7 +134,7 @@
                     Still Learning
                 </button>
 <button id="mark-known" type="button"
-    class="flex-1 max-w-[200px] flex items-center justify-center gap-sm py-sm px-md rounded-lg font-label-md text-label-md bg-primary text-on-primary hover:bg-surface-tint shadow-[0_4px_14px_0_rgba(70,72,212,0.39)] transition-all active:scale-95">
+    class="flex-1 max-w-[200px] flex items-center justify-center gap-sm py-sm px-md rounded-lg font-label-md text-label-md bg-primary text-on-primary hover:bg-surface-tint shadow-[0_4px_14px_0_rgba(0, 19, 48, 0.39)] transition-all active:scale-95">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check</span>
                     Got It
                 </button>

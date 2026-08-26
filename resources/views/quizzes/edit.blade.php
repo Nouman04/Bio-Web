@@ -17,11 +17,11 @@
         background: rgba(118, 117, 134, 0.15);
         color: rgb(118, 117, 134);
     }
-    .wizard-tab.is-active .wizard-bullet { background: #4648d4; color: #ffffff; }
-    .wizard-tab.is-done .wizard-bullet { background: rgba(70, 72, 212, 0.15); color: #4648d4; }
-    .wizard-tab.is-active .wizard-label { color: #4648d4; }
+    .wizard-tab.is-active .wizard-bullet { background: #001330; color: #ffffff; }
+    .wizard-tab.is-done .wizard-bullet { background: rgba(0, 19, 48, 0.15); color: #001330; }
+    .wizard-tab.is-active .wizard-label { color: #001330; }
     .wizard-rule { background: rgba(118, 117, 134, 0.2); }
-    .wizard-rule.is-done { background: #4648d4; }
+    .wizard-rule.is-done { background: #001330; }
 </style>
 @endpush
 

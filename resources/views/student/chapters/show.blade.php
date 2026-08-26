@@ -13,12 +13,12 @@
         border: 1px solid rgba(255, 255, 255, 0.4);
     }
     .glass-panel:hover {
-        box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
     }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .resource-tab { transition: color 0.2s, border-color 0.2s; }
-    .resource-tab.active { color: #4648d4; border-bottom-color: #4648d4; }
+    .resource-tab.active { color: #001330; border-bottom-color: #001330; }
 </style>
 @endpush
 

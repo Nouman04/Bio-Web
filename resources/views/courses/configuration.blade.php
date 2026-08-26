@@ -12,8 +12,8 @@
        A checkbox styled as a two-state switch: the knob slides right and the
        track turns primary when the chapter is public. */
     .visibility-row { transition: background-color 0.15s ease, border-color 0.15s ease; }
-    .visibility-row:hover { background: rgba(70, 72, 212, 0.03); }
-    .dark .visibility-row:hover { background: rgba(70, 72, 212, 0.10); }
+    .visibility-row:hover { background: rgba(0, 19, 48, 0.03); }
+    .dark .visibility-row:hover { background: rgba(0, 19, 48, 0.10); }
 
     .visibility-switch {
         position: relative;
@@ -36,16 +36,16 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         transition: transform 0.2s ease;
     }
-    .visibility-input:checked + .visibility-switch { background: #4648d4; }
+    .visibility-input:checked + .visibility-switch { background: #001330; }
     .visibility-input:checked + .visibility-switch::after { transform: translateX(1.5rem); }
-    .visibility-input:focus-visible + .visibility-switch { outline: 2px solid #4648d4; outline-offset: 2px; }
+    .visibility-input:focus-visible + .visibility-switch { outline: 2px solid #001330; outline-offset: 2px; }
 
     /* The label beside the switch reads the state, so it is coloured with it */
     .visibility-state { color: rgb(118, 117, 134); }
-    .visibility-input:checked ~ .visibility-state { color: #4648d4; }
+    .visibility-input:checked ~ .visibility-state { color: #001330; }
 
     /* Nothing is saved until Update is pressed, so changed rows are marked */
-    .visibility-row.is-dirty { background: rgba(70, 72, 212, 0.04); }
+    .visibility-row.is-dirty { background: rgba(0, 19, 48, 0.04); }
     .visibility-row.is-dirty .visibility-dirty { opacity: 1; }
     .visibility-dirty { opacity: 0; transition: opacity 0.15s ease; }
 </style>

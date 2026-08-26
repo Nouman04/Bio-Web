@@ -17,7 +17,7 @@
     }
     .chapter-row:hover {
         transform: translateX(4px);
-        box-shadow: 0px 4px 12px rgba(70, 72, 212, 0.06);
+        box-shadow: 0px 4px 12px rgba(0, 19, 48, 0.06);
     }
 </style>
 @endpush

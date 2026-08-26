@@ -11,7 +11,7 @@
     }
     .hover-lift:hover {
         transform: translateY(-2px);
-        box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.08);
+        box-shadow: 0px 10px 30px rgba(0, 19, 48, 0.08);
     }
 </style>
 @endpush
@@ -20,7 +20,7 @@
     // A saved video or diagram has no cover image, so its tile is a gradient
     // keyed off the record — stable per item, and no placeholder stock art.
     $palettes = [
-        ['#4648d4', '#7c3aed'], ['#0891b2', '#4648d4'], ['#c026d3', '#7c3aed'],
+        ['#001330', '#7c3aed'], ['#0891b2', '#001330'], ['#c026d3', '#7c3aed'],
         ['#059669', '#0891b2'], ['#ea580c', '#c026d3'],
     ];
     $tint = fn ($record) => $palettes[$record->id % count($palettes)];

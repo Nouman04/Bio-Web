@@ -95,6 +95,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect()->route($wasStudent ? 'student.login' : 'login');
+        return redirect()->route($wasStudent ? 'student.login' : 'admin.login');
     }
 }

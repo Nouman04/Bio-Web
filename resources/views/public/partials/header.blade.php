@@ -28,7 +28,7 @@
 <!-- Actions -->
 <div class="flex items-center space-x-md">
 <a class="text-on-surface hover:text-primary font-label-md transition-colors duration-200 hidden sm:block" href="{{ route('student.login') }}">Login</a>
-<a class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-md hover:bg-primary-container transition-all duration-300 transform active:scale-95 shadow-[0_4px_14px_0_rgba(70,72,212,0.39)] hover:shadow-[0_6px_20px_rgba(70,72,212,0.23)] hover:-translate-y-0.5" href="{{ route('student.login') }}">Get Started</a>
+<a class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-md hover:bg-primary-container transition-all duration-300 transform active:scale-95 shadow-[0_4px_14px_0_rgba(0, 19, 48, 0.39)] hover:shadow-[0_6px_20px_rgba(0, 19, 48, 0.23)] hover:-translate-y-0.5" href="{{ route('student.login') }}">Get Started</a>
 </div>
 </div>
 <!-- Navigation Links (Mobile) -->

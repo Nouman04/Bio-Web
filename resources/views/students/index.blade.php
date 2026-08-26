@@ -33,7 +33,7 @@
         border-bottom-color: rgb(51, 65, 85);
     }
     #students-table.dataTable thead th.dt-orderable-asc:hover,
-    #students-table.dataTable thead th.dt-orderable-desc:hover { color: #4648d4; }
+    #students-table.dataTable thead th.dt-orderable-desc:hover { color: #001330; }
 
     /* DataTables' own `table.dataTable thead>tr>th` rule outranks utility classes,
        so the last two columns are aligned here to keep header and cell in line. */
@@ -55,8 +55,8 @@
     .dark #students-table tbody td { border-bottom-color: rgba(51, 65, 85, 0.6); }
     #students-table tbody tr:last-child td { border-bottom: none; }
     #students-table tbody tr { transition: background-color 0.15s ease; }
-    #students-table tbody tr:hover { background: rgba(70, 72, 212, 0.035); }
-    .dark #students-table tbody tr:hover { background: rgba(70, 72, 212, 0.12); }
+    #students-table tbody tr:hover { background: rgba(0, 19, 48, 0.035); }
+    .dark #students-table tbody tr:hover { background: rgba(0, 19, 48, 0.12); }
     #students-table.dataTable tbody tr.odd,
     #students-table.dataTable tbody tr.even,
     #students-table.dataTable tbody tr > .sorting_1 { background: transparent; box-shadow: none; }
@@ -110,11 +110,11 @@
         transition: background-color 0.15s ease, color 0.15s ease;
     }
     #students-table_wrapper .dt-paging .dt-paging-button:hover:not(.disabled) {
-        background: rgba(70, 72, 212, 0.08) !important;
-        color: #4648d4 !important;
+        background: rgba(0, 19, 48, 0.08) !important;
+        color: #001330 !important;
     }
     #students-table_wrapper .dt-paging .dt-paging-button.current {
-        background: #4648d4 !important;
+        background: #001330 !important;
         color: #ffffff !important;
     }
     #students-table_wrapper .dt-paging .dt-paging-button.disabled { opacity: 0.4; }
@@ -150,9 +150,9 @@
         opacity: 1;
     }
     #filterToggle.is-active {
-        color: var(--tw-color-primary, #4648d4);
-        border-color: rgba(70, 72, 212, 0.35);
-        background: rgba(70, 72, 212, 0.08);
+        color: var(--tw-color-primary, #001330);
+        border-color: rgba(0, 19, 48, 0.35);
+        background: rgba(0, 19, 48, 0.08);
     }
 </style>
 @endpush

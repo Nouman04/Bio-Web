@@ -10,7 +10,7 @@
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(70, 72, 212, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 19, 48, 0.05);
         }
         .accordion-content {
             transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease;
@@ -145,7 +145,7 @@
 <section class="mt-xl text-center glass-panel rounded-xl p-lg max-w-3xl mx-auto">
 <h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Still have questions?</h2>
 <p class="font-body-md text-body-md text-on-surface-variant mb-md">Can't find the answer you're looking for? Reach out to our support team.</p>
-<a class="inline-flex items-center gap-xs px-lg py-sm bg-primary text-on-primary font-label-md rounded-xl hover:bg-primary/90 hover:shadow-[0_0_15px_rgba(70,72,212,0.4)] transition-all duration-200 active:scale-95" href="#">
+<a class="inline-flex items-center gap-xs px-lg py-sm bg-primary text-on-primary font-label-md rounded-xl hover:bg-primary/90 hover:shadow-[0_0_15px_rgba(0, 19, 48, 0.4)] transition-all duration-200 active:scale-95" href="#">
                 Contact Support
                 <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
 </a>

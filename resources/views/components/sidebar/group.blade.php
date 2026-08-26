@@ -7,7 +7,7 @@
 
 <div class="w-full flex flex-col space-y-1">
     @if($label)
-        <p class="sidebar-group-label hide-on-collapse px-4 pt-4 pb-1 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 dark:text-slate-500">
+        <p class="sidebar-group-label hide-on-collapse px-4 pt-4 pb-1 text-[11px] font-bold uppercase tracking-wider">
             {{ $label }}
         </p>
     @endif

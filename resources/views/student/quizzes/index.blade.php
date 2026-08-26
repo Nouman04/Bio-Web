@@ -13,7 +13,7 @@
         border: 1px solid rgba(255,255,255,0.4);
         transition: all 0.25s ease;
     }
-    .glass-panel:hover { box-shadow: 0 10px 30px rgba(99,102,241,0.08); }
+    .glass-panel:hover { box-shadow: 0 10px 30px rgba(0, 19, 48, 0.08); }
 </style>
 @endpush
 

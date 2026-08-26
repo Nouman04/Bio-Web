@@ -12,16 +12,18 @@ class AuthenticationTest extends TestCase
 
     public function test_login_screen_can_be_rendered(): void
     {
-        $response = $this->get('/login');
+        // The bare /login is the student's door now; staff have their own.
+        $this->get('/login')->assertRedirect(route('student.login'));
 
-        $response->assertStatus(200);
+        $this->get('/student/login')->assertStatus(200);
+        $this->get('/admin/login')->assertStatus(200);
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->post('/login', [
+        $response = $this->post('/admin/login', [
             'email' => $user->email,
             'password' => 'password',
         ]);
@@ -34,7 +36,7 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->post('/login', [
+        $this->post('/admin/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
@@ -49,6 +51,6 @@ class AuthenticationTest extends TestCase
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('admin.login'));
     }
 }

@@ -15,7 +15,7 @@
         transition: all 0.3s ease;
     }
     .glass-card:hover {
-        box-shadow: 0 10px 30px rgba(70,72,212,0.08);
+        box-shadow: 0 10px 30px rgba(0, 19, 48, 0.08);
         transform: translateY(-2px);
     }
 </style>

@@ -6,8 +6,8 @@
     $totals = $progress[$course->id] ?? ['progress' => 0, 'completed_weight' => 0, 'total_weight' => 0];
     $percent = (float) $totals['progress'];
     $palettes = [
-        ['#4648d4', '#7c3aed'],
-        ['#0891b2', '#4648d4'],
+        ['#001330', '#7c3aed'],
+        ['#0891b2', '#001330'],
         ['#c026d3', '#7c3aed'],
         ['#059669', '#0891b2'],
         ['#ea580c', '#c026d3'],

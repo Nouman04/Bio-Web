@@ -34,9 +34,9 @@
         opacity: 1;
     }
     #filterToggle.is-active {
-        color: var(--tw-color-primary, #4648d4);
-        border-color: rgba(70, 72, 212, 0.35);
-        background: rgba(70, 72, 212, 0.08);
+        color: var(--tw-color-primary, #001330);
+        border-color: rgba(0, 19, 48, 0.35);
+        background: rgba(0, 19, 48, 0.08);
     }
 </style>
 @endpush
