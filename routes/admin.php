@@ -10,6 +10,7 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\QuizReviewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SummaryController;
@@ -164,6 +165,12 @@ Route::middleware(['auth', 'staff'])->group(function () {
     Route::prefix('quizzes')->group(function () {
         Route::get('/', [QuizController::class, 'index'])->name('quizzes');
         Route::get('/data', [QuizController::class, 'data'])->name('quizzes.data');
+
+        // Marking written answers. Declared before /{quiz} so "review" is not
+        // read as a quiz key.
+        Route::get('/review', [QuizReviewController::class, 'index'])->name('quizzes.review');
+        Route::get('/review/{attempt}', [QuizReviewController::class, 'show'])->name('quizzes.review.show');
+        Route::put('/review/{attempt}', [QuizReviewController::class, 'grade'])->name('quizzes.review.grade');
         Route::get('/create', [QuizController::class, 'create'])->name('quizzes.create');
         Route::post('/', [QuizController::class, 'store'])->name('quizzes.store');
         Route::get('/{quiz}', [QuizController::class, 'show'])->name('quizzes.show');
@@ -232,6 +239,10 @@ Route::middleware(['auth', 'staff'])->group(function () {
     */
 
     Route::get('/students', [StudentController::class, 'index'])->name('students');
+
+    Route::get('/students/data', [StudentController::class, 'data'])->name('students.data');
+    Route::get('/students/{student}', [StudentController::class, 'show'])->name('students.show');
+    Route::get('/students/{student}/pending-quizzes', [StudentController::class, 'pendingQuizzes'])->name('students.pending');
 
     // Global search behind the header's magnifier
     Route::get('/search', [SearchController::class, 'admin'])->name('search');

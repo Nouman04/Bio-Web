@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CourseCardResource;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -67,7 +68,7 @@ class PublicPageController extends Controller
             ->withQueryString();
 
         return view('public.courses', [
-            'courses' => $courses,
+            'courses' => CourseCardResource::forView($courses),
             'filters' => [
                 'search' => $request->input('search', ''),
                 // Pre-selected instructors need their names for Tom Select.

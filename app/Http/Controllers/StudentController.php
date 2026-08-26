@@ -2,111 +2,120 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Services\ProgressService;
+use App\Services\StudentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * The staff-side roster: who is subscribed to the signed-in user's courses,
+ * how far through they are, and what of theirs is waiting to be marked.
+ *
+ * This decides what the request asked for and what to send back; StudentService
+ * decides what it means for the database.
+ */
 class StudentController extends Controller
 {
+    public function __construct(
+        private readonly StudentService $students,
+        private readonly ProgressService $progress,
+    ) {
+    }
+
     /**
-     * Display a listing of students.
+     * The listing page. The table itself is loaded by DataTables from the
+     * `students.data` endpoint below.
      */
     public function index(Request $request)
     {
-        // Simple paginated mock collection of students to match list.html
-        $students = collect([
-            ['id' => 1,  'name' => 'Elena Rostova',   'email' => 'elena.r@example.com',     'courses' => 'Advanced UI Design, +2', 'date' => '2023-10-12', 'batch' => 'fall23',   'status' => 'active'],
-            ['id' => 2,  'name' => 'Marcus Chen',     'email' => 'm.chen@example.com',       'courses' => 'Data Structures',       'date' => '2023-11-05', 'batch' => 'fall23',   'status' => 'active'],
-            ['id' => 3,  'name' => 'Sarah Jenkins',   'email' => 's.jenkins@example.com',    'courses' => 'Marketing 101, +1',     'date' => '2023-09-20', 'batch' => 'fall23',   'status' => 'inactive'],
-            ['id' => 4,  'name' => 'Ahmed Khalid',    'email' => 'ahmed.k@example.com',      'courses' => 'Web Dev Bootcamp',      'date' => '2024-01-15', 'batch' => 'spring24', 'status' => 'active'],
-            ['id' => 5,  'name' => 'Priya Sharma',    'email' => 'priya.s@example.com',      'courses' => 'Data Science, +3',      'date' => '2024-02-08', 'batch' => 'spring24', 'status' => 'active'],
-            ['id' => 6,  'name' => 'James O\'Brien',  'email' => 'j.obrien@example.com',     'courses' => 'Cybersecurity Basics',  'date' => '2024-03-01', 'batch' => 'spring24', 'status' => 'inactive'],
-            ['id' => 7,  'name' => 'Liu Yang',        'email' => 'liu.y@example.com',        'courses' => 'Machine Learning, +1',  'date' => '2024-04-10', 'batch' => 'spring24', 'status' => 'active'],
-            ['id' => 8,  'name' => 'Fatima Al-Zahra', 'email' => 'fatima.z@example.com',     'courses' => 'Business Analytics',    'date' => '2024-05-19', 'batch' => 'fall24',   'status' => 'active'],
-            ['id' => 9,  'name' => 'Noah Williams',   'email' => 'noah.w@example.com',       'courses' => 'Cloud Computing, +2',   'date' => '2024-06-03', 'batch' => 'fall24',   'status' => 'active'],
-            ['id' => 10, 'name' => 'Amara Diallo',    'email' => 'amara.d@example.com',      'courses' => 'UX Research',           'date' => '2024-06-22', 'batch' => 'fall24',   'status' => 'active'],
-            ['id' => 11, 'name' => 'Carlos Ruiz',     'email' => 'c.ruiz@example.com',       'courses' => 'React Advanced',        'date' => '2024-07-01', 'batch' => 'fall24',   'status' => 'active'],
-            ['id' => 12, 'name' => 'Sophie Martin',   'email' => 'sophie.m@example.com',     'courses' => 'Project Management',    'date' => '2024-07-15', 'batch' => 'fall24',   'status' => 'inactive'],
-        ]);
-
-        // Filter by Search query
-        if ($search = $request->input('search')) {
-            $students = $students->filter(function ($s) use ($search) {
-                return stripos($s['name'], $search) !== false || stripos($s['email'], $search) !== false;
-            });
-        }
-
-        // Filter by Course
-        if ($course = $request->input('course')) {
-            $students = $students->filter(function ($s) use ($course) {
-                return stripos($s['courses'], $course) !== false;
-            });
-        }
-
-        // Filter by Date Range
-        if ($dateFrom = $request->input('date_from')) {
-            $students = $students->filter(function ($s) use ($dateFrom) {
-                return $s['date'] >= $dateFrom;
-            });
-        }
-
-        if ($dateTo = $request->input('date_to')) {
-            $students = $students->filter(function ($s) use ($dateTo) {
-                return $s['date'] <= $dateTo;
-            });
-        }
-
-        // Filter by Batch
-        if ($batch = $request->input('batch')) {
-            $students = $students->filter(function ($s) use ($batch) {
-                return $s['batch'] === $batch;
-            });
-        }
-
-        // Filter by Status
-        if ($status = $request->input('status')) {
-            $students = $students->filter(function ($s) use ($status) {
-                return $s['status'] === $status;
-            });
-        }
-
-        // Simple sorting
-        $sortBy = $request->input('sort', 'name');
-        $sortDir = $request->input('direction', 'asc');
-
-        if ($sortDir === 'desc') {
-            $students = $students->sortByDesc($sortBy);
-        } else {
-            $students = $students->sortBy($sortBy);
-        }
-
-        // Calculate count metrics
-        $totalCount = $students->count();
-        $activeCount = $students->where('status', 'active')->count();
-        $inactiveCount = $students->where('status', 'inactive')->count();
-
-        // Paginate manually for display (10 per page)
-        $page = (int) $request->input('page', 1);
-        $perPage = 10;
-        $paginated = $students->forPage($page, $perPage);
-        $totalPages = max(1, ceil($totalCount / $perPage));
+        $user = $request->user();
 
         return view('students.index', [
-            'students' => $paginated,
-            'totalCount' => $totalCount,
-            'activeCount' => $activeCount,
-            'inactiveCount' => $inactiveCount,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'perPage' => $perPage,
+            'courses' => $this->students->coursesFor($user)->orderBy('title')->get(['id', 'uuid', 'title']),
+            'stats' => $this->students->stats($user),
             'filters' => [
-                'search' => $search ?? '',
-                'course' => $course ?? '',
-                'date_from' => $dateFrom ?? '',
-                'date_to' => $dateTo ?? '',
-                'batch' => $batch ?? '',
-                'status' => $status ?? '',
-                'sort' => $sortBy,
-                'direction' => $sortDir,
-            ]
+                'search' => $request->input('search', ''),
+                'course' => $request->input('course', ''),
+                'status' => $request->input('status', ''),
+            ],
         ]);
+    }
+
+    /**
+     * Server-side DataTables source for the roster.
+     *
+     * DataTables owns this response shape — it renders Blade partials into
+     * cells rather than returning models — so an API resource has nothing to
+     * describe here.
+     */
+    public function data(Request $request): JsonResponse
+    {
+        // DataTables reserves `search` for its own box, so ours arrives as
+        // `search_term`.
+        $students = $this->students->listing($request->user(), [
+            'search' => $request->input('search_term'),
+            'course' => $request->input('course'),
+            'status' => $request->input('status'),
+        ]);
+
+        $table = DataTables::eloquent($students)
+            ->addColumn('student_cell', fn (User $student) => view('students.partials.student-cell', compact('student'))->render())
+            ->addColumn('email_cell', fn (User $student) => view('students.partials.email-cell', compact('student'))->render())
+            ->addColumn('joined_cell', fn (User $student) => view('students.partials.joined-cell', compact('student'))->render())
+            ->addColumn('pending_cell', fn (User $student) => view('students.partials.pending-cell', compact('student'))->render())
+            ->addColumn('action', fn (User $student) => view('students.partials.actions', compact('student'))->render())
+            ->orderColumn('student_cell', 'name $1')
+            ->orderColumn('joined_cell', 'created_at $1')
+            ->orderColumn('pending_cell', 'pending_quizzes_count $1')
+            ->rawColumns(['student_cell', 'email_cell', 'joined_cell', 'pending_cell', 'action'])
+            ->only(['student_cell', 'email_cell', 'joined_cell', 'pending_cell', 'action'])
+            ->toJson();
+
+        // Never let a proxy or the browser replay an old page of rows.
+        return $table->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    /**
+     * One student: the courses they are subscribed to, how far through each
+     * one they are, and what of theirs is waiting to be marked.
+     */
+    public function show(Request $request, string $student)
+    {
+        $record = $this->find($request, $student);
+
+        return view('students.show', [
+            'student' => $record,
+            'courses' => $this->students->coursesOf($record, $request->user()),
+            'pending' => $this->students->pendingQuizzesOf($record, $request->user()),
+        ]);
+    }
+
+    /**
+     * Everything of this student's that is waiting on a marker. Each row leads
+     * to the marking page, which is where the marks are actually given.
+     */
+    public function pendingQuizzes(Request $request, string $student)
+    {
+        $record = $this->find($request, $student);
+
+        return view('students.pending-quizzes', [
+            'student' => $record,
+            'attempts' => $this->students->pendingQuizzesOf($record, $request->user()),
+        ]);
+    }
+
+    /**
+     * The student, if the signed-in user answers for a course they subscribe
+     * to. Anyone else gets a 404 rather than a hint that the account exists.
+     */
+    private function find(Request $request, string $uuid): User
+    {
+        $student = User::where('uuid', $uuid)->firstOrFail();
+
+        abort_unless($this->students->mayView($request->user(), $student), 404);
+
+        return $student;
     }
 }

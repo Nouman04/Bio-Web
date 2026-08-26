@@ -35,24 +35,38 @@
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
 
-        {{-- Notifications --}}
-        <button
-            class="w-9 h-9 sm:w-10 sm:h-10 bg-surface-container-lowest dark:bg-slate-800 rounded-full flex items-center justify-center text-on-surface-variant dark:text-slate-300 shadow-sm hover:text-primary hover:scale-105 active:scale-95 dark:hover:text-white transition-all relative border dark:border-slate-700"
-            title="Notifications">
-            <i class="fa-regular fa-bell"></i>
-            <span class="absolute top-2 right-2.5 w-2 h-2 bg-error rounded-full border border-surface-container-lowest dark:border-slate-800"></span>
-        </button>
+        {{-- Notifications. The dot here used to be painted on whether or
+             not anything had happened; it is a real count now. --}}
+        <x-notification-bell />
 
-        {{-- User Avatar --}}
-        <div class="flex items-center gap-3 pl-2 sm:pl-3 border-l border-outline-variant/30 dark:border-slate-700 ml-1">
-            <img src="https://ui-avatars.com/api/?name=Admin+User&background=4648d4&color=fff&size=128"
-                alt="User Avatar"
-                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-sm border-2 border-surface-container-lowest dark:border-slate-800 cursor-pointer hover:opacity-90 hover:scale-105 active:scale-95 transition-all" />
-            <div class="hidden md:block">
-                <p class="text-sm font-semibold text-on-background dark:text-white leading-tight">Admin User</p>
-                <p class="text-xs text-on-surface-variant dark:text-slate-400">Administrator</p>
+        {{-- Who is signed in. This was hardcoded to "Admin User" with an avatar
+             generated for that literal name, so every account — students
+             included — saw somebody else's details here. --}}
+        @php
+            $me = auth()->user();
+            $initials = \Illuminate\Support\Str::of($me?->name ?? '')
+                ->explode(' ')
+                ->take(2)
+                ->map(fn ($part) => \Illuminate\Support\Str::substr($part, 0, 1))
+                ->implode('');
+            $role = $me?->roles->pluck('name')->implode(', ');
+        @endphp
+
+        <a href="{{ route('profile.edit') }}"
+            class="flex items-center gap-3 pl-2 sm:pl-3 border-l border-outline-variant/30 dark:border-slate-700 ml-1 group"
+            title="{{ $me?->email }}">
+            <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-sm border-2 border-surface-container-lowest dark:border-slate-800 bg-primary text-on-primary flex items-center justify-center text-sm font-bold uppercase group-hover:opacity-90 group-hover:scale-105 active:scale-95 transition-all">
+                {{ $initials ?: '?' }}
+            </span>
+            <div class="hidden md:block min-w-0">
+                <p class="text-sm font-semibold text-on-background dark:text-white leading-tight truncate max-w-[10rem]">
+                    {{ $me?->name ?? 'Signed out' }}
+                </p>
+                <p class="text-xs text-on-surface-variant dark:text-slate-400 truncate max-w-[10rem]">
+                    {{ $role ?: $me?->email }}
+                </p>
             </div>
-        </div>
+        </a>
 
     </div>
 </header>

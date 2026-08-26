@@ -20,10 +20,13 @@ class QuizAttemptAnswer extends Model
         'selected_option',
         'is_correct',
         'answer_content',
+        'marks_awarded',
+        'feedback',
     ];
 
     protected $casts = [
         'is_correct' => 'boolean',
+        'marks_awarded' => 'decimal:2',
     ];
 
     public function quizQuestion(): BelongsTo

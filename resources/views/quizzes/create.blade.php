@@ -247,7 +247,8 @@
             const status = form.querySelector('input[name="status"]');
             const searchUrl = '{{ route('questions.search') }}';
             @if($chain)
-                const chapterId = {{ $chain['chapter']->id }};
+                // The search endpoint matches the chapter by uuid, not by key.
+                const chapterId = @json($chain['chapter']->uuid);
             @else
                 const chapterId = null;
             @endif

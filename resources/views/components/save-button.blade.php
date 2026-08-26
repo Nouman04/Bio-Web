@@ -1,8 +1,15 @@
 {{--
     The bookmark button, on any listing or detail page that shows content a
-    student can keep:
+    student can keep.
+
+    Either hand it the record:
 
         <x-save-button :record="$note" />
+
+    or, where the listing has been through an API resource and no model is at
+    hand, name the kind and the uuid:
+
+        <x-save-button type="note" :uuid="$note['uuid']" />
 
     It renders nothing for content that cannot be saved, or for a visitor who is
     not signed in. Everything saved appears on the resources page.
@@ -10,23 +17,27 @@
     `label` shows the word beside the icon; leave it off for the icon-only
     variant used on image tiles.
 --}}
-@props(['record', 'label' => false, 'class' => ''])
+@props(['record' => null, 'type' => null, 'uuid' => null, 'label' => false, 'class' => ''])
 
 @php
-    $key = \App\Models\SavedContent::keyFor($record);
+    // A record answers both questions; otherwise the caller states them.
+    $key = $record ? \App\Models\SavedContent::keyFor($record) : $type;
+    $id = $record?->uuid ?? $uuid;
 
-    $saved = $key && auth()->check()
+    $model = \App\Models\SavedContent::TYPES[$key] ?? null;
+
+    $saved = $key && $id && $model && auth()->check()
         && \App\Models\SavedContent::where('user_id', auth()->id())
-            ->where('contentable_type', $record::class)
-            ->where('contentable_id', $record->id)
+            ->where('contentable_type', $model)
+            ->whereIn('contentable_id', $model::where('uuid', $id)->select('id'))
             ->exists();
 @endphp
 
-@if($key && auth()->check())
+@if($key && $id && auth()->check())
     <button type="button"
         data-save-content
         data-save-type="{{ $key }}"
-        data-save-uuid="{{ $record->uuid }}"
+        data-save-uuid="{{ $id }}"
         data-saved="{{ $saved ? '1' : '0' }}"
         aria-pressed="{{ $saved ? 'true' : 'false' }}"
         title="{{ $saved ? 'Saved — click to remove' : 'Save for later' }}"

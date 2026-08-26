@@ -3,8 +3,15 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\DiagramResource;
+use App\Http\Resources\FlashcardDeckResource;
+use App\Http\Resources\GuideResource;
+use App\Http\Resources\NoteResource;
+use App\Http\Resources\SummaryResource;
+use App\Http\Resources\VideoLessonResource;
 use App\Models\Chapter;
 use App\Models\Course;
+use App\Models\Diagram;
 use App\Models\Flashcard;
 use App\Models\Guide;
 use App\Models\Note;
@@ -103,10 +110,10 @@ class StudentChaptersController extends Controller
     }
 
     /**
-     * Resolves the pair from the URL and enforces the paywall.
+     * Resolves the pair from the URL.
      *
-     * A private chapter is only readable by a subscriber; anyone else is sent
-     * to the same subscription page the public site uses.
+     * The paywall is the `subscribed` middleware on the route group; this only
+     * has to prove the chapter really belongs to the course.
      *
      * @return array{0: Course, 1: Chapter}
      */
@@ -117,12 +124,6 @@ class StudentChaptersController extends Controller
 
         abort_if($chapter->course_id !== $course->id, 404);
 
-        if ($chapter->visibility !== 'public'
-            && ! $this->stripe->subscribedTo($request->user(), $course)) {
-            throw new HttpResponseException(
-                redirect()->route('public.course.chapter.subscribe', [$course, $chapter])
-            );
-        }
 
         return [$course, $chapter];
     }
@@ -146,12 +147,16 @@ class StudentChaptersController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        // Read before the collection is resolved to arrays: forView()
+        // maps the paginator in place.
+        $state = $this->progress->completionFor($request->user(), $notes->getCollection());
+
         return view('student.chapters.notes.index', $crumbs + [
-            'notes' => $notes,
+            'notes' => NoteResource::forView($notes),
             'search' => $search,
             'type' => $type,
             // Which of these the student has already read.
-            'state' => $this->progress->completionFor($request->user(), $notes->getCollection()),
+            'state' => $state,
         ]);
     }
 
@@ -255,7 +260,7 @@ class StudentChaptersController extends Controller
             ->withQueryString();
 
         return view('student.chapters.flashcards.index', $crumbs + [
-            'decks' => $decks,
+            'decks' => FlashcardDeckResource::forView($decks),
             'search' => $search,
         ]);
     }
@@ -334,11 +339,15 @@ class StudentChaptersController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        // Read before the collection is resolved to arrays: forView()
+        // maps the paginator in place.
+        $state = $this->progress->completionFor($request->user(), $guides->getCollection());
+
         return view('student.chapters.guides.index', $crumbs + [
-            'guides' => $guides,
+            'guides' => GuideResource::forView($guides),
             'search' => $search,
             'type' => $type,
-            'state' => $this->progress->completionFor($request->user(), $guides->getCollection()),
+            'state' => $state,
         ]);
     }
 
@@ -392,22 +401,44 @@ class StudentChaptersController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        // Read before the collection is resolved to arrays: forView()
+        // maps the paginator in place.
+        $state = $this->progress->completionFor($request->user(), $diagrams->getCollection());
+
         return view('student.chapters.diagrams.index', $crumbs + [
-            'diagrams' => $diagrams,
+            'diagrams' => DiagramResource::forView($diagrams),
             'search' => $search,
             'topic' => $topic,
             'topics' => $crumbs['chapter']->topics()
                 ->whereHas('diagrams')
                 ->orderBy('title')
                 ->get(['id', 'uuid', 'title']),
-            'state' => $this->progress->completionFor($request->user(), $diagrams->getCollection()),
+            'state' => $state,
         ]);
     }
 
     public function showDiagram(Request $request, $courseId, $chapterId, $diagramId)
     {
-        return view('student.chapters.diagrams.show',
-            $this->crumbs($request, $courseId, $chapterId) + compact('diagramId'));
+        $crumbs = $this->crumbs($request, $courseId, $chapterId);
+        $chapter = $crumbs['chapter'];
+
+        $diagram = Diagram::where('uuid', $diagramId)
+            ->with(['topic:id,title', 'addedBy:id,name'])
+            ->firstOrFail();
+
+        abort_if($diagram->chapter_id !== $chapter->id, 404);
+
+        // Ordered the same way the listing is, so "next" means what it looks
+        // like it means coming from there.
+        $siblings = $chapter->diagrams()->orderByDesc('id')->get(['id', 'uuid', 'title']);
+        $position = $siblings->search(fn ($item) => $item->id === $diagram->id);
+
+        return view('student.chapters.diagrams.show', $crumbs + [
+            'diagram' => $diagram,
+            'diagramId' => $diagramId,
+            'previous' => $position > 0 ? $siblings[$position - 1] : null,
+            'next' => $siblings[$position + 1] ?? null,
+        ]);
     }
 
     /**
@@ -432,8 +463,12 @@ class StudentChaptersController extends Controller
             ->paginate(9)
             ->withQueryString();
 
+        // Read before the collection is resolved to arrays: forView()
+        // maps the paginator in place.
+        $state = $this->progress->completionFor($request->user(), $summaries->getCollection());
+
         return view('student.chapters.summaries.index', $crumbs + [
-            'summaries' => $summaries,
+            'summaries' => SummaryResource::forView($summaries),
             'search' => $search,
             'topic' => $topic,
             // Only topics this chapter actually has summaries under.
@@ -441,7 +476,7 @@ class StudentChaptersController extends Controller
                 ->whereHas('summaries')
                 ->orderBy('title')
                 ->get(['id', 'uuid', 'title']),
-            'state' => $this->progress->completionFor($request->user(), $summaries->getCollection()),
+            'state' => $state,
         ]);
     }
 
@@ -501,13 +536,17 @@ class StudentChaptersController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        // Read before the collection is resolved to arrays: forView()
+        // maps the paginator in place.
+        $state = $this->progress->completionFor($request->user(), $videos->getCollection());
+
         return view('student.chapters.videos.index', $crumbs + [
-            'videos' => $videos,
+            'videos' => VideoLessonResource::forView($videos),
             'search' => $search,
             'sort' => $sort,
             'sorts' => ['newest' => 'Newest first', 'oldest' => 'Oldest first', 'title' => 'Title A–Z'],
             // How far through each lesson this student is.
-            'state' => $this->progress->completionFor($request->user(), $videos->getCollection()),
+            'state' => $state,
         ]);
     }
 

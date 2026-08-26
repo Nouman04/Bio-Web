@@ -47,50 +47,34 @@
     </div>
 
     {{-- Search and topic, both handled on the server. --}}
-    <form method="GET" class="flex flex-wrap items-center gap-3">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:20px;">search</span>
-            <input type="search" name="search" value="{{ $search }}" placeholder="Search diagrams"
-                class="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2.5 pl-10 pr-4 focus:ring-primary focus:border-primary transition-colors w-full sm:w-56">
-        </div>
+    <x-chapter-filter placeholder="Search diagrams"
+        :search="$search"
+        :active="$search || $topic"
+        :clear="route('student.chapters.diagrams', ['courseId' => $courseId, 'chapterId' => $chapterId])">
+
         @if($topics->isNotEmpty())
-            <div class="relative">
-                <select name="topic" onchange="this.form.submit()"
-                    class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2.5 pl-4 pr-8 focus:ring-primary focus:border-primary hover:bg-surface-container-low transition-colors cursor-pointer">
-                    <option value="">All topics</option>
-                    @foreach($topics as $option)
-                        <option value="{{ $option->uuid }}" @selected($topic === $option->uuid)>{{ $option->title }}</option>
-                    @endforeach
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
-                    <span class="material-symbols-outlined" style="font-size:20px;">arrow_drop_down</span>
-                </div>
-            </div>
+            <x-chapter-filter.select name="topic">
+                <option value="">All topics</option>
+                @foreach($topics as $option)
+                    <option value="{{ $option->uuid }}" @selected($topic === $option->uuid)>{{ $option->title }}</option>
+                @endforeach
+            </x-chapter-filter.select>
         @endif
-        <button type="submit" class="flex items-center justify-center gap-2 bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary p-2.5 rounded-lg transition-all">
-            <span class="material-symbols-outlined" style="font-size:20px;">filter_list</span>
-        </button>
-        @if($search || $topic)
-            <a href="{{ route('student.chapters.diagrams', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
-                class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 transition-colors">
-                <span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span> Clear
-            </a>
-        @endif
-    </form>
+    </x-chapter-filter>
 </div>
 
 {{-- Gallery Grid --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     @forelse($diagrams as $diagram)
-        @php $viewed = $state[$diagram->id]['completed'] ?? false; @endphp
+        @php $viewed = $state[$diagram['id']]['completed'] ?? false; @endphp
 
         <div class="glass-card rounded-xl overflow-hidden flex flex-col group relative">
-            <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => $diagram->uuid]) }}"
+            <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => $diagram['uuid']]) }}"
                 class="aspect-video relative overflow-hidden bg-surface-container-lowest border-b border-outline-variant/20 block">
-                @if($diagram->image_url)
-                    <img alt="{{ $diagram->title }}" loading="lazy"
+                @if($diagram['image_url'])
+                    <img alt="{{ $diagram['title'] }}" loading="lazy"
                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="{{ $diagram->image_url }}"/>
+                        src="{{ $diagram['image_url'] }}"/>
                 @else
                     {{-- No image uploaded, so the tile says so rather than
                          showing a broken picture. --}}
@@ -100,10 +84,10 @@
                     </div>
                 @endif
 
-                @if($diagram->topic)
+                @if($diagram['topic'])
                     <div class="absolute top-3 left-3 bg-tertiary-container/90 backdrop-blur text-on-tertiary-container text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm max-w-[70%]">
                         <span class="material-symbols-outlined shrink-0" style="font-size:14px;">account_tree</span>
-                        <span class="truncate">{{ $diagram->topic->title }}</span>
+                        <span class="truncate">{{ $diagram['topic'] }}</span>
                     </div>
                 @endif
 
@@ -115,17 +99,17 @@
             </a>
 
             {{-- Outside the anchor, so saving does not open the diagram. --}}
-            <x-save-button :record="$diagram"
+            <x-save-button type="diagram" :uuid="$diagram['uuid']"
                 class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur text-on-surface-variant hover:text-primary p-1.5 rounded-md shadow-sm z-10" />
 
             <div class="p-5 flex flex-col flex-1">
-                <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">{{ $diagram->title ?: 'Untitled diagram' }}</h3>
+                <h3 class="text-on-surface font-semibold text-base mb-2 line-clamp-2 group-hover:text-primary transition-colors">{{ $diagram['title'] }}</h3>
                 <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">
-                    {{ $diagram->content ? Str::limit(strip_tags($diagram->content), 110) : 'No description yet.' }}
+                    {{ $diagram['excerpt'] }}
                 </p>
                 <div class="mt-auto pt-4 border-t border-outline-variant/20 flex items-center justify-between gap-2">
-                    <span class="text-outline text-xs truncate">Added {{ $diagram->created_at?->diffForHumans() }}</span>
-                    <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => $diagram->uuid]) }}"
+                    <span class="text-outline text-xs truncate">Added {{ $diagram['added_human'] }}</span>
+                    <a href="{{ route('student.chapters.diagrams.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'diagramId' => $diagram['uuid']]) }}"
                         class="text-primary text-xs font-semibold hover:text-primary-container flex items-center gap-1 group/btn transition-colors shrink-0">
                         View Full
                         <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>

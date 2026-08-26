@@ -47,41 +47,27 @@
     </div>
 
     {{-- Search and kind, both handled on the server. --}}
-    <form method="GET" class="flex flex-wrap gap-3 items-center">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">search</span>
-            <input type="search" name="search" value="{{ $search }}" placeholder="Search guides"
-                class="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary transition-all w-full sm:w-56">
-        </div>
-        <div class="relative">
-            <select name="type" onchange="this.form.submit()"
-                class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary transition-all cursor-pointer">
-                <option value="">All kinds</option>
-                @foreach(\App\Models\Guide::TYPE_LABELS as $value => $label)
-                    <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">expand_more</span>
-        </div>
-        <button type="submit" class="bg-primary-container text-on-primary-container text-sm font-semibold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-colors">
-            <span class="material-symbols-outlined" style="font-size:18px;">filter_list</span> Filter
-        </button>
-        @if($search || $type)
-            <a href="{{ route('student.chapters.guides', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
-                class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 transition-colors">
-                <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span> Clear
-            </a>
-        @endif
-    </form>
+    <x-chapter-filter placeholder="Search guides"
+        :search="$search"
+        :active="$search || $type"
+        :clear="route('student.chapters.guides', ['courseId' => $courseId, 'chapterId' => $chapterId])">
+
+        <x-chapter-filter.select name="type">
+            <option value="">All kinds</option>
+            @foreach(\App\Models\Guide::TYPE_LABELS as $value => $label)
+                <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
+            @endforeach
+        </x-chapter-filter.select>
+    </x-chapter-filter>
 </div>
 
 {{-- Guides Grid --}}
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     @forelse($guides as $guide)
         @php
-            $read = $state[$guide->id]['completed'] ?? false;
+            $read = $state[$guide['id']]['completed'] ?? false;
             // Written out in full so the classes survive a Tailwind build.
-            $badge = $guide->type === 'atp_guides'
+            $badge = $guide['type'] === 'atp_guides'
                 ? 'bg-tertiary-container/20 text-tertiary border-tertiary/20'
                 : 'bg-primary-container/20 text-primary border-primary/20';
         @endphp
@@ -89,9 +75,9 @@
         <article class="glass-card rounded-2xl p-6 flex flex-col h-full group">
             <div class="flex justify-between items-start mb-4 gap-2">
                 <div class="flex gap-2 flex-wrap min-w-0">
-                    <span class="{{ $badge }} text-xs font-bold px-3 py-1 rounded-full border">{{ $guide->type_label }}</span>
-                    @if($guide->topic)
-                        <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase truncate max-w-[10rem]">{{ $guide->topic->title }}</span>
+                    <span class="{{ $badge }} text-xs font-bold px-3 py-1 rounded-full border">{{ $guide['type_label'] }}</span>
+                    @if($guide['topic'])
+                        <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase truncate max-w-[10rem]">{{ $guide['topic'] }}</span>
                     @endif
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
@@ -100,16 +86,16 @@
                             <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1;">check_circle</span>
                         </span>
                     @endif
-                    <x-save-button :record="$guide" class="text-outline hover:text-primary" />
+                    <x-save-button type="guide" :uuid="$guide['uuid']" class="text-outline hover:text-primary" />
                 </div>
             </div>
 
-            <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">{{ $guide->title ?: 'Untitled guide' }}</h3>
-            <p class="text-on-surface-variant text-sm mb-6 line-clamp-3 flex-1">{{ $guide->excerpt ?: 'No content yet.' }}</p>
+            <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">{{ $guide['title'] }}</h3>
+            <p class="text-on-surface-variant text-sm mb-6 line-clamp-3 flex-1">{{ $guide['excerpt'] }}</p>
 
             <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto gap-2">
-                <span class="text-on-surface-variant text-xs truncate">{{ $guide->addedBy?->name ?? 'Unknown' }}</span>
-                <a href="{{ route('student.chapters.guides.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'guideId' => $guide->uuid]) }}"
+                <span class="text-on-surface-variant text-xs truncate">{{ $guide['author'] ?? 'Unknown' }}</span>
+                <a href="{{ route('student.chapters.guides.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'guideId' => $guide['uuid']]) }}"
                     class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all shrink-0">
                     Read <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
                 </a>

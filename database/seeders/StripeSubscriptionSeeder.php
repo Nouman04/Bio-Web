@@ -2,164 +2,134 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Course;
 use App\Models\CoursePlan;
-use App\Models\User;
 use App\Services\StripeService;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use Stripe\Exception\ApiErrorException;
 
 /**
- * Seeds the courses that are sold as subscriptions, and gives each one a Stripe
- * product with a recurring price. Every Stripe call goes through StripeService,
- * so this seeder only decides what to sell and on what terms.
+ * Puts every course in the catalogue on sale, on two sets of terms.
  *
  *     php artisan db:seed --class=StripeSubscriptionSeeder
  *
- * Needs STRIPE_SECRET in .env. With a test key it only ever touches test mode;
- * without one the courses are still seeded, just without a plan.
+ * Every Stripe call goes through StripeService, so this seeder only decides
+ * what to charge. Needs STRIPE_SECRET in .env; with a test key it only ever
+ * touches test mode. Without one the prices are still recorded locally, just
+ * without a Stripe product behind them.
+ *
+ * Safe to run again: an unchanged price is left alone, and a changed one gets a
+ * new Stripe price with the old one deactivated.
  */
 class StripeSubscriptionSeeder extends Seeder
 {
+    /**
+     * The monthly price is picked from this range, in whole dollars.
+     */
+    private const MONTHLY_MIN = 11;
+
+    private const MONTHLY_MAX = 20;
+
+    /**
+     * What paying for a year up front saves against paying monthly.
+     */
+    private const YEARLY_DISCOUNT = 0.20;
+
     public function __construct(private readonly StripeService $stripe)
     {
     }
 
-    /**
-     * The courses to sell, and the terms each is sold on. `price` is in the
-     * smallest currency unit, the way Stripe counts — 1900 is $19.00.
-     */
-    private const PLANS = [
-        [
-            'title' => 'IGCSE Biology — Complete Syllabus',
-            'description' => 'Every chapter of the IGCSE Biology syllabus, with notes, flashcards, quizzes and the full question bank.',
-            'price' => 1900,
-            'billing_interval' => 'month',
-        ],
-        [
-            'title' => 'IGCSE Chemistry — Complete Syllabus',
-            'description' => 'Structured chemistry chapters covering atomic structure through organic reactions, with practice at every step.',
-            'price' => 1900,
-            'billing_interval' => 'month',
-        ],
-        [
-            'title' => 'IGCSE Physics — Complete Syllabus',
-            'description' => 'Mechanics, waves, electricity and nuclear physics, taught through worked examples and interactive practice.',
-            'price' => 1900,
-            'billing_interval' => 'month',
-        ],
-        [
-            'title' => 'Biology Exam Intensive',
-            'description' => 'A revision-season course: past-paper drills, mark-scheme walkthroughs and timed theory practice.',
-            'price' => 2900,
-            'billing_interval' => 'month',
-        ],
-        [
-            'title' => 'All Access — Annual',
-            'description' => 'Every course in the library on one annual subscription, including new material as it is published.',
-            'price' => 19000,
-            'billing_interval' => 'year',
-        ],
-    ];
-
     public function run(): void
     {
         if (! $this->stripe->configured()) {
-            $this->command?->warn('STRIPE_SECRET is not set — courses will be seeded without a Stripe plan.');
+            $this->command?->warn('STRIPE_SECRET is not set — prices will be recorded without a Stripe plan.');
         }
 
-        $author = $this->author();
-        $category = $this->category();
+        $courses = Course::orderBy('id')->get();
 
-        foreach (self::PLANS as $plan) {
-            $course = $this->course($plan, $author, $category);
+        if ($courses->isEmpty()) {
+            $this->command?->warn('No courses to price — run the course seeders first.');
 
-            // The terms are recorded locally either way; only the Stripe ids
-            // need an account to reach.
-            $this->terms($course, $plan);
+            return;
+        }
 
-            if (! $this->stripe->configured()) {
-                continue;
+        foreach ($courses as $course) {
+            // In the smallest currency unit, the way Stripe counts.
+            $monthly = random_int(self::MONTHLY_MIN, self::MONTHLY_MAX) * 100;
+            $yearly = $this->yearlyFor($monthly);
+
+            $this->command?->info("{$course->title}");
+
+            foreach (['month' => $monthly, 'year' => $yearly] as $interval => $price) {
+                $this->price($course, $interval, $price);
             }
 
-            try {
-                $sold = $this->stripe->syncCoursePlan($course, $plan);
-
-                $this->command?->line(
-                    "  plan: {$sold->stripe_product_id} / {$sold->stripe_price_id}"
-                    . " — {$sold->formatted_price} per {$sold->billing_interval}"
-                );
-            } catch (ApiErrorException $e) {
-                // One bad plan should not abandon the rest of the run.
-                $this->command?->error("  {$course->title}: Stripe rejected this — {$e->getMessage()}");
-            }
+            $this->command?->line(sprintf(
+                '    saves %s a year against paying monthly',
+                $this->money($monthly * 12 - $yearly)
+            ));
         }
     }
 
     /**
-     * Creates the course locally, or picks up the one already there.
+     * A year up front costs twelve months less the discount, rounded to whole
+     * dollars so the price reads like a price.
      */
-    private function course(array $plan, User $author, Category $category): Course
+    private function yearlyFor(int $monthly): int
     {
-        $course = Course::firstOrNew(['slug' => Str::slug($plan['title'])]);
+        $full = $monthly * 12;
 
-        $course->fill([
-            'title' => $plan['title'],
-            'description' => '<p>' . e($plan['description']) . '</p>',
-        ]);
-
-        // Only set on creation, so a seeded course keeps its real owner.
-        $course->created_by ??= $author->id;
-        $course->category_id ??= $category->id;
-
-        $course->save();
-
-        $this->command?->info(($course->wasRecentlyCreated ? 'Created' : 'Updated') . " course: {$course->title}");
-
-        return $course;
+        return (int) (round($full * (1 - self::YEARLY_DISCOUNT) / 100) * 100);
     }
 
     /**
-     * Writes what the course is sold for onto its plan row. Stripe is not
-     * involved — that is syncCoursePlan's job.
+     * Records one set of terms locally, and mirrors it into Stripe when there
+     * is an account to mirror it into.
      */
-    private function terms(Course $course, array $plan): CoursePlan
+    private function price(Course $course, string $interval, int $amount): void
     {
-        $sold = $this->stripe->planFor($course);
+        // Recorded either way; only the Stripe ids need an account to reach.
+        $plan = $this->stripe->planFor($course, $interval);
 
-        $sold->fill([
-            'price' => $plan['price'],
+        $plan->fill([
+            'price' => $amount,
             'currency' => StripeService::CURRENCY,
-            'billing_interval' => $plan['billing_interval'],
+            'billing_interval' => $interval,
         ])->save();
 
-        $course->setRelation('plan', $sold);
+        if (! $this->stripe->configured()) {
+            $this->report($plan, null);
 
-        return $sold;
-    }
-
-    /**
-     * Seeded courses are credited to an admin, falling back to any user.
-     */
-    private function author(): User
-    {
-        $author = User::whereHas('roles', fn ($query) => $query->whereIn('name', ['admin', 'Admin']))->first()
-            ?? User::first();
-
-        if (! $author) {
-            throw new \RuntimeException('No users exist — run UserSeeder before this seeder.');
+            return;
         }
 
-        return $author;
+        try {
+            $plan = $this->stripe->syncCoursePlan($course, [
+                'price' => $amount,
+                'billing_interval' => $interval,
+                'description' => strip_tags((string) $course->description),
+            ]);
+
+            $this->report($plan, $plan->stripe_price_id);
+        } catch (ApiErrorException $e) {
+            // One rejected price should not abandon the rest of the run.
+            $this->command?->error("    {$interval}: Stripe rejected this — {$e->getMessage()}");
+        }
     }
 
-    private function category(): Category
+    private function report(CoursePlan $plan, ?string $priceId): void
     {
-        return Category::firstOrCreate(
-            ['title' => 'Subscriptions'],
-            ['slug' => 'subscriptions']
-        );
+        $this->command?->line(sprintf(
+            '    %-5s %s per %s%s',
+            $plan->billing_interval,
+            $plan->formatted_price,
+            $plan->billing_interval,
+            $priceId ? "  [{$priceId}]" : '  (not on Stripe)'
+        ));
+    }
+
+    private function money(int $amount): string
+    {
+        return '$' . number_format($amount / 100, 2);
     }
 }

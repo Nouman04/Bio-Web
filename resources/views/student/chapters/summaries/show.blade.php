@@ -150,7 +150,7 @@
                 <h3 class="text-sm font-semibold text-on-surface mb-4">Next Steps</h3>
                 <div class="space-y-3">
                     @if($quiz)
-                        <a href="{{ route($quiz->type === 'mcqs' ? 'public.course.chapter.mcqs.show' : 'public.course.chapter.theory.show', [$course, $chapter, $quiz]) }}"
+                        <a href="{{ route('student.chapters.quizzes.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'quizId' => $quiz->uuid]) }}"
                             class="flex items-center justify-between p-3 rounded-lg bg-white shadow-sm border border-outline-variant/20 hover:border-primary/50 hover:shadow-md transition-all group gap-2">
                             <div class="flex items-center gap-3 min-w-0">
                                 <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0">

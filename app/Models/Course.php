@@ -24,20 +24,42 @@ class Course extends Model
     ];
 
     /**
-     * What this course is sold for. Billing lives on its own row rather than in
-     * columns on the course.
+     * The terms this course is sold on — one row per billing interval, so a
+     * course can offer monthly and yearly side by side.
      */
-    public function plan(): HasOne
+    public function plans(): HasMany
     {
-        return $this->hasOne(CoursePlan::class);
+        return $this->hasMany(CoursePlan::class);
     }
 
     /**
-     * Whether this course is sold as a subscription yet.
+     * The plan shown when only one can be: monthly, since that is what the
+     * yearly price is discounted against. Falls back to whatever exists.
+     */
+    public function plan(): HasOne
+    {
+        // Prefers monthly rather than requiring it: a course sold only by the
+        // year must still resolve to the plan it does have.
+        return $this->hasOne(CoursePlan::class)
+            ->orderByRaw("CASE WHEN billing_interval = 'month' THEN 0 ELSE 1 END")
+            ->orderBy('id');
+    }
+
+    /**
+     * A plan on specific terms, if the course is sold on them.
+     */
+    public function planFor(string $interval): ?CoursePlan
+    {
+        return $this->plans->firstWhere('billing_interval', $interval)
+            ?? $this->plans()->where('billing_interval', $interval)->first();
+    }
+
+    /**
+     * Whether this course is sold as a subscription yet, on any terms.
      */
     public function hasStripePlan(): bool
     {
-        return (bool) $this->plan?->isSellable();
+        return $this->plans()->whereNotNull('stripe_price_id')->exists();
     }
 
     /**

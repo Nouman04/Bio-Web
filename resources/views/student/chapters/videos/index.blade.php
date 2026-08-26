@@ -49,54 +49,41 @@
         </div>
 
         {{-- Search and sort share one form, so changing either keeps the other. --}}
-        <form method="GET" class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-            <div class="relative w-full sm:w-64 glass-panel rounded-full flex items-center px-4 py-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all border-outline-variant/30">
-                <span class="material-symbols-outlined text-outline mr-2 text-sm">search</span>
-                <input name="search" value="{{ $search }}" type="search"
-                    class="bg-transparent border-none focus:ring-0 w-full text-sm text-on-surface placeholder-outline outline-none"
-                    placeholder="Find a specific lesson..."/>
-            </div>
-            <div class="relative">
-                <select name="sort" onchange="this.form.submit()"
-                    class="glass-panel appearance-none flex items-center gap-2 pl-9 pr-9 py-2 rounded-full text-sm text-on-surface hover:bg-surface-container-high transition-colors border-outline-variant/30 cursor-pointer w-full">
-                    @foreach($sorts as $value => $label)
-                        <option value="{{ $value }}" @selected($sort === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
-                <span class="material-symbols-outlined text-sm absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">sort</span>
-                <span class="material-symbols-outlined text-sm absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-            </div>
-            @if($search)
-                <a href="{{ route('student.chapters.videos', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
-                    class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 px-2 transition-colors">
-                    <span class="material-symbols-outlined text-sm">restart_alt</span> Clear
-                </a>
-            @endif
-        </form>
+        <x-chapter-filter placeholder="Find a specific lesson"
+            :search="$search"
+            :active="$search || $sort !== array_key_first($sorts)"
+            :clear="route('student.chapters.videos', ['courseId' => $courseId, 'chapterId' => $chapterId])">
+
+            <x-chapter-filter.select name="sort" icon="sort">
+                @foreach($sorts as $value => $label)
+                    <option value="{{ $value }}" @selected($sort === $value)>{{ $label }}</option>
+                @endforeach
+            </x-chapter-filter.select>
+        </x-chapter-filter>
     </div>
 
     <!-- Video Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @forelse($videos as $video)
             @php
-                $watched = $state[$video->id]['progress'] ?? 0;
-                $done = $state[$video->id]['completed'] ?? false;
+                $watched = $state[$video['id']]['progress'] ?? 0;
+                $done = $state[$video['id']]['completed'] ?? false;
                 // Lessons carry no cover image, so the tile is a gradient keyed
                 // off the record — stable per lesson, and no stock art.
                 $palettes = [
                     ['#4648d4', '#7c3aed'], ['#0891b2', '#4648d4'], ['#c026d3', '#7c3aed'],
                     ['#059669', '#0891b2'], ['#ea580c', '#c026d3'],
                 ];
-                $palette = $palettes[$video->id % count($palettes)];
+                $palette = $palettes[$video['tint']];
             @endphp
 
             {{-- The card is one link, so the save button sits beside it rather
                  than inside — a button nested in an anchor would navigate. --}}
             <div class="relative">
-            <x-save-button :record="$video"
+            <x-save-button type="video" :uuid="$video['uuid']"
                 class="absolute top-3 right-3 z-30 bg-inverse-surface/80 backdrop-blur-sm text-inverse-on-surface hover:text-primary p-1.5 rounded-md" />
 
-            <a href="{{ route('student.chapters.videos.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'videoId' => $video->uuid]) }}"
+            <a href="{{ route('student.chapters.videos.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'videoId' => $video['uuid']]) }}"
                 class="glass-panel rounded-xl overflow-hidden flex flex-col hover-lift group border-outline-variant/30 shadow-sm relative block h-full">
 
                 <div class="relative h-48 w-full overflow-hidden flex items-center justify-center"
@@ -114,7 +101,7 @@
                         </div>
                     @endif
 
-                    @if($video->is_external)
+                    @if($video['is_external'])
                         <div class="absolute bottom-3 right-3 bg-inverse-surface/80 backdrop-blur-sm text-inverse-on-surface text-[10px] px-2 py-1 rounded-md z-20 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[12px]">open_in_new</span>
                             External
@@ -135,12 +122,12 @@
                 </div>
 
                 <div class="p-5 flex flex-col flex-1">
-                    <h3 class="text-lg font-semibold text-on-surface mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">{{ $video->title }}</h3>
-                    <p class="text-sm text-on-surface-variant mb-4 line-clamp-2">{{ $video->description ? Str::limit(strip_tags($video->description), 110) : 'No description yet.' }}</p>
+                    <h3 class="text-lg font-semibold text-on-surface mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">{{ $video['title'] }}</h3>
+                    <p class="text-sm text-on-surface-variant mb-4 line-clamp-2">{{ $video['excerpt'] }}</p>
                     <div class="mt-auto">
                         <div class="flex justify-between items-center mb-4 text-xs text-outline gap-2">
-                            <span class="truncate">{{ $video->addedBy?->name ?? 'Unknown' }}</span>
-                            <span class="shrink-0">{{ $video->created_at?->diffForHumans() }}</span>
+                            <span class="truncate">{{ $video['author'] ?? 'Unknown' }}</span>
+                            <span class="shrink-0">{{ $video['added_human'] }}</span>
                         </div>
                         @if($done)
                             <div class="w-full bg-surface-container-high text-on-surface text-sm font-semibold py-2.5 rounded-full flex justify-center items-center gap-2 group-hover:bg-primary group-hover:text-white transition-all">

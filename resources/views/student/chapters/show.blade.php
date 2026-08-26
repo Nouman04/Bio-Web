@@ -257,16 +257,16 @@
                 <div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary">
                     <span class="material-symbols-outlined">quiz</span>
                 </div>
-                <h3 class="text-on-surface" style="font-size:20px;line-height:28px;font-weight:600;">Chapter Assessment</h3>
+                <h3 class="text-on-surface flex-1 min-w-0" style="font-size:20px;line-height:28px;font-weight:600;">Chapter Assessment</h3>
+                {{-- Only the first few fit here; the rest are on the list page. --}}
+                <a href="{{ $link('student.chapters.quizzes') }}"
+                    class="text-tertiary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all shrink-0">
+                    View all
+                    <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+                </a>
             </div>
             <div class="space-y-4 relative z-10">
                 @forelse($quizzes as $quiz)
-                    @php
-                        // MCQ and theory quizzes are sat on different pages.
-                        $quizRoute = $quiz->type === 'mcqs'
-                            ? 'public.course.chapter.mcqs.show'
-                            : 'public.course.chapter.theory.show';
-                    @endphp
                     <div class="bg-surface-container-lowest p-4 rounded-lg border border-surface-container-highest">
                         <h4 class="text-on-surface text-sm font-semibold mb-1">{{ $quiz->title }}</h4>
                         <p class="text-on-surface-variant text-xs mb-4">
@@ -274,9 +274,9 @@
                             @if($quiz->duration) • {{ $quiz->duration }} min @endif
                             @if($quiz->passing_score !== null) • pass at {{ $quiz->passing_score }} @endif
                         </p>
-                        <a href="{{ route($quizRoute, [$course, $chapter, $quiz]) }}"
+                        <a href="{{ $link('student.chapters.quizzes.show', ['quizId' => $quiz->uuid]) }}"
                             class="w-full bg-surface-container hover:bg-surface-variant text-on-surface text-xs font-semibold py-2 rounded-full transition-colors flex items-center justify-center gap-2">
-                            {{ $quiz->type === 'mcqs' ? 'Start Quiz' : 'View Questions' }}
+                            Start Quiz
                             <span class="material-symbols-outlined text-sm">arrow_forward</span>
                         </a>
                     </div>

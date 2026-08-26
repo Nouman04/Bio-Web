@@ -1,13 +1,129 @@
 @extends('layouts.app')
 
 @section('title', 'Students')
-@section('meta-description', 'Manage and view all enrolled students in EduAdmin LMS.')
+@section('meta-description', 'Students subscribed to your courses.')
 
 @section('page-title', 'Students')
-@section('page-subtitle', 'Manage and view all enrolled students.')
+@section('page-subtitle', 'Everyone subscribed to your courses, and what of theirs is waiting to be marked.')
 
 @push('styles')
 <style>
+    /* ── Students table ─────────────────────────────────────────────────────
+       DataTables ships its own chrome; these rules fold it into the panel so
+       the grid reads as one quiet surface rather than a widget dropped in.
+       Same treatment as the courses grid. */
+    .students-panel { overflow: hidden; }
+    #students-table_wrapper { padding: 0.25rem 0 0; font-size: 0.875rem; }
+
+    /* Header */
+    #students-table thead th {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgb(118, 117, 134);
+        background: rgba(242, 244, 246, 0.5);
+        border-bottom: 1px solid rgba(118, 117, 134, 0.14);
+        white-space: nowrap;
+    }
+    .dark #students-table thead th {
+        color: rgb(148, 163, 184);
+        background: rgba(15, 23, 42, 0.4);
+        border-bottom-color: rgb(51, 65, 85);
+    }
+    #students-table.dataTable thead th.dt-orderable-asc:hover,
+    #students-table.dataTable thead th.dt-orderable-desc:hover { color: #4648d4; }
+
+    /* DataTables' own `table.dataTable thead>tr>th` rule outranks utility classes,
+       so the last two columns are aligned here to keep header and cell in line. */
+    #students-table.dataTable thead > tr > th:nth-child(4),
+    #students-table.dataTable tbody > tr > td:nth-child(4),
+    #students-table.dataTable thead > tr > th:nth-child(5),
+    #students-table.dataTable tbody > tr > td:nth-child(5) { text-align: center; }
+
+    /* Keep the sort arrows tight against the centred header labels */
+    #students-table.dataTable thead > tr > th:nth-child(4) span.dt-column-order { position: static; }
+
+    /* Body */
+    #students-table tbody td {
+        padding: 0.9375rem 1.5rem;
+        vertical-align: middle;
+        border-top: none;
+        border-bottom: 1px solid rgba(118, 117, 134, 0.08);
+    }
+    .dark #students-table tbody td { border-bottom-color: rgba(51, 65, 85, 0.6); }
+    #students-table tbody tr:last-child td { border-bottom: none; }
+    #students-table tbody tr { transition: background-color 0.15s ease; }
+    #students-table tbody tr:hover { background: rgba(70, 72, 212, 0.035); }
+    .dark #students-table tbody tr:hover { background: rgba(70, 72, 212, 0.12); }
+    #students-table.dataTable tbody tr.odd,
+    #students-table.dataTable tbody tr.even,
+    #students-table.dataTable tbody tr > .sorting_1 { background: transparent; box-shadow: none; }
+    #students-table tbody td.dt-empty {
+        padding: 3.5rem 1.5rem;
+        text-align: center;
+        color: rgb(118, 117, 134);
+    }
+
+    /* Footer chrome: length menu, info line, pagination */
+    #students-table_wrapper .dt-layout-row:last-child {
+        padding: 0.875rem 1.5rem;
+        border-top: 1px solid rgba(118, 117, 134, 0.12);
+        background: rgba(242, 244, 246, 0.35);
+    }
+    .dark #students-table_wrapper .dt-layout-row:last-child {
+        border-top-color: rgb(51, 65, 85);
+        background: rgba(15, 23, 42, 0.35);
+    }
+    #students-table_wrapper .dt-layout-row:first-child { padding: 0.875rem 1.5rem 0.25rem; }
+    #students-table_wrapper .dt-length,
+    #students-table_wrapper .dt-info {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgb(118, 117, 134);
+    }
+    .dark #students-table_wrapper .dt-length,
+    .dark #students-table_wrapper .dt-info { color: rgb(148, 163, 184); }
+    #students-table_wrapper select {
+        background: #ffffff;
+        border: 1px solid rgba(118, 117, 134, 0.3);
+        border-radius: 0.625rem;
+        padding: 0.25rem 0.5rem;
+        margin: 0 0.375rem;
+        outline: none;
+    }
+    .dark #students-table_wrapper select {
+        background: rgb(15, 23, 42);
+        border-color: rgb(51, 65, 85);
+        color: rgb(226, 232, 240);
+    }
+    #students-table_wrapper .dt-paging .dt-paging-button {
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0.625rem;
+        min-width: 2rem;
+        padding: 0.3125rem 0.625rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: rgb(118, 117, 134) !important;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    #students-table_wrapper .dt-paging .dt-paging-button:hover:not(.disabled) {
+        background: rgba(70, 72, 212, 0.08) !important;
+        color: #4648d4 !important;
+    }
+    #students-table_wrapper .dt-paging .dt-paging-button.current {
+        background: #4648d4 !important;
+        color: #ffffff !important;
+    }
+    #students-table_wrapper .dt-paging .dt-paging-button.disabled { opacity: 0.4; }
+
+    /* The shimmer below stands in for DataTables' "Processing..." box */
+    #students-table_wrapper .dt-processing { display: none !important; }
+
+    tr.students-shimmer-row td > .shimmer-bar + .shimmer-bar { margin-top: 0.4375rem; }
+
     .filter-card-wrapper {
         display: grid;
         grid-template-rows: 0fr;
@@ -43,6 +159,9 @@
 
 @section('content')
 
+    {{-- Ambient Background Glow --}}
+    <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10"></div>
+
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
@@ -50,32 +169,48 @@
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Students</span>
     </div>
 
-    {{-- Stats Row --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 p-4 rounded-2xl border border-outline-variant/30 dark:border-slate-700 flex flex-col gap-1">
-            <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Total</span>
-            <span class="text-2xl font-bold text-primary dark:text-primary-fixed-dim">{{ $totalCount }}</span>
+    {{-- Headline figures --}}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm flex items-center gap-4">
+            <span class="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <i class="fa-solid fa-user-group"></i>
+            </span>
+            <div>
+                <p class="text-2xl font-bold text-on-surface dark:text-white leading-tight">{{ $stats['total'] }}</p>
+                <p class="text-xs text-on-surface-variant dark:text-slate-400">Subscribed students</p>
+            </div>
         </div>
-        <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 p-4 rounded-2xl border border-outline-variant/30 dark:border-slate-700 flex flex-col gap-1">
-            <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Active</span>
-            <span class="text-2xl font-bold text-tertiary dark:text-tertiary-fixed-dim">{{ $activeCount }}</span>
+        <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm flex items-center gap-4">
+            <span class="w-11 h-11 rounded-xl bg-error/10 text-error flex items-center justify-center">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </span>
+            <div>
+                <p class="text-2xl font-bold text-on-surface dark:text-white leading-tight">{{ $stats['papers'] }}</p>
+                <p class="text-xs text-on-surface-variant dark:text-slate-400">Papers waiting to be marked</p>
+            </div>
         </div>
-        <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 p-4 rounded-2xl border border-outline-variant/30 dark:border-slate-700 flex flex-col gap-1">
-            <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">Inactive</span>
-            <span class="text-2xl font-bold text-on-surface-variant dark:text-slate-400">{{ $inactiveCount }}</span>
-        </div>
-        <div class="glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 p-4 rounded-2xl border border-outline-variant/30 dark:border-slate-700 flex flex-col gap-1">
-            <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider">New This Month</span>
-            <span class="text-2xl font-bold text-secondary dark:text-secondary-fixed-dim">12</span>
+        <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm flex items-center gap-4">
+            <span class="w-11 h-11 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center">
+                <i class="fa-solid fa-user-clock"></i>
+            </span>
+            <div>
+                <p class="text-2xl font-bold text-on-surface dark:text-white leading-tight">{{ $stats['pending'] }}</p>
+                <p class="text-xs text-on-surface-variant dark:text-slate-400">Students waiting on you</p>
+            </div>
         </div>
     </div>
 
     @php
-        $filtersOpen = request()->hasAny(['search', 'course', 'status', 'date_from', 'date_to']);
+        $filtersOpen = request()->hasAny(['search', 'course', 'status']);
     @endphp
 
-    {{-- Toolbar: Filter toggle --}}
-    <div class="flex justify-end items-center gap-3 mb-4">
+    {{-- Toolbar --}}
+    <div class="flex justify-between items-center gap-3 mb-4">
+        <a href="{{ route('quizzes.review') }}"
+            class="flex items-center gap-2 text-sm font-semibold text-on-surface-variant dark:text-slate-300 hover:text-primary transition-colors">
+            <i class="fa-solid fa-list-check text-xs"></i>
+            Everything awaiting review
+        </a>
         <button type="button" id="filterToggle"
             class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/30 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors shadow-sm {{ $filtersOpen ? 'is-active' : '' }}"
             title="Toggle Filters">
@@ -87,10 +222,8 @@
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">
         <div class="filter-card-inner">
             <div class="filter-card-panel glass-panel bg-surface-container-lowest/70 dark:bg-slate-800 rounded-2xl p-5 border border-outline-variant/30 dark:border-slate-700 shadow-sm">
-                <form action="{{ route('students') }}" method="GET">
-                    <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
-                    <input type="hidden" name="direction" value="{{ $filters['direction'] }}">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <form id="students-filter-form" action="{{ route('students') }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Search</label>
                             <div class="relative group">
@@ -104,31 +237,25 @@
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
                             <select name="course" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                 <option value="">All Courses</option>
-                                <option value="CS101" {{ ($filters['course'] ?? '') == 'CS101' ? 'selected' : '' }}>Computer Science 101</option>
-                                <option value="PHYS101" {{ ($filters['course'] ?? '') == 'PHYS101' ? 'selected' : '' }}>Physics 101</option>
-                                <option value="CHEM101" {{ ($filters['course'] ?? '') == 'CHEM101' ? 'selected' : '' }}>Chemistry 101</option>
+                                @forelse($courses as $course)
+                                    <option value="{{ $course->uuid }}" {{ ($filters['course'] ?? '') == $course->uuid ? 'selected' : '' }}>{{ $course->title }}</option>
+                                @empty
+                                    <option value="" disabled>No courses yet</option>
+                                @endforelse
                             </select>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Date Range</label>
-                            <div class="relative">
-                                <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none z-10 text-sm"></i>
-                                <input id="students-date-range" name="date_range" type="text" value="{{ (($filters['date_from'] ?? '') && ($filters['date_to'] ?? '')) ? ($filters['date_from'] . ' to ' . $filters['date_to']) : '' }}" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none" placeholder="Select date range" readonly>
-                            </div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Status</label>
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Marking</label>
                             <select name="status" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
-                                <option value="">All Statuses</option>
-                                <option value="active" {{ ($filters['status'] ?? '') == 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="inactive" {{ ($filters['status'] ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                <option value="">Everyone</option>
+                                <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>Has papers waiting</option>
                             </select>
                         </div>
                     </div>
                     <div class="mt-4 flex items-center justify-end gap-3 flex-wrap">
-                        <a href="{{ route('students') }}" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+                        <button type="button" id="studentsClearFilters" class="text-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
                             <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Clear Filters
-                        </a>
+                        </button>
                         <button type="submit" class="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-lg hover:bg-primary/20 transition-colors">
                             Apply Filters
                         </button>
@@ -138,163 +265,125 @@
         </div>
     </div>
 
-    {{-- Data Table --}}
-    <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-outline-variant/30 dark:border-slate-700">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+    {{-- Student roster (server-side, Yajra DataTables) --}}
+    <div class="students-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <div class="overflow-x-auto w-full">
+            <table id="students-table" class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="border-b border-outline-variant/20 bg-surface-container-low/40 dark:bg-slate-900/40">
-                        <th class="py-4 px-6 text-sm font-semibold text-on-surface-variant dark:text-slate-400">
-                            @php
-                                $nextDir = ($filters['sort'] == 'name' && $filters['direction'] == 'asc') ? 'desc' : 'asc';
-                            @endphp
-                            <a href="{{ route('students', array_merge(request()->query(), ['sort' => 'name', 'direction' => $nextDir])) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                Student Name
-                                @if($filters['sort'] == 'name')
-                                    <i class="fa-solid {{ $filters['direction'] == 'asc' ? 'fa-sort-up' : 'fa-sort-down' }} text-xs"></i>
-                                @else
-                                    <i class="fa-solid fa-sort text-xs opacity-40"></i>
-                                @endif
-                            </a>
-                        </th>
-                        <th class="py-4 px-6 text-sm font-semibold text-on-surface-variant dark:text-slate-400">Enrolled Courses</th>
-                        <th class="py-4 px-6 text-sm font-semibold text-on-surface-variant dark:text-slate-400">
-                            @php
-                                $nextDirDate = ($filters['sort'] == 'date' && $filters['direction'] == 'asc') ? 'desc' : 'asc';
-                            @endphp
-                            <a href="{{ route('students', array_merge(request()->query(), ['sort' => 'date', 'direction' => $nextDirDate])) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                Join Date
-                                @if($filters['sort'] == 'date')
-                                    <i class="fa-solid {{ $filters['direction'] == 'asc' ? 'fa-sort-up' : 'fa-sort-down' }} text-xs"></i>
-                                @else
-                                    <i class="fa-solid fa-sort text-xs opacity-40"></i>
-                                @endif
-                            </a>
-                        </th>
-                        <th class="py-4 px-6 text-sm font-semibold text-on-surface-variant dark:text-slate-400">Status</th>
-                        <th class="py-4 px-6 text-sm font-semibold text-on-surface-variant dark:text-slate-400 text-right">Actions</th>
+                    <tr>
+                        <th class="w-2/5">Student</th>
+                        <th>Email</th>
+                        <th>Joined</th>
+                        <th>Pending Quizzes</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-outline-variant/10 dark:divide-slate-700">
-                    @forelse($students as $idx => $s)
-                        <tr class="hover:bg-primary/5 transition-colors">
-                            <td class="py-3.5 px-6">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm">
-                                        {{ strtoupper(substr($s['name'], 0, 2)) }}
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-semibold text-on-background dark:text-white">{{ $s['name'] }}</p>
-                                        <p class="text-xs text-on-surface-variant dark:text-slate-400">{{ $s['email'] }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-3.5 px-6 text-sm text-on-surface dark:text-slate-300">
-                                {{ $s['courses'] }}
-                            </td>
-                            <td class="py-3.5 px-6 text-sm text-on-surface dark:text-slate-300">
-                                {{ \Carbon\Carbon::parse($s['date'])->format('M d, Y') }}
-                            </td>
-                            <td class="py-3.5 px-6">
-                                @if($s['status'] === 'active')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary/10 text-tertiary dark:bg-tertiary/20 dark:text-tertiary-fixed-dim">
-                                        Active
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-400">
-                                        Inactive
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="py-3.5 px-6 text-right whitespace-nowrap">
-                                <div class="relative inline-block text-left action-dropdown">
-                                    <button type="button" class="action-dropdown-trigger w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant dark:text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Actions">
-                                        <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
-                                    </button>
-                                    <div class="action-dropdown-menu hidden absolute right-0 z-20 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 shadow-lg py-1">
-                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
-                                            <i class="fa-solid fa-eye w-4 text-on-surface-variant"></i>
-                                            View
-                                        </button>
-                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
-                                            <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
-                                            Edit
-                                        </button>
-                                        <div class="my-1 border-t border-outline-variant/20 dark:border-slate-700"></div>
-                                        <button type="button" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors">
-                                            <i class="fa-solid fa-trash w-4"></i>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="py-12 text-center text-on-surface-variant">
-                                No students found matching criteria.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
-
-        {{-- Simple Pagination footer --}}
-        @if($totalPages > 1)
-            <div class="px-6 py-4 border-t border-outline-variant/10 dark:border-slate-700 flex items-center justify-between bg-surface-container-low/20 dark:bg-slate-900/10">
-                <span class="text-xs text-on-surface-variant dark:text-slate-400">
-                    Showing page {{ $currentPage }} of {{ $totalPages }}
-                </span>
-                <div class="flex gap-1">
-                    <a href="{{ $currentPage > 1 ? route('students', array_merge(request()->query(), ['page' => $currentPage - 1])) : '#' }}"
-                       class="p-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-primary/10 transition-colors {{ $currentPage <= 1 ? 'pointer-events-none opacity-50' : '' }}">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </a>
-                    <a href="{{ $currentPage < $totalPages ? route('students', array_merge(request()->query(), ['page' => $currentPage + 1])) : '#' }}"
-                       class="p-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-primary/10 transition-colors {{ $currentPage >= $totalPages ? 'pointer-events-none opacity-50' : '' }}">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-        @endif
     </div>
 
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const filterToggle = document.getElementById('filterToggle');
-            const filterCardWrapper = document.getElementById('filterCardWrapper');
+    {{-- One skeleton row, cloned into the table body while a draw is in flight --}}
+    <template id="students-shimmer-row">
+        <tr class="students-shimmer-row" aria-hidden="true">
+            <td>
+                <span class="shimmer-row-inline">
+                    <span class="shimmer-avatar"></span>
+                    <span class="shimmer-bar" style="width:55%"></span>
+                </span>
+            </td>
+            <td><span class="shimmer-bar" style="width:70%"></span></td>
+            <td>
+                <span class="shimmer-bar" style="width:50%"></span>
+                <span class="shimmer-bar shimmer-bar-sm" style="width:35%"></span>
+            </td>
+            <td><span class="shimmer-bar shimmer-chip"></span></td>
+            <td><span class="shimmer-bar shimmer-dots"></span></td>
+        </tr>
+    </template>
 
-            filterToggle?.addEventListener('click', () => {
-                const isOpen = filterCardWrapper?.classList.toggle('is-open');
-                filterToggle.classList.toggle('is-active', isOpen);
-            });
-
-            flatpickr("#students-date-range", {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr, instance) {
-                if (selectedDates.length === 2) {
-                    const form = instance.input.closest('form');
-                    form.querySelectorAll('input[name="date_from"], input[name="date_to"]').forEach(el => el.remove());
-
-                    const dateFromInput = document.createElement('input');
-                    dateFromInput.type = 'hidden';
-                    dateFromInput.name = 'date_from';
-                    dateFromInput.value = flatpickr.formatDate(selectedDates[0], 'Y-m-d');
-
-                    const dateToInput = document.createElement('input');
-                    dateToInput.type = 'hidden';
-                    dateToInput.name = 'date_to';
-                    dateToInput.value = flatpickr.formatDate(selectedDates[1], 'Y-m-d');
-
-                    form.appendChild(dateFromInput);
-                    form.appendChild(dateToInput);
-                }
-            }
-        });
-        });
-    </script>
-    @endpush
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterForm = document.getElementById('students-filter-form');
+
+        // Server-side table: paging, ordering and filtering all happen in
+        // StudentController@data, so only the visible page is ever loaded.
+        const studentsTable = new DataTable('#students-table', {
+            serverSide: true,
+            processing: true,
+            searching: false,
+            lengthMenu: [10, 25, 50, 100],
+            pageLength: 10,
+            order: [[3, 'desc']],
+            language: {
+                emptyTable: 'Nobody is subscribed to your courses yet.',
+                zeroRecords: 'No students match these filters.',
+            },
+            ajax: {
+                url: '{{ route('students.data') }}',
+                // jQuery caches GET requests by default, which would make
+                // ajax.reload() replay the stale response.
+                cache: false,
+                data: (params) => {
+                    const filters = new FormData(filterForm);
+                    // DataTables reserves `search`, so the filter box travels
+                    // as search_term and is mapped back on the server.
+                    params.search_term = filters.get('search') ?? '';
+                    params.course = filters.get('course') ?? '';
+                    params.status = filters.get('status') ?? '';
+                    return params;
+                },
+            },
+            columns: [
+                { data: 'student_cell', name: 'name' },
+                { data: 'email_cell', name: 'email', orderable: false },
+                { data: 'joined_cell', name: 'created_at' },
+                { data: 'pending_cell', name: 'pending_quizzes_count', className: 'text-center' },
+                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center whitespace-nowrap' },
+            ],
+        });
+
+        // Swap DataTables' processing box for skeleton rows. They go inside the
+        // table body, so the shimmer covers the rows only — never the header or
+        // the pagination footer. DataTables wipes them when the draw lands.
+        const shimmerTemplate = document.getElementById('students-shimmer-row');
+        const tableBody = document.querySelector('#students-table tbody');
+
+        function showShimmer() {
+            if (!shimmerTemplate || !tableBody) return;
+
+            tableBody.replaceChildren();
+            for (let row = 0; row < 6; row++) {
+                tableBody.appendChild(shimmerTemplate.content.cloneNode(true));
+            }
+        }
+
+        showShimmer();
+        $('#students-table').on('processing.dt', (e, settings, processing) => {
+            if (processing) showShimmer();
+        });
+
+        filterForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            studentsTable.ajax.reload();
+        });
+
+        document.getElementById('studentsClearFilters')?.addEventListener('click', () => {
+            filterForm.reset();
+            studentsTable.ajax.reload();
+        });
+
+        // ── Filter card toggle ──────────────────────────────────────────────
+        const filterToggle = document.getElementById('filterToggle');
+        const filterWrapper = document.getElementById('filterCardWrapper');
+
+        filterToggle?.addEventListener('click', () => {
+            filterWrapper.classList.toggle('is-open');
+            filterToggle.classList.toggle('is-active', filterWrapper.classList.contains('is-open'));
+        });
+    });
+</script>
+@endpush

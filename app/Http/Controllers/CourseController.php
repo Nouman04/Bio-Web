@@ -2,21 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Course\StoreCourseRequest;
+use App\Http\Requests\Course\UpdateCourseConfigurationRequest;
+use App\Http\Requests\Course\UpdateCourseRequest;
 use App\Models\Category;
-use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\CourseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * Courses: the listing, the CRUD behind it, and the per-course configuration
+ * page.
+ *
+ * This decides what the request asked for and what to send back; CourseService
+ * decides what it means for the database.
+ */
 class CourseController extends Controller
 {
+    public function __construct(private readonly CourseService $courses)
+    {
+    }
+
     /**
-     * Display a listing of courses. The table itself is loaded by DataTables
-     * from the `courses.data` endpoint below.
+     * The listing page. The table itself is loaded by DataTables from the
+     * `courses.data` endpoint below.
      */
     public function index(Request $request)
     {
@@ -35,24 +47,20 @@ class CourseController extends Controller
 
     /**
      * Server-side DataTables source for the courses list.
+     *
+     * DataTables owns this response shape — it renders Blade partials into
+     * cells rather than returning models — so an API resource has nothing to
+     * describe here.
      */
     public function data(Request $request): JsonResponse
     {
-        $courses = Course::query()
-            ->with(['category:id,title', 'creator:id,name'])
-            ->withCount('chapters');
-
-        // Filters from the filter card above the table. DataTables reserves the
-        // `search` key for its own box, so ours arrives as `search_term`.
-        $courses->when($request->input('search_term'), function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhereHas('creator', fn ($c) => $c->where('name', 'like', "%{$search}%"));
-            });
-        });
-
-        $courses->when($request->input('category'), fn ($query, $uuid) => $query->whereRelation('category', 'uuid', $uuid));
-        $courses->when($request->input('created_by'), fn ($query, $uuid) => $query->whereRelation('creator', 'uuid', $uuid));
+        // DataTables reserves `search` for its own box, so ours arrives as
+        // `search_term`.
+        $courses = $this->courses->listing([
+            'search' => $request->input('search_term'),
+            'category' => $request->input('category'),
+            'created_by' => $request->input('created_by'),
+        ]);
 
         $table = DataTables::eloquent($courses)
             ->addColumn('title_cell', fn (Course $course) => view('courses.partials.title-cell', compact('course'))->render())
@@ -70,36 +78,23 @@ class CourseController extends Controller
         return $table->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
-    /**
-     * Store a newly created course.
-     */
-    public function store(Request $request)
+    public function store(StoreCourseRequest $request)
     {
-        $data = $this->validated($request);
+        $course = $this->courses->create($request->validated(), $request->user());
 
-        $data['created_by'] = $request->user()->id;
-
-        $course = Course::create($data);
-
-        return $this->respond($request, $course->fresh(), 'Course created successfully.', 201);
+        return $this->respond($request, $course, 'Course created successfully.', 201);
     }
 
-    /**
-     * Update the given course.
-     */
-    public function update(Request $request, Course $course)
+    public function update(UpdateCourseRequest $request, Course $course)
     {
-        $course->update($this->validated($request, $course));
+        $course = $this->courses->update($course, $request->validated());
 
-        return $this->respond($request, $course->fresh(), 'Course updated successfully.');
+        return $this->respond($request, $course, 'Course updated successfully.');
     }
 
-    /**
-     * Soft delete the given course.
-     */
     public function destroy(Request $request, Course $course)
     {
-        $course->delete();
+        $this->courses->delete($course);
 
         return $this->respond($request, null, 'Course deleted successfully.');
     }
@@ -112,66 +107,22 @@ class CourseController extends Controller
     {
         return view('courses.configuration', [
             'course' => $course,
-            'chapters' => $course->chapters()->orderBy('chapter_number')->get(),
+            'chapters' => $this->courses->chaptersFor($course),
         ]);
     }
 
-    /**
-     * Save the visibility chosen for each chapter. Only chapters that belong to
-     * this course are written, so a forged id cannot reach another course's.
-     */
-    public function updateConfiguration(Request $request, Course $course)
+    public function updateConfiguration(UpdateCourseConfigurationRequest $request, Course $course)
     {
-        $data = $request->validate([
-            'chapters' => ['nullable', 'array'],
-            'chapters.*' => [Rule::in(['public', 'private'])],
-        ], [
-            'chapters.*.in' => 'A chapter can only be public or private.',
-        ]);
-
-        $chapters = $course->chapters()->pluck('id')->all();
-        $changed = 0;
-
-        foreach ($data['chapters'] ?? [] as $id => $visibility) {
-            if (! in_array((int) $id, $chapters, true)) {
-                continue;
-            }
-
-            $changed += Chapter::where('id', $id)
-                ->where('visibility', '!=', $visibility)
-                ->update(['visibility' => $visibility]);
-        }
-
-        return $this->respond(
-            $request,
-            $course->fresh(),
-            $changed === 1
-                ? '1 chapter updated.'
-                : ($changed ? "{$changed} chapters updated." : 'No changes to save.')
+        $changed = $this->courses->saveChapterVisibility(
+            $course,
+            $request->validated()['chapters'] ?? []
         );
-    }
 
-    /**
-     * Shared validation. On update the slug ignores the course's own row, and
-     * a blank slug falls back to one derived from the title.
-     */
-    private function validated(Request $request, ?Course $course = null): array
-    {
-        $request->merge([
-            'slug' => Str::slug($request->input('slug') ?: $request->input('title')),
-        ]);
-
-        return $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('courses', 'slug')->ignore($course?->id),
-            ],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'description' => ['nullable', 'string'],
-        ]);
+        return $this->respond($request, $course->fresh(), match (true) {
+            $changed === 1 => '1 chapter updated.',
+            $changed > 1 => "{$changed} chapters updated.",
+            default => 'No changes to save.',
+        });
     }
 
     /**

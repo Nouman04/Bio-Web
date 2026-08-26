@@ -56,7 +56,7 @@ class PublicCourseController extends Controller
             'course' => $course,
             'chapter' => $chapter,
             // Lets the payment popup name the price without a second page.
-            'plan' => $course?->loadMissing('plan')->plan,
+            'plan' => $course?->loadMissing('plans')->plan,
         ]);
     }
 
@@ -71,8 +71,10 @@ class PublicCourseController extends Controller
         }
 
         return view('public.plans', [
-            'course' => $course->loadCount('chapters')->load(['category:id,title', 'plan']),
+            'course' => $course->loadCount('chapters')->load(['category:id,title', 'plans']),
             'plan' => $course->plan,
+            // Monthly first, so the yearly saving reads as a discount on it.
+            'plans' => $course->plans->sortBy(fn ($p) => $p->billing_interval === 'month' ? 0 : 1)->values(),
             'chapter' => $chapter,
             'subscribed' => $stripe?->subscribedTo(request()->user(), $course) ?? false,
         ]);
@@ -108,7 +110,11 @@ class PublicCourseController extends Controller
                 // Stripe fills the placeholder in, so the return can verify the
                 // session rather than taking the redirect's word for it.
                 route('public.subscribe.success', $course) . '?session_id={CHECKOUT_SESSION_ID}',
-                route('public.subscribe.plans', $course)
+                route('public.subscribe.plans', $course),
+                // Which terms the reader picked on the plan page.
+                in_array($request->query('interval'), StripeService::INTERVALS, true)
+                    ? $request->query('interval')
+                    : 'month'
             );
         } catch (ApiErrorException $e) {
             report($e);

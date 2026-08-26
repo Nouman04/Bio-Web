@@ -62,6 +62,23 @@ class User extends Authenticatable
     }
 
     /**
+     * Whether this account is an admin, as opposed to an instructor. Admins
+     * answer for every course; an instructor only for what they created.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRoleNamed('admin');
+    }
+
+    /**
+     * Every quiz this user has sat.
+     */
+    public function quizAttempts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(QuizUserAttempt::class);
+    }
+
+    /**
      * Whether this account may use the admin panel: anyone holding a role that
      * is not the student role — admin or instructor.
      */

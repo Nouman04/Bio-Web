@@ -32,13 +32,41 @@
     <h2 class="font-headline-md text-headline-md text-on-surface mb-2">{{ $course->title }}</h2>
     <p class="font-body-md text-body-md text-on-surface-variant mb-6">{{ $course->excerpt }}</p>
 
+    {{-- Every set of terms the course is sold on. Monthly is the yardstick, so
+         the yearly card shows what paying up front saves against it. --}}
     <div class="mb-6 pb-6 border-b border-primary/10">
-        @if($plan?->price !== null)
-            <span class="font-display-lg text-display-lg text-on-surface">{{ $plan->formatted_price }}</span>
-            <span class="font-body-md text-body-md text-on-surface-variant">/{{ $plan->billing_interval }}</span>
-        @else
+        @php $monthly = ($plans ?? collect())->firstWhere('billing_interval', 'month'); @endphp
+
+        @forelse(($plans ?? collect())->where('price', '!=', null) as $option)
+            @php
+                $saving = ($option->billing_interval === 'year' && $monthly)
+                    ? (int) $monthly->price * 12 - (int) $option->price
+                    : 0;
+            @endphp
+
+            <label class="flex items-center gap-4 p-4 rounded-lg border-2 mb-3 cursor-pointer transition-colors
+                {{ $loop->first ? 'border-primary bg-primary/5' : 'border-outline-variant/40 hover:border-primary/40' }}">
+                <input type="radio" name="interval" value="{{ $option->billing_interval }}"
+                    @checked($loop->first)
+                    class="plan-interval w-4 h-4 text-primary border-outline-variant focus:ring-primary/40 shrink-0">
+                <span class="flex-1 min-w-0">
+                    <span class="block font-label-md text-on-surface font-semibold">
+                        {{ $option->billing_interval === 'year' ? 'Yearly' : 'Monthly' }}
+                    </span>
+                    @if($saving > 0)
+                        <span class="block font-label-sm text-label-sm text-tertiary">
+                            Save {{ \Laravel\Cashier\Cashier::formatAmount($saving, $option->currency) }} a year
+                        </span>
+                    @endif
+                </span>
+                <span class="text-right shrink-0">
+                    <span class="block font-headline-md text-headline-md text-on-surface">{{ $option->formatted_price }}</span>
+                    <span class="block font-label-sm text-label-sm text-on-surface-variant">/{{ $option->billing_interval }}</span>
+                </span>
+            </label>
+        @empty
             <span class="font-headline-md text-headline-md text-on-surface-variant">Pricing coming soon</span>
-        @endif
+        @endforelse
     </div>
 
     <ul class="flex-grow space-y-3 mb-8">

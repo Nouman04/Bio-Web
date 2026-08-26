@@ -11,9 +11,8 @@
 <div class="flex justify-between items-center w-full px-md md:px-lg max-w-container-max mx-auto h-[72px]">
 <!-- Brand -->
 <a class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary hover:opacity-80 transition-opacity flex items-center gap-2" href="{{ route('public.home') }}">
-<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-surface-tint flex items-center justify-center shadow-sm">
-<span class="material-symbols-outlined text-white text-[20px]">science</span>
-</div>
+<img src="{{ asset('images/logo.png') }}" alt="Lumina LMS"
+    class="w-9 h-9 rounded-lg object-contain shadow-sm bg-white">
                 Lumina LMS
             </a>
 <!-- Navigation Links (Desktop) -->

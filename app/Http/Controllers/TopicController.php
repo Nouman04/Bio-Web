@@ -2,33 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\LinksQuestions;
+use App\Http\Controllers\Concerns\ScopesChapterChain;
+use App\Http\Requests\Topic\StoreTopicRequest;
+use App\Http\Requests\Topic\UpdateTopicRequest;
+use App\Http\Resources\TopicOptionResource;
 use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\QuestionBank;
-use App\Models\QuestionCategory;
 use App\Models\Topic;
+use App\Services\TopicService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
+/**
+ * Topics belong to a chapter, which belongs to a course, so every action here
+ * is reached through course › chapter › topic. The chapter comes from the URL
+ * rather than a picker in the form.
+ *
+ * This decides what the request asked for and what to send back; TopicService
+ * decides what it means for the database.
+ */
 class TopicController extends Controller
 {
-    use LinksQuestions;
+    use ScopesChapterChain;
 
-    /**
-     * Topics belong to a chapter, which belongs to a course, so every action
-     * here is reached through course › chapter › topic. The chapter comes from
-     * the URL rather than a picker in the form.
-     */
+    public function __construct(private readonly TopicService $topics)
+    {
+    }
+
     public function index(Request $request, Course $course, Chapter $chapter)
     {
-        [$courseModel, $chapterModel] = $this->scope($course, $chapter);
+        $this->scope($course, $chapter);
 
         return view('topics.index', [
-            'course' => $courseModel,
-            'chapter' => $chapterModel,
+            'course' => $course,
+            'chapter' => $chapter,
             'filters' => [
                 'title' => $request->input('title', ''),
             ],
@@ -37,25 +46,16 @@ class TopicController extends Controller
 
     /**
      * Server-side DataTables source for the topics of one chapter.
+     *
+     * DataTables owns this response shape — it renders Blade partials into
+     * cells rather than returning models — so an API resource has nothing to
+     * describe here.
      */
     public function data(Request $request, Course $course, Chapter $chapter): JsonResponse
     {
         $this->scope($course, $chapter);
 
-        $topics = Topic::query()
-            ->where('chapter_id', $chapter->id)
-            // The edit trigger names the parent and its chapter, so both are
-            // loaded here rather than queried per row.
-            ->with('parent:id,title,chapter_id', 'parent.chapter:id,title')
-            ->withCount(['questionables', 'attachments']);
-
-        // Filter from the filter card above the table.
-        $topics->when(
-            $request->input('search_term'),
-            fn ($query, $title) => $query->where('title', 'like', "%{$title}%")
-        );
-
-        $table = DataTables::eloquent($topics)
+        $table = DataTables::eloquent($this->topics->listing($chapter, $request->input('search_term')))
             ->addColumn('title_cell', fn (Topic $topic) => view('topics.partials.title-cell', compact('topic'))->render())
             ->addColumn('questions_cell', fn (Topic $topic) => view('topics.partials.questions-cell', compact('topic'))->render())
             ->addColumn('action', fn (Topic $topic) => view('topics.partials.actions', [
@@ -74,119 +74,48 @@ class TopicController extends Controller
     }
 
     /**
+     * Type-ahead for the parent topic picker, across every chapter.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        return TopicOptionResource::collection(
+            $this->topics->search($request->input('q'), $request->input('exclude'))
+        )->response();
+    }
+
+    /**
      * The questions already linked to a topic, for the edit modal's picker.
      */
     public function questions(Course $course, Chapter $chapter, Topic $topic): JsonResponse
     {
         $this->scope($course, $chapter, $topic);
 
-        return response()->json(
-            $topic->questionables()->with('question:id,question')->get()
-                ->filter(fn ($link) => $link->question)
-                ->map(fn ($link) => [
-                    'id' => $link->question->id,
-                    'text' => $link->question->question,
-                ])
-                ->values()
-        );
+        return response()->json($this->topics->pickerQuestions($topic));
     }
 
-    /**
-     * Type-ahead for the parent topic picker.
-     *
-     * Deliberately not scoped to the current chapter: a topic often continues
-     * one introduced elsewhere, so every chapter is searchable and each result
-     * names the chapter and course it comes from.
-     */
-    public function search(Request $request): JsonResponse
-    {
-        $topics = Topic::query()
-            ->when($request->input('q'), fn ($query, $term) => $query->where('title', 'like', "%{$term}%"))
-            // A topic can never be its own parent.
-            ->when($request->input('exclude'), fn ($query, $uuid) => $query->where('uuid', '!=', $uuid))
-            ->with('chapter:id,title,course_id', 'chapter.course:id,title')
-            ->orderBy('title')
-            ->limit(20)
-            ->get(['id', 'uuid', 'title', 'chapter_id']);
-
-        return response()->json(
-            $topics->map(fn (Topic $topic) => [
-                'id' => $topic->id,
-                'text' => $topic->title,
-                // The chapter tag, so it is clear where a parent comes from.
-                'meta' => implode(' • ', array_filter([
-                    $topic->chapter?->title,
-                    $topic->chapter?->course?->title,
-                ])),
-            ])
-        );
-    }
-
-    /**
-     * Store a newly created topic under the chapter from the URL.
-     */
-    public function store(Request $request, Course $course, Chapter $chapter)
+    public function store(StoreTopicRequest $request, Course $course, Chapter $chapter)
     {
         $this->scope($course, $chapter);
 
-        $data = $this->validated($request);
+        $topic = $this->topics->create($chapter, $request->validated(), $request->file('attachments', []));
 
-        $this->validateNewQuestions($data);
-
-        $topic = DB::transaction(function () use ($data, $request, $chapter) {
-            $topic = Topic::create([
-                'chapter_id' => $chapter->id,
-                'parent_topic_id' => $data['parent_topic_id'] ?? null,
-                'title' => $data['title'],
-                'content' => $data['content'] ?? null,
-            ]);
-
-            $this->syncQuestionLinks($topic, $data);
-            $this->storeAttachments($topic, $request);
-
-            return $topic;
-        });
-
-        return $this->respond($request, $course, $chapter, $topic->fresh(), 'Topic created successfully.', 201);
+        return $this->respond($request, $course, $chapter, $topic, 'Topic created successfully.', 201);
     }
 
-    /**
-     * Update the given topic. Newly uploaded files are added to the existing
-     * attachments rather than replacing them.
-     */
-    public function update(Request $request, Course $course, Chapter $chapter, Topic $topic)
+    public function update(UpdateTopicRequest $request, Course $course, Chapter $chapter, Topic $topic)
     {
         $this->scope($course, $chapter, $topic);
 
-        $data = $this->validated($request);
+        $topic = $this->topics->update($topic, $request->validated(), $request->file('attachments', []));
 
-        $this->validateNewQuestions($data);
-
-        DB::transaction(function () use ($request, $topic, $data) {
-            $topic->update([
-                'parent_topic_id' => $data['parent_topic_id'] ?? null,
-                'title' => $data['title'],
-                'content' => $data['content'] ?? null,
-            ]);
-
-            $this->syncQuestionLinks($topic, $data);
-            $this->storeAttachments($topic, $request);
-        });
-
-        return $this->respond($request, $course, $chapter, $topic->fresh(), 'Topic updated successfully.');
+        return $this->respond($request, $course, $chapter, $topic, 'Topic updated successfully.');
     }
 
-    /**
-     * Soft delete the given topic.
-     */
     public function destroy(Request $request, Course $course, Chapter $chapter, Topic $topic)
     {
         $this->scope($course, $chapter, $topic);
 
-        DB::transaction(function () use ($topic) {
-            $topic->questionables()->delete();
-            $topic->delete();
-        });
+        $this->topics->delete($topic);
 
         return $this->respond($request, $course, $chapter, null, 'Topic deleted successfully.');
     }
@@ -196,29 +125,29 @@ class TopicController extends Controller
      */
     public function show(Course $course, Chapter $chapter, Topic $topic)
     {
-        [$courseModel, $chapterModel] = $this->scope($course, $chapter, $topic);
+        $this->scope($course, $chapter, $topic);
 
         return view('topics.show', [
-            'course' => $courseModel,
-            'chapter' => $chapterModel,
-            'topic' => $topic->load('attachments'),
-            'questions' => $this->linkedQuestions($topic),
+            'course' => $course,
+            'chapter' => $chapter,
+            'topic' => $this->topics->forDetail($topic),
+            'questions' => $this->topics->questions($topic),
         ]);
     }
 
     /**
-     * Display the question assignment page for a specific topic.
+     * The question assignment page for one topic.
      */
     public function assign(Course $course, Chapter $chapter, Topic $topic)
     {
-        [$courseModel, $chapterModel] = $this->scope($course, $chapter, $topic);
+        $this->scope($course, $chapter, $topic);
 
         return view('topics.assign', [
-            'course' => $courseModel,
-            'chapter' => $chapterModel,
+            'course' => $course,
+            'chapter' => $chapter,
             'topicId' => $topic->id,
             'topicName' => $topic->title,
-            'questions' => QuestionBank::latest('id')->limit(25)->get()
+            'questions' => QuestionBank::with('category:id,type')->latest('id')->limit(25)->get()
                 ->map(fn (QuestionBank $question) => [
                     'id' => $question->id,
                     'text' => $question->question,
@@ -226,51 +155,6 @@ class TopicController extends Controller
                     'difficulty' => $question->difficulty_level ?: '—',
                 ]),
         ]);
-    }
-
-    /**
-     * Guards the course › chapter › topic chain so a mismatched URL 404s
-     * instead of quietly operating on someone else's records.
-     */
-    private function scope(Course $course, Chapter $chapter, ?Topic $topic = null): array
-    {
-        $courseModel = $course;
-        $chapterModel = $chapter;
-
-        abort_if($chapterModel->course_id !== $courseModel->id, 404);
-
-        abort_if($topic && $topic->chapter_id !== $chapterModel->id, 404);
-
-        return [$courseModel, $chapterModel];
-    }
-
-    /**
-     * Files posted with the form are stored and attached to the topic.
-     */
-    private function storeAttachments(Topic $topic, Request $request): void
-    {
-        foreach ($request->file('attachments', []) as $file) {
-            $topic->attachments()->create([
-                'file_path' => $file->store('topics', 'public'),
-            ]);
-        }
-    }
-
-
-    /**
-     * Shared validation. The chapter is not validated here — it comes from the
-     * URL and is checked by scope().
-     */
-    private function validated(Request $request): array
-    {
-        return $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            // A parent may live in any chapter, so it is not scoped here.
-            'parent_topic_id' => ['nullable', 'integer', 'exists:topics,id'],
-            'content' => ['nullable', 'string'],
-            'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'max:10240'],
-        ] + $this->questionLinkRules());
     }
 
     /**

@@ -45,22 +45,10 @@
         </p>
     </div>
 
-    <form method="GET" class="flex flex-wrap gap-3 items-center">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">search</span>
-            <input type="search" name="search" value="{{ $search }}" placeholder="Search sets"
-                class="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary transition-all w-full sm:w-56">
-        </div>
-        <button type="submit" class="bg-primary-container text-on-primary-container text-sm font-semibold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-colors">
-            <span class="material-symbols-outlined" style="font-size:18px;">filter_list</span> Search
-        </button>
-        @if($search)
-            <a href="{{ route('student.chapters.flashcards', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
-                class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 transition-colors">
-                <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span> Clear
-            </a>
-        @endif
-    </form>
+    <x-chapter-filter placeholder="Search sets"
+        :search="$search"
+        :active="$search"
+        :clear="route('student.chapters.flashcards', ['courseId' => $courseId, 'chapterId' => $chapterId])" />
 </div>
 
 {{-- Flashcard Sets Grid --}}
@@ -75,7 +63,7 @@
                 ['bg-tertiary-container/20 text-tertiary border-tertiary/20', 'bg-tertiary/5 group-hover:bg-tertiary/10'],
             ];
             [$badge, $blob] = $accents[$loop->index % count($accents)];
-            $cards = $deck->assessments_count;
+            $cards = $deck['cards'];
         @endphp
 
         <div class="glass-card rounded-xl p-6 flex flex-col h-full relative overflow-hidden group">
@@ -83,22 +71,22 @@
 
             <div class="flex justify-between items-start mb-4 relative z-10 gap-2">
                 <div class="{{ $badge }} text-xs font-bold px-3 py-1 rounded-full border">
-                    CH{{ $chapter->chapter_number }}.{{ $decks->firstItem() + $loop->index }}
+                    CH{{ $chapter->chapter_number }}.{{ ($decks->firstItem() ?? 1) + $loop->index }}
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     {{-- What the deck was built from, when it came from something. --}}
-                    @if($deck->flashcardable)
-                        <span class="text-on-surface-variant text-xs truncate max-w-[8rem]" title="{{ $deck->source_label }}">
-                            from {{ Str::headline(class_basename($deck->flashcardable_type)) }}
+                    @if($deck['source_kind'])
+                        <span class="text-on-surface-variant text-xs truncate max-w-[8rem]" title="{{ $deck['source_label'] }}">
+                            from {{ $deck['source_kind'] }}
                         </span>
                     @endif
-                    <x-save-button :record="$deck" class="text-outline-variant hover:text-primary" />
+                    <x-save-button type="flashcard" :uuid="$deck['uuid']" class="text-outline-variant hover:text-primary" />
                 </div>
             </div>
 
-            <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">{{ $deck->title ?: 'Untitled set' }}</h3>
+            <h3 class="text-on-surface font-semibold text-base mb-2 relative z-10">{{ $deck['title'] }}</h3>
             <p class="text-on-surface-variant text-sm mb-6 flex-1 relative z-10">
-                {{ $deck->source_label ? Str::limit($deck->source_label, 110) : 'A study set for this chapter.' }}
+                {{ $deck['source_label'] ? Str::limit($deck['source_label'], 110) : 'A study set for this chapter.' }}
             </p>
 
             <div class="flex items-center justify-between mt-auto relative z-10 gap-3">
@@ -107,7 +95,7 @@
                     <span class="text-sm font-semibold">{{ $cards }} {{ Str::plural('Card', $cards) }}</span>
                 </div>
                 @if($cards > 0)
-                    <a href="{{ route('student.chapters.flashcards.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'flashcardId' => $deck->uuid]) }}"
+                    <a href="{{ route('student.chapters.flashcards.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'flashcardId' => $deck['uuid']]) }}"
                         class="bg-transparent border border-primary text-primary hover:bg-primary hover:text-on-primary px-4 py-2 rounded-full text-xs font-semibold transition-colors inline-flex items-center gap-2">
                         Practice Now <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>

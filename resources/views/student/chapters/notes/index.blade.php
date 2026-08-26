@@ -49,32 +49,18 @@
     </div>
 
     {{-- Search and kind, both handled on the server. --}}
-    <form method="GET" class="flex flex-wrap gap-3 items-center bg-surface-container-low p-2 rounded-xl border border-outline-variant/30">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-sm">search</span>
-            <input type="search" name="search" value="{{ $search }}" placeholder="Search notes"
-                class="bg-surface border border-outline-variant/50 text-on-surface text-sm rounded-lg py-2 pl-9 pr-4 focus:ring-2 focus:ring-primary transition-all w-full sm:w-56">
-        </div>
-        <div class="relative">
-            <select name="type" onchange="this.form.submit()"
-                class="appearance-none bg-surface border border-outline-variant/50 text-on-surface text-sm rounded-lg py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary transition-all cursor-pointer">
-                <option value="">All kinds</option>
-                @foreach(\App\Models\Note::TYPE_LABELS as $value => $label)
-                    <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-sm">expand_more</span>
-        </div>
-        <button type="submit" class="bg-primary-container text-on-primary-container text-sm font-semibold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-colors">
-            <span class="material-symbols-outlined text-sm">filter_list</span> Filter
-        </button>
-        @if($search || $type)
-            <a href="{{ route('student.chapters.notes', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
-                class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 px-2 transition-colors">
-                <span class="material-symbols-outlined text-sm">restart_alt</span> Clear
-            </a>
-        @endif
-    </form>
+    <x-chapter-filter placeholder="Search notes"
+        :search="$search"
+        :active="$search || $type"
+        :clear="route('student.chapters.notes', ['courseId' => $courseId, 'chapterId' => $chapterId])">
+
+        <x-chapter-filter.select name="type">
+            <option value="">All kinds</option>
+            @foreach(\App\Models\Note::TYPE_LABELS as $value => $label)
+                <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
+            @endforeach
+        </x-chapter-filter.select>
+    </x-chapter-filter>
 </div>
 
 {{-- Notes Grid --}}
@@ -82,20 +68,20 @@
     @forelse($notes as $note)
         @php
             // Read state comes from the progress tables, not from the note.
-            $read = $state[$note->id]['completed'] ?? false;
+            $read = $state[$note['id']]['completed'] ?? false;
             $accents = [
                 'exam_notes' => ['bg-secondary-container/20 text-secondary border-secondary/20', 'bg-primary/5'],
                 'summary' => ['bg-tertiary-container/20 text-tertiary border-tertiary/20', 'bg-tertiary/5'],
                 'flashcards' => ['bg-primary-container/20 text-primary border-primary/20', 'bg-secondary/5'],
             ];
-            [$badge, $blob] = $accents[$note->type] ?? $accents['exam_notes'];
+            [$badge, $blob] = $accents[$note['type']] ?? $accents['exam_notes'];
         @endphp
 
         <div class="glass-card rounded-2xl p-6 flex flex-col h-full relative overflow-hidden group">
             <div class="absolute top-0 right-0 w-32 h-32 {{ $blob }} rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
 
             <div class="flex justify-between items-start mb-4 gap-2">
-                <span class="{{ $badge }} text-xs font-semibold px-3 py-1 rounded-full border">{{ $note->type_label }}</span>
+                <span class="{{ $badge }} text-xs font-semibold px-3 py-1 rounded-full border">{{ $note['type_label'] }}</span>
                 <div class="flex items-center gap-2 shrink-0">
                     @if($read)
                         <span class="inline-flex items-center gap-1 text-tertiary text-xs font-semibold" title="You have read this">
@@ -103,25 +89,25 @@
                             Read
                         </span>
                     @endif
-                    <x-save-button :record="$note" class="text-outline hover:text-primary" />
+                    <x-save-button type="note" :uuid="$note['uuid']" class="text-outline hover:text-primary" />
                 </div>
             </div>
 
-            <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">{{ $note->title ?: 'Untitled note' }}</h3>
+            <h3 class="text-on-surface font-semibold text-base mb-1 line-clamp-2">{{ $note['title'] }}</h3>
             <p class="text-on-surface-variant text-xs mb-4 uppercase tracking-wide font-medium">
-                Chapter {{ $chapter->chapter_number }}@if($note->topic): {{ $note->topic->title }}@endif
+                Chapter {{ $chapter->chapter_number }}@if($note['topic']): {{ $note['topic'] }}@endif
             </p>
 
             <div class="bg-surface-bright border border-outline-variant/20 rounded-xl p-4 mb-6 flex-1 shadow-inner">
-                <p class="text-on-surface-variant text-xs line-clamp-4">{{ $note->excerpt ?: 'No content yet.' }}</p>
+                <p class="text-on-surface-variant text-xs line-clamp-4">{{ $note['excerpt'] }}</p>
             </div>
 
             <div class="flex justify-between items-center pt-2 border-t border-outline-variant/20">
                 <span class="text-on-surface-variant text-xs flex items-center gap-1">
                     <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                    {{ $note->updated_at?->diffForHumans() ?? '—' }}
+                    {{ $note['updated_human'] ?? '—' }}
                 </span>
-                <a href="{{ route('student.chapters.notes.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'noteId' => $note->uuid]) }}"
+                <a href="{{ route('student.chapters.notes.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'noteId' => $note['uuid']]) }}"
                     class="text-primary text-xs font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                     View Note <span class="material-symbols-outlined text-sm">arrow_forward</span>
                 </a>

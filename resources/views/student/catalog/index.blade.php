@@ -109,36 +109,36 @@
                 ['#4648d4', '#7c3aed'], ['#0891b2', '#4648d4'], ['#c026d3', '#7c3aed'],
                 ['#059669', '#0891b2'], ['#ea580c', '#c026d3'],
             ];
-            $palette = $palettes[$course->id % count($palettes)];
+            $palette = $palettes[$course['tint']];
         @endphp
         <article class="glass-card rounded-xl overflow-hidden flex flex-col h-full group">
             <div class="relative h-40 overflow-hidden flex items-center justify-center"
                 style="background-image: linear-gradient(135deg, {{ $palette[0] }}, {{ $palette[1] }});">
                 <span class="text-white/90 font-bold transition-transform duration-500 group-hover:scale-110" style="font-size:44px;line-height:1;">
-                    {{ Str::upper(Str::substr($course->title, 0, 1)) }}
+                    {{ Str::upper(Str::substr($course['title'], 0, 1)) }}
                 </span>
                 <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-primary text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded">
-                    {{ $course->category?->title ?: 'General' }}
+                    {{ $course['category'] ?: 'General' }}
                 </div>
             </div>
             <div class="p-4 flex flex-col flex-1">
-                <h3 class="text-on-surface mb-2 line-clamp-2 leading-tight" style="font-size:20px;line-height:28px;font-weight:600;">{{ $course->title }}</h3>
-                <p class="text-on-surface-variant mb-4 line-clamp-2 text-sm">{{ $course->excerpt ?: 'No description yet.' }}</p>
+                <h3 class="text-on-surface mb-2 line-clamp-2 leading-tight" style="font-size:20px;line-height:28px;font-weight:600;">{{ $course['title'] }}</h3>
+                <p class="text-on-surface-variant mb-4 line-clamp-2 text-sm">{{ $course['excerpt'] }}</p>
                 <div class="mt-auto pt-4 border-t border-surface-variant flex items-center justify-between gap-2">
                     <div class="flex items-center gap-1 text-outline">
                         <span class="material-symbols-outlined text-sm">menu_book</span>
-                        <span class="text-on-surface text-xs font-medium">{{ $course->chapters_count }}</span>
-                        <span class="text-outline text-xs">{{ Str::plural('chapter', $course->chapters_count) }}</span>
+                        <span class="text-on-surface text-xs font-medium">{{ $course['chapters_count'] }}</span>
+                        <span class="text-outline text-xs">{{ Str::plural('chapter', $course['chapters_count']) }}</span>
                     </div>
                     {{-- A priced course goes to its plan; a free one opens. --}}
-                    @if($course->hasStripePlan())
-                        <a href="{{ route('public.subscribe.plans', $course) }}"
+                    @if($course['on_sale'])
+                        <a href="{{ route('public.subscribe.plans', $course['uuid']) }}"
                             class="text-primary text-xs font-semibold hover:underline flex items-center gap-1 whitespace-nowrap">
-                            {{ $course->plan?->formatted_price ?? 'Subscribe' }}
+                            {{ $course['price'] ?? 'Subscribe' }}
                             <span class="material-symbols-outlined text-xs">arrow_forward</span>
                         </a>
                     @else
-                        <a href="{{ route('student.chapters', ['courseId' => $course->uuid]) }}"
+                        <a href="{{ route('student.chapters', ['courseId' => $course['uuid']]) }}"
                             class="text-primary text-xs font-semibold hover:underline flex items-center gap-1 whitespace-nowrap">
                             Start Free <span class="material-symbols-outlined text-xs">arrow_forward</span>
                         </a>

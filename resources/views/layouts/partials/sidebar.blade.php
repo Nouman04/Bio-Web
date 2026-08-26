@@ -1,10 +1,14 @@
 {{-- BEGIN: Sidebar --}}
-<aside id="sidebar"
-    class="fixed inset-y-0 left-0 -translate-x-full lg:static lg:translate-x-0 w-full lg:w-64 bg-surface-container-lowest dark:bg-slate-950 lg:border-r lg:border-outline-variant/30 dark:lg:border-slate-800 flex flex-col items-center lg:items-start py-8 rounded-none lg:rounded-r-3xl z-30 flex-shrink-0 shadow-2xl lg:shadow-md dark:shadow-none">
+@php
+    $counts = $sidebarCounts ?? [];
+@endphp
 
-    {{-- Toggle Button (Desktop collapse) --}}
-    <button id="sidebarToggle"
-        class="hidden lg:flex absolute -right-4 top-14 w-8 h-8 bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/50 dark:border-slate-700 rounded-full items-center justify-center text-on-surface-variant dark:text-slate-300 hover:text-primary hover:bg-surface-container-low dark:hover:bg-slate-700 shadow-sm z-30 transition-colors cursor-pointer">
+<aside id="sidebar"
+    class="fixed inset-y-0 left-0 -translate-x-full lg:static lg:translate-x-0 w-full lg:w-64 bg-surface-container-lowest dark:bg-slate-950 lg:border-r lg:border-outline-variant/30 dark:lg:border-slate-800 flex flex-col items-center lg:items-start py-6 rounded-none lg:rounded-r-3xl z-30 flex-shrink-0 shadow-2xl lg:shadow-md dark:shadow-none">
+
+    {{-- Toggle Button (Desktop collapse). The choice is remembered. --}}
+    <button id="sidebarToggle" type="button" aria-label="Collapse sidebar" aria-expanded="true"
+        class="hidden lg:flex absolute -right-4 top-14 w-8 h-8 bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/50 dark:border-slate-700 rounded-full items-center justify-center text-on-surface-variant dark:text-slate-300 hover:text-primary hover:bg-surface-container-low dark:hover:bg-slate-700 hover:scale-110 shadow-sm z-40 transition-all duration-200 cursor-pointer">
         <i class="fa-solid fa-chevron-left text-sm transition-transform duration-300"></i>
     </button>
 
@@ -16,63 +20,73 @@
     </button>
 
     {{-- Logo --}}
-    <div class="mobile-fade flex items-center w-full px-8 mb-12 center-on-collapse transition-all duration-300 justify-center lg:justify-start">
-        <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-on-primary shadow-lg flex-shrink-0">
-            <i class="fa-solid fa-graduation-cap text-xl"></i>
-        </div>
+    <a href="{{ route('dashboard') }}"
+        class="mobile-fade flex items-center w-full px-8 mb-6 center-on-collapse transition-all duration-300 justify-center lg:justify-start group">
+        <img src="{{ asset('images/logo.png') }}" alt="EduAdmin"
+            class="w-12 h-12 rounded-xl object-contain shadow-lg flex-shrink-0 bg-white group-hover:scale-105 transition-transform duration-300">
         <div class="block ml-4 hide-on-collapse">
             <span class="font-bold text-xl text-primary dark:text-primary-fixed-dim">EduAdmin</span>
-            <p class="text-xs text-on-surface-variant dark:text-slate-400">Management Suite</p>
+            <p class="text-xs text-on-surface-variant dark:text-slate-400">Your Biology Exam Simplified</p>
         </div>
-    </div>
+    </a>
 
     {{-- Navigation --}}
-    <nav class="flex-1 w-full flex flex-col space-y-1 px-6">
+    <nav class="sidebar-nav-scroll flex-1 w-full flex flex-col px-6 pb-2">
 
-        <a href="{{ route('dashboard') }}"
-            class="sidebar-item {{ request()->routeIs('dashboard') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
-            <i class="fa-solid fa-border-all text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
-            <span class="block ml-4 hide-on-collapse">Dashboard</span>
-        </a>
+        <x-sidebar.group>
+            <x-sidebar.item :href="route('dashboard')" icon="fa-solid fa-border-all"
+                label="Dashboard" :active="request()->routeIs('dashboard')" />
 
-        <a href="{{ route('students') }}"
-            class="sidebar-item {{ request()->routeIs('students*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
-            <i class="fa-solid fa-users text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
-            <span class="block ml-4 hide-on-collapse">Students</span>
-        </a>
+            <x-sidebar.item :href="route('students')" icon="fa-solid fa-users"
+                label="Students" :active="request()->routeIs('students*')"
+                :badge="$counts['students'] ?? null" urgent />
+        </x-sidebar.group>
 
-        @can('view course')
-            <a href="{{ route('courses') }}"
-                class="sidebar-item {{ request()->routeIs('courses*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
-                <i class="fa-solid fa-graduation-cap text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
-                <span class="block ml-4 hide-on-collapse">Courses</span>
-            </a>
-        @endcan
+        <x-sidebar.group label="Content">
+            @can('view course')
+                <x-sidebar.item :href="route('courses')" icon="fa-solid fa-graduation-cap"
+                    label="Courses" :active="request()->routeIs('courses*')" />
+            @endcan
 
-        <a href="{{ route('quizzes') }}"
-            class="sidebar-item {{ request()->routeIs('quizzes*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
-            <i class="fa-solid fa-clipboard-question text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
-            <span class="block ml-4 hide-on-collapse">Quizzes</span>
-        </a>
+            <x-sidebar.item :href="route('questions')" icon="fa-regular fa-circle-question"
+                label="Question Bank"
+                :active="request()->routeIs('questions*', 'courses.chapters.questions*')" />
+        </x-sidebar.group>
 
-        <a href="{{ route('questions') }}"
-            class="sidebar-item {{ request()->routeIs('questions*', 'courses.chapters.questions*') ? 'active bg-primary-container text-on-primary-container dark:bg-primary dark:text-white font-medium' : 'text-on-surface-variant dark:text-slate-300 hover:bg-surface-container-low dark:hover:bg-slate-800 hover:text-on-surface dark:hover:text-white' }} flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl center-on-collapse transition-all duration-300">
-            <i class="fa-regular fa-circle-question text-xl sidebar-icon w-6 text-center flex-shrink-0"></i>
-            <span class="block ml-4 hide-on-collapse">Question Bank</span>
-        </a>
+        <x-sidebar.group label="Assessment">
+            <x-sidebar.item :href="route('quizzes')" icon="fa-solid fa-clipboard-question"
+                label="Quizzes" :active="request()->routeIs('quizzes') || request()->routeIs('quizzes.show') || request()->routeIs('quizzes.create') || request()->routeIs('quizzes.edit')" />
+
+            {{-- Marking had no way in from the nav until now. --}}
+            <x-sidebar.item :href="route('quizzes.review')" icon="fa-solid fa-pen-to-square"
+                label="Marking" :active="request()->routeIs('quizzes.review*')"
+                :badge="$counts['review'] ?? null" urgent />
+        </x-sidebar.group>
 
     </nav>
 
-    {{-- Logout --}}
-    <div class="mobile-fade mt-auto px-6 w-full pb-4">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit"
-                class="w-full flex items-center justify-center lg:justify-start px-4 py-3 rounded-2xl text-on-surface-variant dark:text-slate-300 hover:bg-error-container hover:text-on-error-container dark:hover:bg-error-container/20 dark:hover:text-error transition-all duration-300 center-on-collapse">
-                <i class="fa-solid fa-power-off text-xl w-6 text-center flex-shrink-0"></i>
-                <span class="block ml-4 hide-on-collapse">Logout</span>
-            </button>
-        </form>
+    {{-- Who is signed in, and the way out --}}
+    <div class="mobile-fade mt-auto px-6 w-full pt-3">
+        <div class="border-t border-outline-variant/30 dark:border-slate-800 pt-3">
+            <div class="sidebar-user flex items-center gap-3 px-3 py-2 rounded-2xl center-on-collapse justify-center lg:justify-start">
+                <span class="w-9 h-9 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold uppercase">
+                    {{ Str::of(auth()->user()?->name ?? '')->explode(' ')->take(2)->map(fn ($part) => Str::substr($part, 0, 1))->implode('') ?: '?' }}
+                </span>
+                <div class="hide-on-collapse min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-on-surface dark:text-white truncate">{{ auth()->user()?->name }}</p>
+                    <p class="text-[11px] text-on-surface-variant dark:text-slate-400 truncate">{{ auth()->user()?->roles->pluck('name')->implode(', ') ?: 'Staff' }}</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('logout') }}" class="mt-1">
+                @csrf
+                <button type="submit" data-tip="Logout"
+                    class="sidebar-logout w-full flex items-center justify-center lg:justify-start px-4 py-2.5 rounded-2xl text-on-surface-variant dark:text-slate-300 hover:bg-error-container hover:text-on-error-container dark:hover:bg-error-container/20 dark:hover:text-error center-on-collapse">
+                    <i class="fa-solid fa-power-off text-lg w-6 text-center flex-shrink-0"></i>
+                    <span class="block ml-4 hide-on-collapse text-sm font-medium">Logout</span>
+                </button>
+            </form>
+        </div>
     </div>
 
 </aside>

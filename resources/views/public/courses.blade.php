@@ -117,27 +117,27 @@
                             <div class="h-44 relative overflow-hidden bg-gradient-to-br from-primary-fixed to-white flex items-center justify-center">
                                 <span class="material-symbols-outlined text-primary text-[56px] group-hover:scale-110 transition-transform duration-500">science</span>
                                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
-                                    {{ $course->category?->title ?: 'Course' }}
+                                    {{ $course['category'] ?: 'Course' }}
                                 </div>
                             </div>
                             <div class="p-6 flex-1 flex flex-col">
                                 <h2 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors mb-2 line-clamp-2">
-                                    {{ $course->title }}
+                                    {{ $course['title'] }}
                                 </h2>
-                                <p class="text-on-surface-variant text-body-md mb-6 line-clamp-3">{{ $course->excerpt }}</p>
+                                <p class="text-on-surface-variant text-body-md mb-6 line-clamp-3">{{ $course['excerpt'] }}</p>
 
                                 <div class="mt-auto pt-5 border-t border-outline-variant/20 flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-label-md font-bold shrink-0">
-                                        {{ Str::upper(Str::substr($course->creator?->name ?? '?', 0, 1)) }}
+                                        {{ Str::upper(Str::substr($course['instructor'] ?? '?', 0, 1)) }}
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <p class="font-label-md text-on-surface truncate">{{ $course->creator?->name ?? 'Lumina LMS' }}</p>
+                                        <p class="font-label-md text-on-surface truncate">{{ $course['instructor'] ?? 'Lumina LMS' }}</p>
                                         <p class="font-label-sm text-on-surface-variant">
-                                            {{ $course->chapters_count }} {{ Str::plural('chapter', $course->chapters_count) }}
+                                            {{ $course['chapters_count'] }} {{ Str::plural('chapter', $course['chapters_count']) }}
                                         </p>
                                     </div>
                                     <a class="bg-primary text-on-primary px-5 py-2 rounded-full font-label-md hover:bg-primary-container transition-colors shadow-md shrink-0"
-                                        href="{{ route('public.course.chapters', $course) }}">Explore</a>
+                                        href="{{ route('public.course.chapters', $course['uuid']) }}">Explore</a>
                                 </div>
                             </div>
                         </article>

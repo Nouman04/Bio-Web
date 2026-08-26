@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CourseCardResource;
 use App\Models\Category;
 use App\Models\Course;
 use App\Services\StripeService;
@@ -65,9 +66,11 @@ class StudentCatalogController extends Controller
 
         return view('student.catalog.index', [
             // Browsing shows the newest few; searching pages through the rest.
-            'courses' => $browsing
-                ? $query->take(self::LATEST)->get()
-                : $query->paginate(12)->withQueryString(),
+            'courses' => CourseCardResource::forView(
+                $browsing
+                    ? $query->take(self::LATEST)->get()
+                    : $query->paginate(12)->withQueryString()
+            ),
             'browsing' => $browsing,
             'latest' => self::LATEST,
             // Only categories that actually have a course behind them.

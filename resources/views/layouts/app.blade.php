@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="">
 <head>
     <meta charset="utf-8"/>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'EduAdmin') | EduAdmin LMS</title>
@@ -453,7 +454,19 @@
     </style>
 
     @stack('styles')
+    {{-- Sidebar chrome, shared by the admin and student rails. --}}
+    <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
+    <script>
+        // Applied before the first paint so a remembered collapse does not
+        // snap shut a frame after the page appears.
+        try {
+            if (localStorage.getItem('sidebar:collapsed') === '1') {
+                document.documentElement.classList.add('sidebar-was-collapsed');
+            }
+        } catch (e) { /* private windows simply start expanded */ }
+    </script>
 </head>
+
 
 <body class="font-sans antialiased flex h-screen overflow-hidden bg-background text-on-background dark:bg-slate-900 dark:text-slate-200">
 
@@ -526,17 +539,8 @@
 
             // ÔöÇÔöÇ Desktop Sidebar Collapse ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('sidebarToggle');
-
-            toggleBtn?.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-                const icon = toggleBtn.querySelector('i');
-                if (sidebar.classList.contains('collapsed')) {
-                    icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
-                } else {
-                    icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
-                }
-            });
+            // Collapsing now lives in public/js/sidebar.js, which also remembers
+            // the choice between pages. `sidebar` above is still used below.
 
             // ÔöÇÔöÇ Mobile Sidebar Toggle ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             const mobileToggle = document.getElementById('mobileSidebarToggle');
@@ -678,7 +682,9 @@
                             credentials: 'same-origin',
                         })
                             .then(response => response.json())
-                            .then(callback)
+                            // API resources wrap their payload in `data`; a
+                            // plain endpoint does not. Accept either.
+                            .then(json => callback(json?.data ?? json))
                             .catch(() => callback());
                     },
                     render: {
@@ -1063,6 +1069,18 @@
     <script src="{{ asset('cdn/sweet-alert/sweetAlert2.min.js') }}"></script>
     <script src="{{ asset('cdn/tom-select/tomSelect.min.js') }}"></script>
     <script src="{{ asset('js/app-ajax.js') }}"></script>
+    <script src="{{ asset('js/sidebar.js') }}"></script>
+
+    {{-- Notifications: Pusher for live delivery, with the bell falling back
+         to polling when the socket is unavailable. --}}
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script>
+        window.pusherConfig = @json([
+            'key' => config('broadcasting.connections.pusher.key'),
+            'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+        ]);
+    </script>
+    <script src="{{ asset('js/notifications.js') }}"></script>
 
     {{-- Quill rich text editor (self-hosted) --}}
     <script src="{{ asset('cdn/quill/quill.js') }}"></script>

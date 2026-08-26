@@ -13,6 +13,8 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Price;
 use Stripe\Product;
 use Stripe\StripeClient;
+use Stripe\Stripe;
+use Exception;
 
 /**
  * Every call to Stripe goes through here — the seeder, the controllers and
@@ -21,6 +23,12 @@ use Stripe\StripeClient;
  */
 class StripeService
 {
+
+    public function __construct()
+    {
+        Stripe::setApiKey(config('cashier.secret') ?? config('services.stripe.secret'));
+    }
+
     /**
      * The currency plans are created in.
      */
@@ -51,11 +59,15 @@ class StripeService
     /* ── Plans ──────────────────────────────────────────────────────────── */
 
     /**
-     * The course's plan row, created empty the first time it is asked for.
+     * The course's plan on one set of terms, created empty the first time it is
+     * asked for. A course has one plan per interval.
      */
-    public function planFor(Course $course): CoursePlan
+    public function planFor(Course $course, string $interval = 'month'): CoursePlan
     {
-        return $course->plan()->firstOrCreate([], ['currency' => self::CURRENCY]);
+        return $course->plans()->firstOrCreate(
+            ['billing_interval' => $interval],
+            ['currency' => self::CURRENCY]
+        );
     }
 
     /**
@@ -69,7 +81,7 @@ class StripeService
      */
     public function syncCoursePlan(Course $course, array $terms): CoursePlan
     {
-        $plan = $this->planFor($course);
+        $plan = $this->planFor($course, $terms['billing_interval']);
 
         $product = $this->productFor($course, $plan, $terms);
         $plan->stripe_product_id = $product->id;
@@ -82,8 +94,8 @@ class StripeService
         $plan->billing_interval = $terms['billing_interval'];
         $plan->save();
 
-        // So a caller reading $course->plan straight after sees the new row.
-        $course->setRelation('plan', $plan);
+        // A caller reading $course->plans straight after should see it.
+        $course->unsetRelation('plans')->unsetRelation('plan');
 
         return $plan;
     }
@@ -171,10 +183,12 @@ class StripeService
      *
      * @throws ApiErrorException
      */
-    public function checkoutForCourse(User $user, Course $course, string $successUrl, string $cancelUrl): Checkout
+    public function checkoutForCourse(User $user, Course $course, string $successUrl, string $cancelUrl, string $interval = 'month'): Checkout
     {
+        $plan = $course->planFor($interval) ?? $course->plan;
+
         return $user
-            ->newSubscription($this->subscriptionName($course), $course->plan?->stripe_price_id)
+            ->newSubscription($this->subscriptionName($course), $plan?->stripe_price_id)
             ->checkout([
                 'success_url' => $successUrl,
                 'cancel_url' => $cancelUrl,
@@ -282,4 +296,50 @@ class StripeService
     {
         return (bool) $user?->subscribed($this->subscriptionName($course));
     }
+
+    public function clearAllPlans(): array
+    {
+        $pricesResult = $this->clearPrices();
+        $productsResult = $this->clearProducts();
+
+        return [
+            'deleted' => array_merge($pricesResult['deleted'] ?? [], $productsResult['deleted'] ?? []),
+            'archived' => array_merge($pricesResult['archived'] ?? [], $productsResult['archived'] ?? []),
+        ];
+    }
+
+    public function clearPrices(): array
+    {
+        $archived = [];
+        $prices = Price::all(['limit' => 100]);
+
+        foreach ($prices->autoPagingIterator() as $price) {
+            Price::update($price->id, ['active' => false]);
+            $archived[] = "Price: {$price->id}";
+        }
+
+        return ['archived' => $archived];
+    }
+
+    public function clearProducts(): array
+    {
+        $deleted = [];
+        $archived = [];
+
+        $products = Product::all(['limit' => 100]);
+
+        foreach ($products->autoPagingIterator() as $product) {
+            try {
+                $product->delete();
+                $deleted[] = "Product: {$product->id}";
+            } catch (Exception $e) {
+                Product::update($product->id, ['active' => false]);
+                $archived[] = "Product: {$product->id} (has active history)";
+            }
+        }
+
+        return compact('deleted', 'archived');
+    }
+
+
 }

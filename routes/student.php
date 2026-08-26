@@ -3,6 +3,8 @@
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Student\ProgressController;
 use App\Http\Controllers\Student\SavedContentController;
+use App\Http\Controllers\Student\StudentQuizController;
+use App\Http\Controllers\Student\StudentWorksheetController;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentCoursesController;
 use App\Http\Controllers\Student\StudentCatalogController;
@@ -30,26 +32,54 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
 
     // Chapters — list of chapters for a course, and individual chapter dashboard
     Route::get('/courses/{courseId}/chapters', [StudentChaptersController::class, 'index'])->name('chapters');
-    Route::get('/courses/{courseId}/chapters/{chapterId}', [StudentChaptersController::class, 'show'])->name('chapters.show');
 
-    // Chapter resource sub-pages
-    Route::get('/courses/{courseId}/chapters/{chapterId}/notes', [StudentChaptersController::class, 'notes'])->name('chapters.notes');
-    Route::get('/courses/{courseId}/chapters/{chapterId}/notes/{noteId}', [StudentChaptersController::class, 'showNote'])->name('chapters.notes.show');
-    
-    Route::get('/courses/{courseId}/chapters/{chapterId}/flashcards', [StudentChaptersController::class, 'flashcards'])->name('chapters.flashcards');
-    Route::get('/courses/{courseId}/chapters/{chapterId}/flashcards/{flashcardId}', [StudentChaptersController::class, 'showFlashcard'])->name('chapters.flashcards.show');
-    
-    Route::get('/courses/{courseId}/chapters/{chapterId}/diagrams', [StudentChaptersController::class, 'diagrams'])->name('chapters.diagrams');
-    Route::get('/courses/{courseId}/chapters/{chapterId}/diagrams/{diagramId}', [StudentChaptersController::class, 'showDiagram'])->name('chapters.diagrams.show');
-    
-    Route::get('/courses/{courseId}/chapters/{chapterId}/summaries', [StudentChaptersController::class, 'summaries'])->name('chapters.summaries');
-    Route::get('/courses/{courseId}/chapters/{chapterId}/summaries/{summaryId}', [StudentChaptersController::class, 'showSummary'])->name('chapters.summaries.show');
+    /*
+    | Everything below opens one chapter's content, so the paywall applies:
+    | a private chapter needs a subscription, a public one is the free preview.
+    | Declaring it here means a new route under a chapter is covered by being
+    | in the group, rather than by remembering to check inside the action.
+    */
+    Route::middleware('subscribed')->group(function () {
+        Route::get('/courses/{courseId}/chapters/{chapterId}', [StudentChaptersController::class, 'show'])->name('chapters.show');
 
-    Route::get('/courses/{courseId}/chapters/{chapterId}/videos', [StudentChaptersController::class, 'videos'])->name('chapters.videos');
-    Route::get('/courses/{courseId}/chapters/{chapterId}/videos/{videoId}', [StudentChaptersController::class, 'showVideo'])->name('chapters.videos.show');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/notes', [StudentChaptersController::class, 'notes'])->name('chapters.notes');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/notes/{noteId}', [StudentChaptersController::class, 'showNote'])->name('chapters.notes.show');
+    
+        Route::get('/courses/{courseId}/chapters/{chapterId}/flashcards', [StudentChaptersController::class, 'flashcards'])->name('chapters.flashcards');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/flashcards/{flashcardId}', [StudentChaptersController::class, 'showFlashcard'])->name('chapters.flashcards.show');
+    
+        Route::get('/courses/{courseId}/chapters/{chapterId}/diagrams', [StudentChaptersController::class, 'diagrams'])->name('chapters.diagrams');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/diagrams/{diagramId}', [StudentChaptersController::class, 'showDiagram'])->name('chapters.diagrams.show');
+    
+        Route::get('/courses/{courseId}/chapters/{chapterId}/summaries', [StudentChaptersController::class, 'summaries'])->name('chapters.summaries');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/summaries/{summaryId}', [StudentChaptersController::class, 'showSummary'])->name('chapters.summaries.show');
 
-    Route::get('/courses/{courseId}/chapters/{chapterId}/guides', [StudentChaptersController::class, 'guides'])->name('chapters.guides');
-    Route::get('/courses/{courseId}/chapters/{chapterId}/guides/{guideId}', [StudentChaptersController::class, 'showGuide'])->name('chapters.guides.show');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/videos', [StudentChaptersController::class, 'videos'])->name('chapters.videos');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/videos/{videoId}', [StudentChaptersController::class, 'showVideo'])->name('chapters.videos.show');
+
+        Route::get('/courses/{courseId}/chapters/{chapterId}/guides', [StudentChaptersController::class, 'guides'])->name('chapters.guides');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/guides/{guideId}', [StudentChaptersController::class, 'showGuide'])->name('chapters.guides.show');
+
+    // Quizzes — sat in the portal so the attempt is recorded and timed
+        Route::get('/courses/{courseId}/chapters/{chapterId}/quizzes', [StudentQuizController::class, 'chapterIndex'])->name('chapters.quizzes');
+        Route::get('/courses/{courseId}/chapters/{chapterId}/quizzes/{quizId}', [StudentQuizController::class, 'show'])->name('chapters.quizzes.show');
+        Route::post('/courses/{courseId}/chapters/{chapterId}/quizzes/{quizId}', [StudentQuizController::class, 'submit'])->name('chapters.quizzes.submit');
+    });
+
+    // Worksheets — a student builds their own practice paper out of the
+    // question bank, then downloads it with or without the answers.
+    Route::get('/worksheets', [StudentWorksheetController::class, 'index'])->name('worksheets');
+    Route::get('/worksheets/create', [StudentWorksheetController::class, 'create'])->name('worksheets.create');
+    Route::get('/worksheets/options', [StudentWorksheetController::class, 'options'])->name('worksheets.options');
+    Route::get('/worksheets/preview', [StudentWorksheetController::class, 'preview'])->name('worksheets.preview');
+    Route::post('/worksheets', [StudentWorksheetController::class, 'store'])->name('worksheets.store');
+    Route::get('/worksheets/{worksheet}', [StudentWorksheetController::class, 'show'])->name('worksheets.show');
+    Route::get('/worksheets/{worksheet}/paper', [StudentWorksheetController::class, 'paper'])->name('worksheets.paper');
+    Route::get('/worksheets/{worksheet}/mark-scheme', [StudentWorksheetController::class, 'markScheme'])->name('worksheets.mark-scheme');
+    Route::delete('/worksheets/{worksheet}', [StudentWorksheetController::class, 'destroy'])->name('worksheets.destroy');
+
+    Route::get('/quizzes', [StudentQuizController::class, 'index'])->name('quizzes');
+    Route::get('/quizzes/{attempt}/report', [StudentQuizController::class, 'report'])->name('quizzes.report');
 
     // Bookmarking — saved items are listed on the resources page
     Route::post('/saved', [SavedContentController::class, 'toggle'])->name('saved.toggle');

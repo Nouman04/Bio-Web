@@ -33,13 +33,13 @@
         <p class="font-body-md text-body-md text-on-surface-variant mb-6">
             {{ $course?->title }}
             @if($plan?->price !== null)
-                — <span class="text-on-surface font-semibold">{{ $plan->formatted_price }}</span> per {{ $plan->billing_interval }}
+                — <span class="text-on-surface font-semibold" data-plan-price>{{ $plan->formatted_price }}</span> per <span data-plan-interval>{{ $plan->billing_interval }}</span>
             @endif
         </p>
 
         <div class="space-y-3">
             {{-- Stripe: the live one. --}}
-            <a href="{{ route('public.subscribe.checkout', $course) }}"
+            <a data-stripe-checkout href="{{ route('public.subscribe.checkout', $course) }}"
                 class="group flex items-center gap-4 w-full p-4 rounded-lg border-2 border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10 transition-all">
                 <span class="flex items-center justify-center w-11 h-11 rounded-lg bg-[#635bff] text-white shrink-0">
                     <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">credit_card</span>
@@ -90,6 +90,23 @@
     function open(event) {
         if (event) {
             event.preventDefault();
+        }
+
+        // The plan page offers monthly and yearly; carry whichever is
+        // selected through to Stripe.
+        const chosen = document.querySelector('.plan-interval:checked');
+        const link = modal.querySelector('[data-stripe-checkout]');
+
+        if (chosen && link) {
+            const url = new URL(link.href, window.location.origin);
+            url.searchParams.set('interval', chosen.value);
+            link.href = url.toString();
+
+            const row = chosen.closest('label');
+            const price = modal.querySelector('[data-plan-price]');
+            const interval = modal.querySelector('[data-plan-interval]');
+            if (price && row) { price.textContent = row.querySelector('.text-headline-md')?.textContent.trim() ?? price.textContent; }
+            if (interval) { interval.textContent = chosen.value; }
         }
 
         lastFocused = document.activeElement;

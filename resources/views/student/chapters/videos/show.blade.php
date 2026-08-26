@@ -186,7 +186,7 @@
             </h3>
             <div class="grid grid-cols-1 gap-3">
                 @if($quiz)
-                    <a href="{{ route($quiz->type === 'mcqs' ? 'public.course.chapter.mcqs.show' : 'public.course.chapter.theory.show', [$course, $chapter, $quiz]) }}"
+                    <a href="{{ route('student.chapters.quizzes.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'quizId' => $quiz->uuid]) }}"
                         class="flex items-center p-3 rounded-lg border border-outline-variant/20 hover:border-primary/50 hover:bg-surface-container-low transition-all group">
                         <div class="w-10 h-10 rounded-md bg-error/10 text-error flex items-center justify-center mr-3 shrink-0">
                             <span class="material-symbols-outlined">quiz</span>

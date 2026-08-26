@@ -47,41 +47,27 @@
     </div>
 
         {{-- Search and topic, both handled on the server. --}}
-        <form method="GET" class="flex flex-wrap gap-3 items-center shrink-0">
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">search</span>
-                <input type="search" name="search" value="{{ $search }}" placeholder="Search summaries"
-                    class="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary transition-all w-full sm:w-56">
-            </div>
+        <x-chapter-filter placeholder="Search summaries"
+            :search="$search"
+            :active="$search || $topic"
+            :clear="route('student.chapters.summaries', ['courseId' => $courseId, 'chapterId' => $chapterId])">
+
             @if($topics->isNotEmpty())
-                <div class="relative">
-                    <select name="topic" onchange="this.form.submit()"
-                        class="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-4 pr-10 focus:ring-2 focus:ring-primary transition-all cursor-pointer">
-                        <option value="">All topics</option>
-                        @foreach($topics as $option)
-                            <option value="{{ $option->uuid }}" @selected($topic === $option->uuid)>{{ $option->title }}</option>
-                        @endforeach
-                    </select>
-                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" style="font-size:18px;">expand_more</span>
-                </div>
+                <x-chapter-filter.select name="topic">
+                    <option value="">All topics</option>
+                    @foreach($topics as $option)
+                        <option value="{{ $option->uuid }}" @selected($topic === $option->uuid)>{{ $option->title }}</option>
+                    @endforeach
+                </x-chapter-filter.select>
             @endif
-            <button type="submit" class="bg-primary-container text-on-primary-container text-sm font-semibold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-colors">
-                <span class="material-symbols-outlined" style="font-size:18px;">filter_list</span> Filter
-            </button>
-            @if($search || $topic)
-                <a href="{{ route('student.chapters.summaries', ['courseId' => $courseId, 'chapterId' => $chapterId]) }}"
-                    class="text-on-surface-variant hover:text-primary text-sm flex items-center gap-1 transition-colors">
-                    <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span> Clear
-                </a>
-            @endif
-        </form>
+        </x-chapter-filter>
 </div>
 
 {{-- Summary Cards Grid --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     @forelse($summaries as $summary)
         @php
-            $read = $state[$summary->id]['completed'] ?? false;
+            $read = $state[$summary['id']]['completed'] ?? false;
             // Written out in full rather than interpolated, so the classes
             // survive a Tailwind build that scans source for literal names.
             $accents = [
@@ -95,8 +81,8 @@
         <article class="glass-card rounded-2xl p-6 flex flex-col h-full group">
             <div class="flex justify-between items-start mb-4 gap-2">
                 <div class="flex gap-2 flex-wrap min-w-0">
-                    @if($summary->topic)
-                        <span class="px-2.5 py-1 {{ $accent }} rounded text-xs font-bold tracking-wider uppercase truncate max-w-[12rem]">{{ $summary->topic->title }}</span>
+                    @if($summary['topic'])
+                        <span class="px-2.5 py-1 {{ $accent }} rounded text-xs font-bold tracking-wider uppercase truncate max-w-[12rem]">{{ $summary['topic'] }}</span>
                     @endif
                     <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant rounded text-xs font-bold tracking-wider uppercase">Ch {{ $chapter->chapter_number }}</span>
                 </div>
@@ -107,21 +93,21 @@
                             Read
                         </span>
                     @endif
-                    <x-save-button :record="$summary" class="text-on-surface-variant hover:text-primary" />
+                    <x-save-button type="summary" :uuid="$summary['uuid']" class="text-on-surface-variant hover:text-primary" />
                 </div>
             </div>
 
             <div class="flex flex-col flex-1 mb-6">
-                <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">{{ $summary->title ?: 'Untitled summary' }}</h3>
-                <p class="text-on-surface-variant text-sm line-clamp-3 flex-1">{{ $summary->excerpt ?: 'No content yet.' }}</p>
+                <h3 class="text-on-surface font-semibold text-base mb-2 group-hover:text-primary transition-colors">{{ $summary['title'] }}</h3>
+                <p class="text-on-surface-variant text-sm line-clamp-3 flex-1">{{ $summary['excerpt'] }}</p>
             </div>
 
             <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto">
                 <div class="flex items-center gap-2 text-on-surface-variant">
                     <span class="material-symbols-outlined" style="font-size:16px;">schedule</span>
-                    <span class="text-xs font-medium">{{ $summary->reading_minutes }} min read</span>
+                    <span class="text-xs font-medium">{{ $summary['reading_minutes'] }} min read</span>
                 </div>
-                <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => $summary->uuid]) }}"
+                <a href="{{ route('student.chapters.summaries.show', ['courseId' => $courseId, 'chapterId' => $chapterId, 'summaryId' => $summary['uuid']]) }}"
                     class="text-primary text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all">
                     Review <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
                 </a>

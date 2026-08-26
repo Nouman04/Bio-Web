@@ -9,6 +9,7 @@ use App\Models\Quiz;
 use App\Models\QuizChapter;
 use App\Models\QuizQuestion;
 use Illuminate\Http\JsonResponse;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -131,6 +132,10 @@ class QuizController extends Controller
 
             return $quiz;
         });
+
+        // Everyone subscribed to the course hears about it, once the quiz
+        // and its questions are safely committed. Drafts stay quiet.
+        app(NotificationService::class)->announceQuiz($quiz->fresh());
 
         return $this->respond(
             $request,

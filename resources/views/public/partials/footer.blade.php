@@ -15,9 +15,8 @@
 <!-- Brand Info -->
 <div class="col-span-1 md:col-span-5">
 <a class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2 mb-4" href="{{ route('public.home') }}">
-<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-surface-tint flex items-center justify-center">
-<span class="material-symbols-outlined text-white text-[20px]">science</span>
-</div>
+<img src="{{ asset('images/logo.png') }}" alt="Lumina LMS"
+    class="w-9 h-9 rounded-lg object-contain bg-white">
                         Lumina LMS
                     </a>
 <p class="text-on-surface-variant text-body-md mb-6 max-w-sm">Empowering IGCSE students worldwide with premium biology learning resources.</p>

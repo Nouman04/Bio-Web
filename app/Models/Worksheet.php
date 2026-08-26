@@ -17,6 +17,16 @@ class Worksheet extends Model
         'course_id',
         'created_by',
         'title',
+        'filters',
+    ];
+
+    /**
+     * What was asked for when the worksheet was built. A topic that had
+     * nothing to contribute is still recorded here, because the cover page
+     * lists everything that was asked for, not only what answered.
+     */
+    protected $casts = [
+        'filters' => 'array',
     ];
 
     public function course(): BelongsTo
