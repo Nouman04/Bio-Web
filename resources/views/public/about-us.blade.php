@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'About Us | Lumina LMS')
+@section('title', 'About Us | Your Biology')
 
 @push('styles')
 <style>
@@ -32,7 +32,9 @@ body { font-family: 'Geist', sans-serif; }
                         </p>
 </div>
 <div class="flex-1 w-full relative">
-<img alt="Biology classroom" class="w-full h-80 object-cover rounded-lg shadow-sm" data-alt="A bright, modern classroom setting focused on a high-tech biology lab environment. Soft, diffused lighting highlights a clean white desk with a glowing digital microscope and floating holographic diagrams of plant cells. The scene evokes clarity, learning, and futuristic education, maintaining a minimal aesthetic with crisp whites, subtle grays, and precise accents of bright indigo (#6366f1) throughout the composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlaUF6gZR6MTMGaI9YDRUedWAoRzOjiv3cALy8HdpwR4yoU7R8XtLSvTevc9p02sBEwMjmJops06qytIOz2e9HMU7mT2FPSbd4sIZoC_zQKr63BpRjwysTyLs4GzThzV_agiE5ZPofguL5i74q8Md517zO14aEyrNa6dp-n3tH9uJYENHjdPlgAoL_0jj0OAQLSoHa4G7xWWGUKyORSD1ZOh4krkJzdkZjn-CSBFaN9pu0UP5Hb-ms"/>
+
+{{-- Photography brief: Biology classroom --}}
+<div class="w-full h-80 object-cover rounded-lg shadow-sm bg-gradient-to-br from-primary/25 via-primary/10 to-secondary/15" role="img" aria-label="Biology classroom"></div>
 </div>
 </div>
 </div>

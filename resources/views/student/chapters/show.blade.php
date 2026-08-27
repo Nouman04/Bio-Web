@@ -4,7 +4,6 @@
 @section('meta-description', 'Study video, notes, flashcards and assessments for ' . $chapter->title)
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     .glass-panel {
         background: rgba(255, 255, 255, 0.7);

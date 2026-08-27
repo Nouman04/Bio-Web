@@ -1,5 +1,5 @@
 {{-- BEGIN: Top Header --}}
-<header class="flex justify-between items-center gap-3 px-4 py-4 sm:px-8 sm:py-6 lg:px-12 z-10 flex-shrink-0">
+<header class="relative z-40 flex justify-between items-center gap-3 px-4 py-4 sm:px-8 sm:py-6 lg:px-12 flex-shrink-0">
 
     <div class="flex items-center gap-3 sm:gap-4 min-w-0">
         {{-- Mobile menu toggle --}}

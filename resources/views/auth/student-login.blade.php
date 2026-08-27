@@ -35,7 +35,7 @@
                 <label class="text-sm font-medium text-on-surface-variant" for="email">Email Address</label>
                 <div class="relative flex items-center">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">person</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="email" name="email" placeholder="e.g. jdoe@lumina.edu" type="email" value="{{ old('email') }}" required autofocus>
+                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="email" name="email" placeholder="e.g. jdoe@example.com" type="email" value="{{ old('email') }}" required autofocus>
                 </div>
                 @error('email')
                     <p class="text-sm text-error">{{ $message }}</p>
@@ -52,7 +52,7 @@
                 </div>
                 <div class="relative flex items-center">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-DEFAULT pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required>
+                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required>
                 </div>
                 @error('password')
                     <p class="text-sm text-error">{{ $message }}</p>
@@ -66,7 +66,7 @@
             </label>
 
             {{-- Primary Action --}}
-            <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded-DEFAULT mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(0, 19, 48, 0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
+            <button class="w-full bg-primary text-on-primary text-sm font-semibold py-sm rounded mt-sm hover:opacity-90 hover:shadow-[0_0_15px_rgba(0, 19, 48, 0.3)] active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-xs" type="submit">
                 Sign In
                 <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
@@ -81,7 +81,7 @@
 
         {{-- Google Sign In --}}
         <a href="{{ route('google.login') }}"
-            class="w-full bg-transparent border border-outline-variant rounded-DEFAULT py-[10px] px-sm flex items-center justify-center gap-sm hover:bg-surface-container-low active:scale-[0.98] transition-all duration-200 text-on-surface text-sm font-semibold">
+            class="w-full bg-transparent border border-outline-variant rounded py-[10px] px-sm flex items-center justify-center gap-sm hover:bg-surface-container-low active:scale-[0.98] transition-all duration-200 text-on-surface text-sm font-semibold">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>

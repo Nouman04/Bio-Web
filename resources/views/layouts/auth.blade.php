@@ -7,92 +7,18 @@
     <title>@yield('title', 'Sign In') | EduAdmin LMS</title>
 
     {{-- Tailwind CSS --}}
-    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
+    {{-- Opens the font connections while the document is still parsing. --}}
 
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
+    {{-- The built stylesheet. Was cdn.tailwindcss.com, which compiles in
+         the browser on every load — 3.6s of it on the chapter page. --}}
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
 
     {{-- Google Fonts --}}
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('fonts/symbols.css') }}">
+    <link rel="stylesheet" href="{{ asset('fonts/geist.css') }}">
 
     {{-- Tailwind Config (shared design tokens) --}}
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "on-secondary-fixed": "rgb(var(--c-on-secondary-fixed) / <alpha-value>)",
-                        "on-error": "rgb(var(--c-on-error) / <alpha-value>)",
-                        "tertiary-fixed-dim": "rgb(var(--c-tertiary-fixed-dim) / <alpha-value>)",
-                        "on-tertiary-fixed-variant": "rgb(var(--c-on-tertiary-fixed-variant) / <alpha-value>)",
-                        "surface-container-lowest": "rgb(var(--c-surface-container-lowest) / <alpha-value>)",
-                        "surface": "rgb(var(--c-surface) / <alpha-value>)",
-                        "on-primary-fixed": "rgb(var(--c-on-primary-fixed) / <alpha-value>)",
-                        "surface-bright": "rgb(var(--c-surface-bright) / <alpha-value>)",
-                        "on-tertiary-fixed": "rgb(var(--c-on-tertiary-fixed) / <alpha-value>)",
-                        "inverse-primary": "rgb(var(--c-inverse-primary) / <alpha-value>)",
-                        "background": "rgb(var(--c-background) / <alpha-value>)",
-                        "outline": "rgb(var(--c-outline) / <alpha-value>)",
-                        "surface-container-low": "rgb(var(--c-surface-container-low) / <alpha-value>)",
-                        "inverse-on-surface": "rgb(var(--c-inverse-on-surface) / <alpha-value>)",
-                        "surface-variant": "rgb(var(--c-surface-variant) / <alpha-value>)",
-                        "on-error-container": "rgb(var(--c-on-error-container) / <alpha-value>)",
-                        "secondary-fixed-dim": "rgb(var(--c-secondary-fixed-dim) / <alpha-value>)",
-                        "outline-variant": "rgb(var(--c-outline-variant) / <alpha-value>)",
-                        "on-secondary-container": "rgb(var(--c-on-secondary-container) / <alpha-value>)",
-                        "tertiary": "rgb(var(--c-tertiary) / <alpha-value>)",
-                        "surface-container-high": "rgb(var(--c-surface-container-high) / <alpha-value>)",
-                        "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
-                        "error-container": "rgb(var(--c-error-container) / <alpha-value>)",
-                        "primary-fixed": "rgb(var(--c-primary-fixed) / <alpha-value>)",
-                        "on-tertiary-container": "rgb(var(--c-on-tertiary-container) / <alpha-value>)",
-                        "secondary-container": "rgb(var(--c-secondary-container) / <alpha-value>)",
-                        "error": "rgb(var(--c-error) / <alpha-value>)",
-                        "surface-container": "rgb(var(--c-surface-container) / <alpha-value>)",
-                        "on-primary-container": "rgb(var(--c-on-primary-container) / <alpha-value>)",
-                        "inverse-surface": "rgb(var(--c-inverse-surface) / <alpha-value>)",
-                        "on-secondary-fixed-variant": "rgb(var(--c-on-secondary-fixed-variant) / <alpha-value>)",
-                        "surface-container-highest": "rgb(var(--c-surface-container-highest) / <alpha-value>)",
-                        "tertiary-container": "rgb(var(--c-tertiary-container) / <alpha-value>)",
-                        "tertiary-fixed": "rgb(var(--c-tertiary-fixed) / <alpha-value>)",
-                        "on-primary-fixed-variant": "rgb(var(--c-on-primary-fixed-variant) / <alpha-value>)",
-                        "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
-                        "on-surface": "rgb(var(--c-on-surface) / <alpha-value>)",
-                        "surface-dim": "rgb(var(--c-surface-dim) / <alpha-value>)",
-                        "secondary": "rgb(var(--c-secondary) / <alpha-value>)",
-                        "on-tertiary": "rgb(var(--c-on-tertiary) / <alpha-value>)",
-                        "primary-fixed-dim": "rgb(var(--c-primary-fixed-dim) / <alpha-value>)",
-                        "on-surface-variant": "rgb(var(--c-on-surface-variant) / <alpha-value>)",
-                        "surface-tint": "rgb(var(--c-surface-tint) / <alpha-value>)",
-                        "primary": "rgb(var(--c-primary) / <alpha-value>)",
-                        "on-secondary": "rgb(var(--c-on-secondary) / <alpha-value>)",
-                        "secondary-fixed": "rgb(var(--c-secondary-fixed) / <alpha-value>)",
-                        "on-background": "rgb(var(--c-on-background) / <alpha-value>)"
-                    },
-                    borderRadius: {
-                        "DEFAULT": "1rem",
-                        "lg": "2rem",
-                        "xl": "3rem",
-                        "full": "9999px"
-                    },
-                    spacing: {
-                        "md": "24px",
-                        "sm": "12px",
-                        "xl": "80px",
-                        "container-max": "1280px",
-                        "auth-card-width": "440px",
-                        "lg": "48px",
-                        "base": "8px",
-                        "xs": "4px"
-                    },
-                    fontFamily: {
-                        "sans": ["Geist", "sans-serif"]
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
         body { font-family: 'Geist', sans-serif; }
@@ -123,14 +49,11 @@
         .mesh-gradient {
             background-color: #001330;
             background-image:
-                radial-gradient(at 40% 20%, hsla(240,100%,74%,1) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%),
-                radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, hsla(340,100%,76%,1) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(22,100%,77%,1) 0px, transparent 50%),
-                radial-gradient(at 80% 100%, hsla(242,100%,70%,1) 0px, transparent 50%),
-                radial-gradient(at 0% 0%, hsla(343,100%,76%,1) 0px, transparent 50%);
-            opacity: 0.9;
+                radial-gradient(at 15% 15%, rgba(0, 65, 163, 0.85) 0px, transparent 55%),
+                radial-gradient(at 85% 10%, rgba(29, 95, 208, 0.55) 0px, transparent 50%),
+                radial-gradient(at 75% 80%, rgba(0, 40, 102, 0.95) 0px, transparent 55%),
+                radial-gradient(at 10% 90%, rgba(0, 19, 48, 1) 0px, transparent 60%),
+                radial-gradient(at 50% 50%, rgba(128, 178, 255, 0.16) 0px, transparent 65%);
         }
     </style>
 

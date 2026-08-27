@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Subscription | Lumina LMS')
+@section('title', 'Subscription | Your Biology')
 
 @include('public.catalog._styles')
 
@@ -18,9 +18,9 @@
 <h1 class="font-display-lg text-display-lg text-on-surface mb-6">Unlock the Full Biology Experience.</h1>
 <p class="font-body-lg text-body-lg text-on-surface-variant">
     @if($chapter ?? null)
-        “{{ $chapter->title }}” is part of the premium syllabus. Subscribe to Lumina Premium to open it and every other chapter, and to add the Theory Guide, ATP Guide and Worksheet Generator.
+        “{{ $chapter->title }}” is part of the premium syllabus. Subscribe to Your Biology Premium to open it and every other chapter, and to add the Theory Guide, ATP Guide and Worksheet Generator.
     @else
-        Notes, flashcards, MCQs and theory quizzes are open on the free chapters. Subscribe to Lumina Premium to open every chapter, and to add the Theory Guide, ATP Guide and Worksheet Generator.
+        Notes, flashcards, MCQs and theory quizzes are open on the free chapters. Subscribe to Your Biology Premium to open every chapter, and to add the Theory Guide, ATP Guide and Worksheet Generator.
     @endif
 </p>
 @if($course ?? null)
@@ -109,7 +109,7 @@
      chapter rather than the open ones. --}}
 <ul class="flex-grow space-y-4 mb-8">
 <li class="flex items-start gap-3">
-<span class="material-symbols-outlined text-primary mt-1" style="font-variation-settings: 'FILL' 1;">lock_open_right</span>
+<span class="material-symbols-outlined text-primary mt-1" style="font-variation-settings: 'FILL' 1;">lock_open</span>
 <span class="font-body-md text-body-md text-on-surface font-semibold">Every chapter open — no locked content</span>
 </li>
 <li class="flex items-start gap-3">

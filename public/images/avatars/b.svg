@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" role="img" aria-label="Illustrated student avatar">
+  <defs><clipPath id="c"><circle cx="40" cy="40" r="40"/></clipPath></defs>
+  <g clip-path="url(#c)">
+    <rect width="80" height="80" fill="#ede9fe"/>
+    <path d="M40 46c14 0 25 10 25 22v12H15V68c0-12 11-22 25-22z" fill="#6d28d9"/>
+    <circle cx="40" cy="33" r="15" fill="#8d5524"/>
+    <path d="M24 33c-1-12 6-18 16-18s17 6 16 18c-2-3-1-9-6-10-6-1-9 2-15 1-5-1-9 4-11 9z" fill="#151515"/><circle cx="40" cy="20" r="3" fill="#151515"/>
+  </g>
+</svg>

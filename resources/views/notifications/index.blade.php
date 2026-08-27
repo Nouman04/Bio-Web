@@ -12,10 +12,6 @@
 @section('page-title', 'Notifications')
 @section('page-subtitle', 'Everything that has happened on your courses.')
 
-@push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-@endpush
-
 @section('content')
 
 @php

@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', $quiz->title . ' — MCQ Quiz | Lumina LMS')
+@section('title', $quiz->title . ' — MCQ Quiz | Your Biology')
 
 @include('public.catalog._styles')
 

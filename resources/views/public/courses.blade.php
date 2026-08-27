@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Courses | Lumina LMS')
+@section('title', 'Courses | Your Biology')
 
 @push('styles')
 <link href="{{ asset('cdn/tom-select/tomSelect.css') }}" rel="stylesheet"/>
@@ -131,7 +131,7 @@
                                         {{ Str::upper(Str::substr($course['instructor'] ?? '?', 0, 1)) }}
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <p class="font-label-md text-on-surface truncate">{{ $course['instructor'] ?? 'Lumina LMS' }}</p>
+                                        <p class="font-label-md text-on-surface truncate">{{ $course['instructor'] ?? 'Your Biology' }}</p>
                                         <p class="font-label-sm text-on-surface-variant">
                                             {{ $course['chapters_count'] }} {{ Str::plural('chapter', $course['chapters_count']) }}
                                         </p>

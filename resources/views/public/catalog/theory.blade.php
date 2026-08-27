@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Theory Practice — ' . $chapter->title . ' | Lumina LMS')
+@section('title', 'Theory Practice — ' . $chapter->title . ' | Your Biology')
 
 @include('public.catalog._styles')
 
@@ -15,7 +15,7 @@
 ]])
 <div class="flex items-center gap-sm mt-2">
 <div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
-<span class="material-symbols-outlined fill">edit_document</span>
+<span class="material-symbols-outlined fill">edit_note</span>
 </div>
 <h1 class="font-display-lg text-display-lg text-on-surface">Theory Practice</h1>
 </div>
@@ -27,7 +27,7 @@
 <a class="group block" href="{{ route('public.course.chapter.theory.show', [$course, $chapter, $quiz]) }}">
 <article class="glass-panel rounded-xl p-md flex flex-col md:flex-row md:items-center gap-md hover:-translate-y-1 hover:shadow-primary-glow transition-all duration-300">
 <div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-primary shrink-0">
-<span class="material-symbols-outlined">edit_document</span>
+<span class="material-symbols-outlined">edit_note</span>
 </div>
 <div class="flex-grow min-w-0">
 <h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors">{{ $quiz->title }}</h3>
@@ -50,7 +50,7 @@
 </a>
 @empty
 <div class="glass-panel rounded-xl p-lg text-center">
-<span class="material-symbols-outlined text-primary text-[40px] mb-2">edit_document</span>
+<span class="material-symbols-outlined text-primary text-[40px] mb-2">edit_note</span>
 <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Nothing published yet</h2>
 <p class="font-body-md text-body-md text-on-surface-variant">Theory Practice for this chapter will appear here.</p>
 </div>

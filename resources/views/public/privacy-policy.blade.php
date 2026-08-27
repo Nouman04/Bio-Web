@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Privacy Policy | Lumina LMS')
+@section('title', 'Privacy Policy | Your Biology')
 
 @section('content')
 <main class="flex-grow w-full max-w-container-max mx-auto px-md md:px-lg py-xl">

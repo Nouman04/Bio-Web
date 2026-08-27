@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The public-facing marketing site: home, about, and the support and legal
@@ -39,7 +40,35 @@ class PublicPageController extends Controller
                 ->latest('id')
                 ->limit(5)
                 ->get(),
+
+            // The hero shows the product rather than a stock photo, so it needs
+            // a course that actually has chapters to put on screen.
+            'preview' => $this->heroPreview(),
         ]);
+    }
+
+    /**
+     * A real slice of the library for the hero preview: the best-stocked course
+     * and the first few of its chapters, plus what the bank holds overall.
+     *
+     * @return array{course: ?Course, chapters: \Illuminate\Support\Collection, questions: int, chapters_total: int}
+     */
+    private function heroPreview(): array
+    {
+        $course = Course::query()
+            ->withCount('chapters')
+            ->having('chapters_count', '>', 0)
+            ->orderByDesc('chapters_count')
+            ->first();
+
+        return [
+            'course' => $course,
+            'chapters' => $course
+                ? $course->chapters()->orderBy('chapter_number')->limit(4)->get(['id', 'title', 'chapter_number'])
+                : collect(),
+            'questions' => DB::table('question_bank')->whereNull('deleted_at')->count(),
+            'chapters_total' => DB::table('chapters')->whereNull('deleted_at')->count(),
+        ];
     }
 
     /**

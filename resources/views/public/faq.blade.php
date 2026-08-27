@@ -1,10 +1,9 @@
 @extends('public.layouts.app')
 
-@section('title', 'FAQs | Lumina LMS')
+@section('title', 'FAQs | Your Biology')
 
 @push('styles')
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
         body { font-family: 'Geist', sans-serif; background-color: #f7f9fb; }
         .glass-panel {
             background: rgba(255, 255, 255, 0.7);

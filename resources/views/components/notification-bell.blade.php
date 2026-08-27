@@ -46,7 +46,7 @@
         </div>
 
         {{-- Rows land here. --}}
-        <div id="notification-list" class="max-h-[22rem] overflow-y-auto divide-y divide-outline-variant/20 dark:divide-slate-700">
+        <div id="notification-list" class="notification-scroll max-h-[22rem] overflow-y-auto divide-y divide-outline-variant/20 dark:divide-slate-700">
             <p class="px-4 py-10 text-center text-sm text-on-surface-variant dark:text-slate-400">Loading…</p>
         </div>
 

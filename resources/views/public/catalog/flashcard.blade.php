@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', $deck->title . ' — Flashcards | Lumina LMS')
+@section('title', $deck->title . ' — Flashcards | Your Biology')
 
 @include('public.catalog._styles')
 
@@ -76,7 +76,7 @@
 <!-- Quick Actions -->
 <div class="flex flex-col gap-sm pt-sm">
 <button id="session-restart" type="button"
-    class="w-full flex items-center justify-center gap-sm py-sm px-md rounded-DEFAULT font-label-md text-label-md text-secondary hover:text-on-background hover:bg-surface-container-high transition-all active:scale-95 border border-transparent hover:border-glass-stroke">
+    class="w-full flex items-center justify-center gap-sm py-sm px-md rounded font-label-md text-label-md text-secondary hover:text-on-background hover:bg-surface-container-high transition-all active:scale-95 border border-transparent hover:border-glass-stroke">
 <span class="material-symbols-outlined">restart_alt</span>
                     Restart Session
                 </button>

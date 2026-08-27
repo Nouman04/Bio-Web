@@ -4,7 +4,13 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "css": "tailwindcss -c tailwind.config.js -i resources/css/app.css -o public/css/app.css --minify",
+        "css:watch": "tailwindcss -c tailwind.config.js -i resources/css/app.css -o public/css/app.css --watch",
+        "css:public": "tailwindcss -c tailwind.public.config.js -i resources/css/app.css -o public/css/public.css --minify",
+        "icons": "php scripts/build-icon-font.php",
+        "assets": "npm run css && npm run css:public && npm run css:auth && npm run icons",
+        "css:auth": "tailwindcss -c tailwind.auth.config.js -i resources/css/app.css -o public/css/auth.css --minify"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",

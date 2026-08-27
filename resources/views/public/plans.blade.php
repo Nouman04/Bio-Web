@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', $course->title . ' — Subscribe | Lumina LMS')
+@section('title', $course->title . ' — Subscribe | Your Biology')
 
 @include('public.catalog._styles')
 
@@ -71,7 +71,7 @@
 
     <ul class="flex-grow space-y-3 mb-8">
         <li class="flex items-start gap-3 font-body-md text-body-md text-on-surface">
-            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5" style="font-variation-settings: 'FILL' 1;">lock_open_right</span>
+            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5" style="font-variation-settings: 'FILL' 1;">lock_open</span>
             All {{ $course->chapters_count }} {{ Str::plural('chapter', $course->chapters_count) }} unlocked
         </li>
         <li class="flex items-start gap-3 font-body-md text-body-md text-on-surface-variant">

@@ -23,7 +23,7 @@
     <a href="{{ route('dashboard') }}"
         class="mobile-fade flex items-center w-full px-8 mb-6 center-on-collapse transition-all duration-300 justify-center lg:justify-start group">
         <img src="{{ asset('images/logo.png') }}" alt="EduAdmin"
-            class="w-12 h-12 rounded-xl object-contain shadow-lg flex-shrink-0 bg-white group-hover:scale-105 transition-transform duration-300">
+            class="w-12 h-12 rounded-xl object-contain shadow-lg flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
         <div class="block ml-4 hide-on-collapse">
             <span class="sidebar-brand font-bold text-xl">EduAdmin</span>
             <p class="sidebar-brand-sub text-xs">Your Biology Exam Simplified</p>

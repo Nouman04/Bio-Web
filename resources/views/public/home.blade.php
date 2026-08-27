@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Lumina LMS — IGCSE Biology Made Simple | Lumina LMS')
+@section('title', 'Your Biology — IGCSE Biology Made Simple | Your Biology')
 
 @section('content')
 <main class="relative w-full overflow-hidden">
@@ -21,30 +21,85 @@
                     Biology made simpler. Exams made easier. Learn it, understand it, and ace your exams with our expert-crafted, interactive resources designed for the modern student.
                 </p>
 <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-<a class="w-full sm:w-auto inline-flex items-center justify-center bg-primary text-on-primary px-8 py-4 rounded-full font-label-md hover:bg-primary-container transition-all duration-300 transform active:scale-95 shadow-[0_8px_30px_rgb(70,72,212,0.3)] btn-glow text-lg" href="#">
+<a class="w-full sm:w-auto inline-flex items-center justify-center whitespace-nowrap bg-primary text-on-primary px-8 py-4 rounded-full font-label-md hover:bg-primary-container transition-all duration-300 transform active:scale-95 shadow-[0_8px_30px_rgb(70,72,212,0.3)] btn-glow text-lg" href="#">
                         Start Learning for Free
                     </a>
-<a class="w-full sm:w-auto inline-flex items-center justify-center bg-white text-on-surface px-8 py-4 rounded-full font-label-md hover:bg-surface-container-low transition-all border border-outline-variant/30 shadow-sm text-lg gap-2" href="#">
-<span class="material-symbols-outlined text-[20px]">play_circle</span>
-                        See how it works
+<a class="w-full sm:w-auto inline-flex items-center justify-center whitespace-nowrap gap-2 text-on-surface px-6 py-4 font-label-md hover:text-primary transition-colors text-lg" href="#courses">
+<span class="material-symbols-outlined text-[20px]">arrow_downward</span>
+                        Browse the courses
                     </a>
 </div>
 <div class="flex items-center justify-center lg:justify-start gap-4 pt-6 opacity-70">
 <div class="flex -space-x-3">
-<img alt="" class="w-10 h-10 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWJCQSfq-R2IlbpZYXEE2eQBbHnOfxWPWavihYWUtuepgHxRp3IRIP7DExPMklyuaQpkKN4IZ648vjBx0cw0Ij4LFSHaI-UERmX-D-lCLTnoR23MlaLvlr2VwyklwPQn7bQX68ccBBdt7ZtW84KjcW7f9Yi1AVUWwDT2pZ7rKidTC6XGnIJH_YbyP0z2jcGlxGbBvyNOYp1DWqdIvzUYcFHTSk__Gq1jtBiBq17l4cwUpk4ni3i2Mc">
-<img alt="" class="w-10 h-10 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEnavt4RUUyHvYhIen0QZRwR13PA_bzs9wFbrRTdNCGTr2DOi1S75cQsfwW1YZPRJm3I2NyAQq-mmPDH4FRByslVhRDe1my8jwOHQF5PA12UkMBp4NzM_Uuj29wqzHO4NN1zvyJAm2GHphNL5aZhvmPqAB1NoxHhz-HOjJoZIf600TW7OxTLwJ5DPrYf4LZT6sxgoSpyoC0I_9Ln0KZBkUua5jC4CYmbj8CJZcg69K0yF2-vIg9LZh">
-<img alt="" class="w-10 h-10 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIoHDVK2He3PgHu9LTfchta8UekkSFzVSN4jVByH10M-INM-QCmQJfJOZ_bGl9YvvqSsS9YcCebCNYy12LQbooFcVWZkmC1rCn2RzYP2gU7pkFbMLqm4CPDGUPHvaTa9byLx3ybR72MXhPmuiEMC9cDMHjiOC5r3TFw_zd1t2262_Jguy46bRb-YZHFt7_eQp3tFSvKyVjuYXwNDEiiMJYWO16AjdFNrYdQIC3rbtsyuQwChR6O9zJ">
-<div class="w-10 h-10 rounded-full border-2 border-white bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface">+2k</div>
+@foreach(['a', 'b', 'c', 'd'] as $avatar)
+<img src="{{ asset('images/avatars/' . $avatar . '.svg') }}" alt=""
+    class="w-10 h-10 rounded-full border-2 border-white bg-white object-cover shadow-sm"
+    width="40" height="40" loading="lazy">
+@endforeach
+<div class="w-10 h-10 rounded-full border-2 border-white bg-primary flex items-center justify-center text-xs font-bold text-on-primary shadow-sm">+2k</div>
 </div>
 <div class="text-sm font-label-sm text-on-surface-variant">Trusted by 2,000+ students</div>
 </div>
 </div>
 <div class="flex-1 w-full relative max-w-3xl lg:max-w-none mx-auto mt-12 lg:mt-0">
 <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-[2.5rem] blur-3xl transform rotate-3"></div>
-<div class="glass-panel p-3 rounded-[2.5rem] relative overflow-hidden transform hover:-translate-y-2 transition-transform duration-500 shadow-2xl">
-<img class="w-full h-full object-cover rounded-[2rem]" data-alt="A bright, modern educational scene showing a student actively engaged in studying biology. The setting is a clean, minimalist room with soft, high-key white lighting. The student is interacting with a sleek laptop displaying detailed biological diagrams. Subtle indigo accents in the environment tie into a sophisticated 'Radiant Glass' aesthetic. The mood is focused, calm, and academic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaKc4mgN8uLSJ1jQva0ROG2hELrHNYNqlAm9gErF2vjG5Feb4axkMaWqN99nXlGfe4WRC56WF60HapMcM0GN_MVbaaFbuV9FHjcHk5zSylbBJ9HtuSihTrFjlRi-PPYtAFfa7Bap-cqt8DUEaGImmBzipWHxOVMqamx7eGVDtZeuywa1f0tcrGy67eZx7siz2mW8BngmaS1_3wvV8npQfD0ap4Dfi6zxWk_hd1asYq6i-19vg2p0CJ">
+<div class="glass-panel p-3 rounded-[2.5rem] relative transform hover:-translate-y-2 transition-transform duration-500 shadow-2xl">
+
+{{-- A preview of the real library rather than a stock photograph. --}}
+<div class="w-full rounded-[2rem] bg-white/85 backdrop-blur-sm p-6 sm:p-7 flex flex-col gap-5 min-h-[420px]">
+
+@php($previewCourse = $preview['course'] ?? null)
+
+    {{-- Course header --}}
+    <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+            <div class="text-xs font-label-sm uppercase tracking-wider text-primary/70 mb-1">Now studying</div>
+            <div class="font-headline-md text-lg font-bold text-on-surface truncate">
+                {{ $previewCourse->title ?? 'IGCSE Biology' }}
+            </div>
+        </div>
+        <div class="shrink-0 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center text-on-primary shadow-lg">
+            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">school</span>
+        </div>
+    </div>
+
+    {{-- Chapters --}}
+    <div class="flex flex-col gap-2.5">
+        @forelse($preview['chapters'] as $index => $chapter)
+            <div class="flex items-center gap-3 rounded-2xl bg-surface-container-low/70 border border-outline-variant/20 px-3.5 py-3">
+                <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                    {{ $chapter->chapter_number ?: $index + 1 }}
+                </div>
+                <div class="text-sm font-medium text-on-surface truncate flex-1">{{ $chapter->title }}</div>
+                <span class="material-symbols-outlined text-[20px] {{ $index === 0 ? 'text-green-600' : 'text-outline-variant' }}"
+                    style="font-variation-settings: 'FILL' 1;">
+                    {{ $index === 0 ? 'check_circle' : 'chevron_right' }}
+                </span>
+            </div>
+        @empty
+            <div class="rounded-2xl bg-surface-container-low/70 border border-outline-variant/20 px-3.5 py-6 text-center text-sm text-on-surface-variant">
+                New chapters are being added to the library.
+            </div>
+        @endforelse
+    </div>
+
+    {{-- What the library holds --}}
+    <div class="mt-auto grid grid-cols-3 gap-2 pt-1">
+        @foreach([
+            ['menu_book', $preview['chapters_total'], 'Chapters'],
+            ['quiz', $preview['questions'], 'Questions'],
+            ['workspace_premium', 'IGCSE', 'Syllabus'],
+        ] as [$icon, $value, $label])
+            <div class="rounded-2xl bg-primary/5 px-2 py-3 text-center">
+                <span class="material-symbols-outlined text-[18px] text-primary">{{ $icon }}</span>
+                <div class="font-bold text-on-surface text-base leading-tight">{{ $value }}</div>
+                <div class="text-[11px] text-on-surface-variant">{{ $label }}</div>
+            </div>
+        @endforeach
+    </div>
+</div>
 <!-- Floating Elements -->
-<div class="absolute top-8 -left-6 glass-panel px-4 py-3 rounded-2xl flex items-center gap-3 animate-bounce shadow-xl" style="animation-duration: 3s;">
+<div class="absolute -top-5 -left-4 sm:-left-8 glass-panel px-4 py-3 rounded-2xl flex items-center gap-3 animate-bounce shadow-xl z-20" style="animation-duration: 3s;">
 <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
 <span class="material-symbols-outlined">trending_up</span>
 </div>
@@ -53,15 +108,7 @@
 <div class="text-xs text-on-surface-variant">Target Reached</div>
 </div>
 </div>
-<div class="absolute bottom-12 -right-8 glass-panel px-4 py-3 rounded-2xl flex items-center gap-3 animate-bounce shadow-xl" style="animation-duration: 4s; animation-delay: 1s;">
-<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">check_circle</span>
-</div>
-<div>
-<div class="font-bold text-sm text-on-surface">Module Complete</div>
-<div class="text-xs text-on-surface-variant">Cell Structure</div>
-</div>
-</div>
+
 </div>
 </div>
 </section>
@@ -69,7 +116,7 @@
 <section class="py-2xl relative z-10">
 <div class="max-w-container-max mx-auto px-md md:px-lg">
 <div class="text-center mb-16">
-<h2 class="font-headline-lg text-headline-lg md:text-[40px] text-on-surface mb-4">Why Choose Lumina?</h2>
+<h2 class="font-headline-lg text-headline-lg md:text-[40px] text-on-surface mb-4">Why Choose Your Biology?</h2>
 <p class="text-on-surface-variant max-w-2xl mx-auto font-body-md text-lg">Everything you need to master biology, designed with cognitive science in mind.</p>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -164,7 +211,7 @@
 </div>
 <h2 class="font-headline-lg text-headline-lg md:text-[40px] text-on-surface mb-6">Our Mission: Biology Made Simpler</h2>
 <p class="font-body-lg text-body-lg text-on-surface-variant text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-                            We believe that mastering IGCSE Biology shouldn't be about memorizing endless textbooks. It's about understanding the core concepts and applying them with confidence. Lumina LMS was built to cut through the complexity, providing students with clear, focused, and interactive tools that illuminate the subject matter and pave the way to exam success.
+                            We believe that mastering IGCSE Biology shouldn't be about memorizing endless textbooks. It's about understanding the core concepts and applying them with confidence. Your Biology was built to cut through the complexity, providing students with clear, focused, and interactive tools that illuminate the subject matter and pave the way to exam success.
                         </p>
 </div>
 </div>

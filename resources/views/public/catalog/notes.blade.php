@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Study Notes — ' . $chapter->title . ' | Lumina LMS')
+@section('title', 'Study Notes — ' . $chapter->title . ' | Your Biology')
 
 @include('public.catalog._styles')
 

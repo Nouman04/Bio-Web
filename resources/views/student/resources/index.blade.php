@@ -4,7 +4,6 @@
 @section('meta-description', 'Everything you have saved — videos, flashcards, notes, summaries, diagrams and guides')
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     .hover-lift {
         transition: transform 0.2s ease, box-shadow 0.2s ease;

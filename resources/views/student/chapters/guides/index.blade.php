@@ -4,7 +4,6 @@
 @section('meta-description', 'Theory and ATP guides for this chapter')
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     .glass-card {
         background: rgba(255,255,255,0.7);

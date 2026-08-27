@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', $chapter->title . ' | Lumina LMS')
+@section('title', $chapter->title . ' | Your Biology')
 
 @include('public.catalog._styles')
 
@@ -128,7 +128,7 @@
 <header class="flex items-center justify-between mb-md">
 <div class="flex items-center gap-sm">
 <div class="w-8 h-8 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
-<span class="material-symbols-outlined fill text-[20px]">edit_document</span>
+<span class="material-symbols-outlined fill text-[20px]">edit_note</span>
 </div>
 <h2 class="font-headline-md text-headline-md text-on-surface">Theory Practice</h2>
 </div>
@@ -139,7 +139,7 @@
 <a class="group block" href="{{ route('public.course.chapter.theory.show', [$course, $chapter, $quiz]) }}">
 <div class="bg-surface-bright rounded-lg p-sm border border-glass-stroke flex items-start gap-3 hover:border-primary/30 hover:shadow-sm transition-all">
 <div class="mt-1">
-<span class="material-symbols-outlined text-secondary text-[20px]">edit_document</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">edit_note</span>
 </div>
 <div>
 <h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">{{ $quiz->title }}</h4>

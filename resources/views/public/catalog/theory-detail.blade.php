@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', $quiz->title . ' — Theory Practice | Lumina LMS')
+@section('title', $quiz->title . ' — Theory Practice | Your Biology')
 
 @include('public.catalog._styles')
 
@@ -22,7 +22,7 @@
 ]])
 <h1 class="font-display-lg text-display-lg text-on-surface mt-2">{{ $quiz->title }}</h1>
 <div class="flex flex-wrap items-center gap-md mt-3 font-label-md text-label-md text-on-surface-variant">
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[18px] text-primary">edit_document</span>{{ $questions->count() }} {{ Str::plural('question', $questions->count()) }}</span>
+<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[18px] text-primary">edit_note</span>{{ $questions->count() }} {{ Str::plural('question', $questions->count()) }}</span>
 <span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[18px] text-primary">workspace_premium</span>{{ $questions->sum(fn ($q) => (float) $q['marks']) }} marks total</span>
 @if($quiz->duration)
 <span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[18px] text-primary">timer</span>{{ $quiz->duration }} minutes</span>
@@ -32,7 +32,7 @@
 
 @if($questions->isEmpty())
 <div class="glass-panel rounded-xl p-lg text-center relative z-10">
-<span class="material-symbols-outlined text-primary text-[40px] mb-2">edit_document</span>
+<span class="material-symbols-outlined text-primary text-[40px] mb-2">edit_note</span>
 <h2 class="font-headline-md text-headline-md text-on-surface mb-2">This paper has no questions yet</h2>
 <a href="{{ route('public.course.chapter.theory', [$course, $chapter]) }}" class="font-label-md text-primary hover:text-primary-container">Back to theory practice</a>
 </div>

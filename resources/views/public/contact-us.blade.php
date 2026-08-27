@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Contact Us | Lumina LMS')
+@section('title', 'Contact Us | Your Biology')
 
 @section('content')
 <main class="flex-grow w-full max-w-container-max mx-auto px-md lg:px-lg py-xl">
@@ -34,7 +34,9 @@
 </div>
 <div class="glass-panel p-8 relative overflow-hidden group min-h-[200px] flex items-end">
 <div class="absolute inset-0 z-0">
-<img class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="A serene, minimalist 3D rendering of a stylized biology laboratory desk. Soft, high-key lighting illuminates glass beakers and a microscope resting on a clean, light-mode aesthetic white surface. The scene features delicate touches of indigo (#6366f1) and soft blues, conveying a modern, approachable, and professional learning environment. The composition is airy with plenty of negative space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgHhHLS45Zt4FMtfpt_RZg-HA0-a5Mda_7TS_01GGaRPKrDwS8NhlzAooqimM5HC6Gj3zO29FtcTWxitEZrqnX06PWw__pysXkPKgNNJ2Z4ZctUlRysSlNCcFZcaJy2a8OgGQUmZUsKlw30-NIIkCpgqGGN6-u8O_SXJ3jcvrZlW3TsHpSSC-RiLy4aM7SLE_sAff_e8zpIW_BUEfZANlooK0jfwrW6VIk7WQQ_-TxlrejDVIDSirX"/>
+
+{{-- Photography brief: A serene, minimalist 3D rendering of a stylized biology laboratory desk. Soft, high-key lighting illuminates glass beakers and a microscope resting on... --}}
+<div class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out bg-gradient-to-br from-primary/25 via-primary/10 to-secondary/15" role="img" aria-label="A serene, minimalist 3D rendering of a stylized biology laboratory desk. Soft, high-key li..."></div>
 </div>
 <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/50 to-transparent z-10"></div>
 <p class="relative z-20 font-label-md text-label-md text-on-surface-variant italic">

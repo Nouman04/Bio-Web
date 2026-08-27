@@ -4,7 +4,6 @@
 @section('meta-description', 'Track your chapter progress for ' . $course->title)
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     .glass-panel {
         background: rgba(255, 255, 255, 0.7);
@@ -44,7 +43,7 @@
     @if(! $subscribed && $rows->contains(fn ($row) => $row['locked']))
         <a href="{{ route('public.subscribe.plans', $course) }}"
             class="inline-flex items-center gap-2 bg-primary text-on-primary text-sm font-semibold py-2.5 px-5 rounded-xl shadow-sm hover:opacity-90 transition-opacity self-start">
-            <span class="material-symbols-outlined" style="font-size:18px;">lock_open_right</span>
+            <span class="material-symbols-outlined" style="font-size:18px;">lock_open</span>
             Unlock every chapter
         </a>
     @endif

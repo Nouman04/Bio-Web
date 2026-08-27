@@ -3,7 +3,6 @@
 @section('title', $quiz->title . ' – Quiz')
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     .glass-panel {
         background: rgba(255,255,255,0.7);
@@ -94,7 +93,7 @@
                             placeholder="Write your answer…"
                             class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-4 text-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none"></textarea>
                         <p class="text-on-surface-variant text-xs mt-2 flex items-center gap-1.5">
-                            <span class="material-symbols-outlined" style="font-size:14px;">person_edit</span>
+                            <span class="material-symbols-outlined" style="font-size:14px;">manage_accounts</span>
                             Marked by your instructor after you hand in.
                         </p>
                     @endif

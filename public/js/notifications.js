@@ -62,7 +62,7 @@
             row.querySelector('.notification-open').href = bell.dataset.index + '/' + item.id;
 
             if (!item.read) {
-                row.classList.add('bg-primary/5');
+                row.classList.add('bg-primary/5', 'is-unread');
             } else {
                 row.querySelector('.notification-dismiss').remove();
             }
@@ -152,7 +152,7 @@
 
             post(bell.dataset.index + '/' + id + '/read').then((body) => {
                 if (!body) return;
-                row.classList.remove('bg-primary/5');
+                row.classList.remove('bg-primary/5', 'is-unread');
                 dismiss.remove();
                 paintCount(body.unread);
             });

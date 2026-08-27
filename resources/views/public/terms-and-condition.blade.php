@@ -1,6 +1,6 @@
 @extends('public.layouts.app')
 
-@section('title', 'Terms & Conditions | Lumina LMS')
+@section('title', 'Terms & Conditions | Your Biology')
 
 @push('styles')
 <style>

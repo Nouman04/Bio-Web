@@ -1,231 +1,360 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard')
-@section('meta-description', 'EduAdmin Dashboard - Overview of your platform stats and analytics.')
+@section('meta-description', 'Platform overview: content, students and assessment at a glance.')
 
 @section('page-title', 'Dashboard Overview')
 @section('page-subtitle', "Here's what's happening with your platform today.")
 
 @section('content')
 
-    {{-- ── Overview Stats Header ──────────────────────────────────────── --}}
-    <div class="mb-6 flex justify-between items-end">
-        <h3 class="text-xl font-semibold text-on-background dark:text-white">Overview Stats</h3>
-        <span class="text-xs text-on-surface-variant dark:text-slate-400">
-            {{ now()->format('l, d M Y') }}
-        </span>
-    </div>
+@php
+    use Laravel\Cashier\Cashier;
 
-    {{-- ── Stat Cards Grid ────────────────────────────────────────────── --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+    // Written out in full so the classes survive a Tailwind build.
+    $cards = [
+        ['Courses',    $totals['courses'],    'fa-solid fa-graduation-cap',    'icon-bg-indigo', route('courses')],
+        ['Chapters',   $totals['chapters'],   'fa-solid fa-layer-group',       'icon-bg-blue',   route('courses')],
+        ['Questions',  $totals['questions'],  'fa-regular fa-circle-question', 'icon-bg-teal',   route('questions')],
+        ['Quizzes',    $totals['quizzes'],    'fa-solid fa-clipboard-question','icon-bg-amber',  route('quizzes')],
+        ['Students',   $totals['students'],   'fa-solid fa-users',             'icon-bg-rose',   route('students')],
+        ['Categories', $totals['categories'], 'fa-solid fa-shapes',            'icon-bg-orange', route('categories')],
+    ];
+@endphp
 
-        {{-- Card: Categories --}}
-        <div class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
+{{-- ── Overview ───────────────────────────────────────────────────────── --}}
+<div class="mb-6 flex flex-wrap justify-between items-end gap-3">
+    <h3 class="text-xl font-semibold text-on-background dark:text-white">Overview</h3>
+    <span class="text-xs text-on-surface-variant dark:text-slate-400">{{ now()->format('l, d M Y') }}</span>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    @foreach($cards as [$label, $stat, $icon, $tint, $url])
+        <a href="{{ $url }}"
+            class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
             <div class="absolute -right-6 -top-6 w-32 h-32 bg-primary/10 rounded-full opacity-50"></div>
+
             <div class="flex justify-between items-start relative z-10">
-                <div class="w-12 h-12 rounded-2xl icon-bg-indigo flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-shapes text-xl"></i>
+                <div class="w-12 h-12 rounded-2xl {{ $tint }} flex items-center justify-center text-white shadow-md">
+                    <i class="{{ $icon }} text-xl"></i>
                 </div>
             </div>
+
             <div class="relative z-10 mt-auto">
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">Total Categories</p>
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">
+                    Total {{ $label }}
+                </p>
                 <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-on-background dark:text-white">128</span>
-                    <span class="text-xs font-medium text-tertiary dark:text-tertiary-fixed-dim bg-tertiary-container/20 dark:bg-tertiary-container/40 px-2 py-0.5 rounded-full">+12%</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card: Courses --}}
-        <div class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
-            <div class="absolute -right-6 -top-6 w-32 h-32 bg-secondary/10 rounded-full opacity-50"></div>
-            <div class="flex justify-between items-start relative z-10">
-                <div class="w-12 h-12 rounded-2xl icon-bg-orange flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-graduation-cap text-xl"></i>
-                </div>
-            </div>
-            <div class="relative z-10 mt-auto">
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">Total Courses</p>
-                <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-on-background dark:text-white">45</span>
-                    <span class="text-xs font-medium text-tertiary dark:text-tertiary-fixed-dim bg-tertiary-container/20 dark:bg-tertiary-container/40 px-2 py-0.5 rounded-full">+3</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card: Chapters --}}
-        <div class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
-            <div class="absolute -right-6 -top-6 w-32 h-32 bg-tertiary/10 rounded-full opacity-50"></div>
-            <div class="flex justify-between items-start relative z-10">
-                <div class="w-12 h-12 rounded-2xl icon-bg-teal flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-book-open-reader text-xl"></i>
-                </div>
-            </div>
-            <div class="relative z-10 mt-auto">
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">Total Chapters</p>
-                <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-on-background dark:text-white">320</span>
-                    <span class="text-xs font-medium text-tertiary dark:text-tertiary-fixed-dim bg-tertiary-container/20 dark:bg-tertiary-container/40 px-2 py-0.5 rounded-full">+24</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card: Topics --}}
-        <div class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
-            <div class="absolute -right-6 -top-6 w-32 h-32 bg-primary/10 rounded-full opacity-50"></div>
-            <div class="flex justify-between items-start relative z-10">
-                <div class="w-12 h-12 rounded-2xl icon-bg-blue flex items-center justify-center text-white shadow-md">
-                    <i class="fa-regular fa-folder-open text-xl"></i>
-                </div>
-            </div>
-            <div class="relative z-10 mt-auto">
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">Total Topics</p>
-                <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-on-background dark:text-white">1,450</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card: Questions --}}
-        <div class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
-            <div class="absolute -right-6 -top-6 w-32 h-32 bg-error/10 rounded-full opacity-50"></div>
-            <div class="flex justify-between items-start relative z-10">
-                <div class="w-12 h-12 rounded-2xl icon-bg-rose flex items-center justify-center text-white shadow-md">
-                    <i class="fa-regular fa-circle-question text-xl"></i>
-                </div>
-            </div>
-            <div class="relative z-10 mt-auto">
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">Total Questions</p>
-                <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-on-background dark:text-white">5,230</span>
-                    <span class="text-xs font-medium text-tertiary dark:text-tertiary-fixed-dim bg-tertiary-container/20 dark:bg-tertiary-container/40 px-2 py-0.5 rounded-full">+156</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card: Quizzes --}}
-        <div class="stat-card p-6 rounded-3xl shadow-sm bg-surface-container-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden flex flex-col justify-between h-40">
-            <div class="absolute -right-6 -top-6 w-32 h-32 bg-secondary/10 rounded-full opacity-50"></div>
-            <div class="flex justify-between items-start relative z-10">
-                <div class="w-12 h-12 rounded-2xl icon-bg-amber flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-list-check text-xl"></i>
-                </div>
-            </div>
-            <div class="relative z-10 mt-auto">
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-1">Total Quizzes</p>
-                <div class="flex items-baseline gap-3">
-                    <span class="text-3xl font-bold text-on-background dark:text-white">150</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-    {{-- ── End Stat Cards ─────────────────────────────────────────────── --}}
-
-    {{-- ── Charts Section ─────────────────────────────────────────────── --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-
-        {{-- Monthly Revenue Bar Chart --}}
-        <div class="bg-surface-container-lowest dark:bg-slate-800 p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
-            <div class="flex justify-between items-start mb-8">
-                <div>
-                    <h4 class="text-lg font-bold text-on-background dark:text-white">Monthly Revenue</h4>
-                    <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1">Revenue over the last 6 months</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-primary dark:bg-primary-fixed-dim"></span>
-                    <span class="text-sm font-medium text-on-background dark:text-slate-300">Revenue</span>
-                </div>
-            </div>
-            <div class="relative h-64 w-full flex items-end justify-between pb-6 pt-4">
-                {{-- Y Axis Labels --}}
-                <div class="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-on-surface-variant dark:text-slate-400 font-medium pb-6 w-8 text-right pr-2">
-                    <span>$5k</span><span>$4k</span><span>$3k</span><span>$2k</span><span>$1k</span><span>$0</span>
-                </div>
-                {{-- Grid Lines --}}
-                <div class="absolute left-8 right-0 top-0 h-full flex flex-col justify-between pb-6 z-0">
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/40 dark:border-slate-600 w-full"></div>
-                </div>
-                {{-- Bars --}}
-                <div class="relative z-10 flex justify-between items-end w-full h-full pl-12 pr-4 space-x-2 sm:space-x-4">
-                    @php
-                        $months = [
-                            ['label' => 'Jan', 'height' => '25%', 'active' => false],
-                            ['label' => 'Feb', 'height' => '40%', 'active' => false],
-                            ['label' => 'Mar', 'height' => '35%', 'active' => false],
-                            ['label' => 'Apr', 'height' => '65%', 'active' => false],
-                            ['label' => 'May', 'height' => '55%', 'active' => false],
-                            ['label' => 'Jun', 'height' => '90%', 'active' => true],
-                        ];
-                    @endphp
-                    @foreach($months as $month)
-                    <div class="flex flex-col items-center flex-1 group">
-                        <div class="w-full max-w-[32px] {{ $month['active'] ? 'bg-primary dark:bg-primary-fixed-dim shadow-md shadow-primary/20' : 'bg-primary-fixed dark:bg-primary/30 group-hover:bg-primary-fixed-dim' }} transition-all duration-300 rounded-full relative bar-chart-bar"
-                             style="height: {{ $month['height'] }};"></div>
-                        <span class="text-xs {{ $month['active'] ? 'text-primary dark:text-primary-fixed-dim font-bold' : 'text-on-surface-variant dark:text-slate-400' }} mt-3 font-medium">
-                            {{ $month['label'] }}
+                    <span class="text-3xl font-bold text-on-background dark:text-white">{{ number_format($stat['value']) }}</span>
+                    @if($stat['new'] > 0)
+                        <span class="text-xs font-medium text-tertiary dark:text-tertiary-fixed-dim bg-tertiary-container/20 dark:bg-tertiary-container/40 px-2 py-0.5 rounded-full whitespace-nowrap">
+                            +{{ $stat['new'] }} this month
                         </span>
-                    </div>
-                    @endforeach
+                    @endif
                 </div>
             </div>
-        </div>
+        </a>
+    @endforeach
+</div>
 
-        {{-- Student Subscriptions Line Chart --}}
-        <div class="bg-surface-container-lowest dark:bg-slate-800 p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700 relative overflow-hidden">
-            <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-tertiary/10 dark:from-tertiary/20 to-transparent z-0 pointer-events-none"></div>
-            <div class="flex justify-between items-start mb-8 relative z-10">
-                <div>
-                    <h4 class="text-lg font-bold text-on-background dark:text-white">Student Subscriptions</h4>
-                    <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1">Growth over the last 4 weeks</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-tertiary dark:bg-tertiary-fixed-dim"></span>
-                    <span class="text-sm font-medium text-on-background dark:text-slate-300">Active</span>
-                </div>
-            </div>
-            <div class="relative h-64 w-full flex items-end pb-6 pt-4 z-10">
-                {{-- Y Axis --}}
-                <div class="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-on-surface-variant dark:text-slate-400 font-medium pb-6 w-8 text-right pr-2">
-                    <span>800</span><span>600</span><span>400</span><span>200</span><span>100</span><span>0</span>
-                </div>
-                {{-- Grid Lines --}}
-                <div class="absolute left-8 right-0 top-0 h-full flex flex-col justify-between pb-6 z-0">
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/20 dark:border-slate-700 w-full"></div>
-                    <div class="border-b border-outline-variant/40 dark:border-slate-600 w-full"></div>
-                </div>
-                {{-- SVG Line Chart --}}
-                <div class="absolute left-12 right-4 top-4 bottom-12 z-20">
-                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" class="overflow-visible">
-                        <path class="line-chart-path drop-shadow-[0_8px_8px_rgba(0,108,73,0.4)] dark:drop-shadow-[0_8px_8px_rgba(78,222,163,0.4)]"
-                              d="M 0 90 C 20 90, 20 80, 33 75 C 50 65, 55 50, 66 40 C 75 30, 80 10, 100 5"
-                              fill="none" stroke="#4edea3" stroke-width="3" stroke-linecap="round"/>
-                        <circle cx="0"   cy="90" r="3" fill="#1e293b" stroke="#4edea3" stroke-width="2" class="dark:fill-slate-800"/>
-                        <circle cx="33"  cy="75" r="3" fill="#1e293b" stroke="#4edea3" stroke-width="2" class="dark:fill-slate-800"/>
-                        <circle cx="66"  cy="40" r="3" fill="#1e293b" stroke="#4edea3" stroke-width="2" class="dark:fill-slate-800"/>
-                        <circle cx="100" cy="5"  r="3" fill="#1e293b" stroke="#4edea3" stroke-width="2" class="dark:fill-slate-800"/>
-                    </svg>
-                </div>
-                {{-- X Axis Labels --}}
-                <div class="absolute bottom-0 left-12 right-4 flex justify-between text-xs font-medium">
-                    <span class="text-on-surface-variant dark:text-slate-400 -translate-x-1/2">Week 1</span>
-                    <span class="text-on-surface-variant dark:text-slate-400 translate-x-[15%]">Week 2</span>
-                    <span class="text-on-surface-variant dark:text-slate-400 translate-x-[40%]">Week 3</span>
-                    <span class="text-tertiary dark:text-tertiary-fixed-dim font-bold translate-x-1/2">Week 4</span>
-                </div>
-            </div>
-        </div>
+{{-- ── Needs attention + subscriptions ────────────────────────────────── --}}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
+    @php
+        $tiles = [
+            ['Awaiting marking', $attention['awaiting_marking'], 'fa-solid fa-pen-to-square', route('quizzes.review'), $attention['awaiting_marking'] > 0],
+            ['Quizzes in progress', $attention['in_progress'], 'fa-solid fa-hourglass-half', route('quizzes'), false],
+            ['Subscribed students', $attention['subscribers'], 'fa-solid fa-user-check', route('students'), false],
+            ['Chapters with no questions', $attention['chapters_without_questions'], 'fa-solid fa-triangle-exclamation', route('questions'), $attention['chapters_without_questions'] > 0],
+        ];
+    @endphp
 
+    @foreach($tiles as [$label, $value, $icon, $url, $urgent])
+        <a href="{{ $url }}"
+            class="flex items-center gap-4 p-5 rounded-2xl bg-surface-container-lowest dark:bg-slate-800 border {{ $urgent ? 'border-error/40' : 'border-outline-variant/30 dark:border-slate-700' }} shadow-sm hover:shadow-md transition-shadow">
+            <span class="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center {{ $urgent ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary' }}">
+                <i class="{{ $icon }}"></i>
+            </span>
+            <div class="min-w-0">
+                <p class="text-2xl font-bold text-on-background dark:text-white leading-tight">{{ number_format($value) }}</p>
+                <p class="text-xs text-on-surface-variant dark:text-slate-400 truncate">{{ $label }}</p>
+            </div>
+        </a>
+    @endforeach
+</div>
+
+{{-- ── Charts ─────────────────────────────────────────────────────────── --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    {{-- Past-paper coverage: the widest real spread in the data. --}}
+    <div class="lg:col-span-2 bg-surface-container-lowest dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+            <div>
+                <h4 class="text-lg font-bold text-on-background dark:text-white">Past-paper coverage</h4>
+                <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1">
+                    Questions in the bank, by the year they were set
+                </p>
+            </div>
+            <span class="text-xs font-semibold text-on-surface-variant bg-surface-container-high dark:bg-slate-700 px-3 py-1 rounded-full">
+                {{ array_sum($charts['papers']['data']) }} referenced
+            </span>
+        </div>
+        <div class="h-64"><canvas id="chart-papers"></canvas></div>
     </div>
-    {{-- ── End Charts Section ──────────────────────────────────────────── --}}
+
+    {{-- What the library is made of. --}}
+    <div class="bg-surface-container-lowest dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <h4 class="text-lg font-bold text-on-background dark:text-white">Library</h4>
+        <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1 mb-6">What students have to study</p>
+        <div class="h-64"><canvas id="chart-library"></canvas></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+
+    {{-- Where the questions actually are. --}}
+    <div class="lg:col-span-2 bg-surface-container-lowest dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+            <div>
+                <h4 class="text-lg font-bold text-on-background dark:text-white">Questions per chapter</h4>
+                <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1">
+                    A chapter with none cannot produce a worksheet
+                </p>
+            </div>
+        </div>
+        <div class="h-72"><canvas id="chart-chapters"></canvas></div>
+    </div>
+
+    {{-- How the assessment is going. --}}
+    <div class="bg-surface-container-lowest dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <h4 class="text-lg font-bold text-on-background dark:text-white">Quiz outcomes</h4>
+        <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1 mb-6">Every attempt on your courses</p>
+        <div class="h-72"><canvas id="chart-outcomes"></canvas></div>
+    </div>
+</div>
+
+{{-- ── Activity and money ─────────────────────────────────────────────── --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-2 bg-surface-container-lowest dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+        <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+            <div>
+                <h4 class="text-lg font-bold text-on-background dark:text-white">Activity</h4>
+                <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1">Sign-ups and quiz attempts, month by month</p>
+            </div>
+            @if($charts['activity']['sparse'])
+                <span class="text-xs font-medium text-on-surface-variant bg-surface-container-high dark:bg-slate-700 px-3 py-1 rounded-full">
+                    Too little history to read as a trend
+                </span>
+            @endif
+        </div>
+        <div class="h-64"><canvas id="chart-activity"></canvas></div>
+    </div>
+
+    <div class="flex flex-col gap-6">
+        {{-- Subscription income --}}
+        <div class="bg-surface-container-lowest dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700">
+            <p class="text-xs font-semibold text-on-surface-variant dark:text-slate-400 uppercase tracking-wider mb-2">
+                Recurring, per month
+            </p>
+            <p class="text-3xl font-bold text-on-background dark:text-white">
+                {{ Cashier::formatAmount($revenue['monthly'], $revenue['currency']) }}
+            </p>
+            <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-2">
+                From {{ $revenue['subscribers'] }} {{ Str::plural('subscriber', $revenue['subscribers']) }}
+                across {{ $revenue['plans'] }} priced {{ Str::plural('plan', $revenue['plans']) }}.
+                A yearly plan counts as a twelfth.
+            </p>
+        </div>
+
+        {{-- Latest goings-on --}}
+        <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-sm border border-outline-variant/30 dark:border-slate-700 flex-1 overflow-hidden">
+            <div class="px-6 py-4 border-b border-outline-variant/20 dark:border-slate-700">
+                <h4 class="text-base font-bold text-on-background dark:text-white">Latest activity</h4>
+            </div>
+            <div class="divide-y divide-outline-variant/20 dark:divide-slate-700">
+                @forelse($recent as $row)
+                    <a href="{{ $row['url'] }}" class="flex items-start gap-3 px-6 py-3 hover:bg-primary/5 transition-colors">
+                        <span class="w-8 h-8 shrink-0 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs">
+                            <i class="{{ $row['icon'] }}"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-on-surface dark:text-white truncate">{{ $row['title'] }}</p>
+                            <p class="text-xs text-on-surface-variant dark:text-slate-400">
+                                {{ $row['note'] }} &middot; {{ $row['when']->diffForHumans() }}
+                            </p>
+                        </div>
+                    </a>
+                @empty
+                    <p class="px-6 py-10 text-center text-sm text-on-surface-variant">Nothing has happened yet.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
+
+@push('scripts')
+{{-- The UMD build, which defines window.Chart. The chart.min.js already
+     in public/cdn is the ES-module build: loaded with a plain script tag it
+     defines nothing and the canvases stay blank. --}}
+<script src="{{ asset('cdn/chart.umd.min.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof Chart === 'undefined') {
+            return;
+        }
+
+        const data = @json($charts);
+
+        /* Colours come from the theme tokens, so the charts follow light and
+           dark along with everything else. */
+        const token = (name, alpha = 1) => {
+            const rgb = getComputedStyle(document.documentElement)
+                .getPropertyValue('--c-' + name).trim();
+            return rgb ? `rgba(${rgb.split(/\s+/).join(', ')}, ${alpha})` : `rgba(0, 19, 48, ${alpha})`;
+        };
+
+        const ink = token('on-surface-variant');
+        const grid = token('outline-variant', 0.35);
+
+        Chart.defaults.font.family = 'Geist, system-ui, sans-serif';
+        Chart.defaults.color = ink;
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.plugins.legend.labels.boxWidth = 8;
+
+        const axes = (horizontal = false) => ({
+            x: {
+                grid: { display: horizontal, color: grid, drawBorder: false },
+                ticks: { color: ink, precision: 0 },
+            },
+            y: {
+                grid: { display: !horizontal, color: grid, drawBorder: false },
+                ticks: { color: ink, precision: 0 },
+                beginAtZero: true,
+            },
+        });
+
+        /* Past-paper coverage by year. */
+        new Chart(document.getElementById('chart-papers'), {
+            type: 'bar',
+            data: {
+                labels: data.papers.labels,
+                datasets: [{
+                    label: 'Questions',
+                    data: data.papers.data,
+                    backgroundColor: token('primary', 0.85),
+                    hoverBackgroundColor: token('primary'),
+                    borderRadius: 6,
+                    maxBarThickness: 44,
+                }],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: axes(),
+            },
+        });
+
+        /* What the library holds. */
+        new Chart(document.getElementById('chart-library'), {
+            type: 'doughnut',
+            data: {
+                labels: data.library.labels,
+                datasets: [{
+                    data: data.library.data,
+                    backgroundColor: [
+                        token('primary', 0.9), token('secondary', 0.9), token('tertiary', 0.9),
+                        token('primary', 0.55), token('secondary', 0.55), token('tertiary', 0.55),
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6,
+                }],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '58%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 14 } } },
+            },
+        });
+
+        /* Where the questions sit. Horizontal, because chapter titles are long. */
+        new Chart(document.getElementById('chart-chapters'), {
+            type: 'bar',
+            data: {
+                labels: data.chapters.labels,
+                datasets: [{
+                    label: 'Questions',
+                    data: data.chapters.data,
+                    backgroundColor: data.chapters.data.map(
+                        (n) => (n === 0 ? token('error', 0.75) : token('primary', 0.85))
+                    ),
+                    borderRadius: 6,
+                    maxBarThickness: 26,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: axes(true),
+            },
+        });
+
+        /* How attempts have gone. */
+        new Chart(document.getElementById('chart-outcomes'), {
+            type: 'doughnut',
+            data: {
+                labels: data.outcomes.labels,
+                datasets: [{
+                    data: data.outcomes.data,
+                    backgroundColor: [
+                        token('tertiary', 0.9),   // passed
+                        token('error', 0.85),     // not passed
+                        token('secondary', 0.9),  // awaiting marking
+                        token('primary', 0.7),    // in progress
+                        token('outline', 0.6),    // timed out
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6,
+                }],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '58%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 12 } } },
+            },
+        });
+
+        /* Sign-ups against attempts. */
+        new Chart(document.getElementById('chart-activity'), {
+            type: 'line',
+            data: {
+                labels: data.activity.labels,
+                datasets: [
+                    {
+                        label: 'New accounts',
+                        data: data.activity.students,
+                        borderColor: token('primary'),
+                        backgroundColor: token('primary', 0.12),
+                        fill: true, tension: 0.35,
+                        pointRadius: 4, pointBackgroundColor: token('primary'),
+                    },
+                    {
+                        label: 'Quiz attempts',
+                        data: data.activity.attempts,
+                        borderColor: token('tertiary'),
+                        backgroundColor: token('tertiary', 0.12),
+                        fill: true, tension: 0.35,
+                        pointRadius: 4, pointBackgroundColor: token('tertiary'),
+                    },
+                ],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom', labels: { padding: 14 } } },
+                scales: axes(),
+            },
+        });
+    });
+</script>
+@endpush
