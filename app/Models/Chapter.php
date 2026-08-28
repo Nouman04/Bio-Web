@@ -2,25 +2,42 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 class Chapter extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $fillable = [
         'course_id',
         'title',
         'chapter_number',
         'description',
+        'status',
+        'visibility',
     ];
 
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * A plain-text opening line from the description, for listings and cards.
+     * The description is Quill HTML, so entities are decoded before trimming.
+     */
+    public function getExcerptAttribute(): string
+    {
+        $text = html_entity_decode(strip_tags((string) $this->description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 160);
     }
 
     public function topics(): HasMany
@@ -38,6 +55,11 @@ class Chapter extends Model
         return $this->hasMany(QuestionBank::class);
     }
 
+    public function flashcards(): HasMany
+    {
+        return $this->hasMany(Flashcard::class);
+    }
+
     public function videoLessons(): HasMany
     {
         return $this->hasMany(VideoLesson::class);
@@ -53,13 +75,40 @@ class Chapter extends Model
         return $this->hasMany(Diagram::class);
     }
 
+    public function summaries(): HasMany
+    {
+        return $this->hasMany(Summary::class);
+    }
+
     public function quizChapters(): HasMany
     {
         return $this->hasMany(QuizChapter::class);
     }
 
+    /**
+     * The quizzes set on this chapter, reached through the same pivot the quiz
+     * side uses.
+     */
+    public function quizzes(): BelongsToMany
+    {
+        return $this->belongsToMany(Quiz::class, 'quizzes_chapters', 'chapter_id', 'quizz_id')
+            ->withTimestamps();
+    }
+
     public function worksheetChapters(): HasMany
     {
         return $this->hasMany(WorksheetChapter::class);
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+        ];
     }
 }

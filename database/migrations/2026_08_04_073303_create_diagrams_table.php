@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('chapter_id')->nullable()->constrained('chapters')->nullOnDelete();
             $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();
-            $table->foreignId('question_bank_id')->nullable()->constrained('question_bank')->nullOnDelete();
             $table->string('image_path');
             $table->foreignId('added_by')->constrained('users')->cascadeOnDelete();
             $table->string('title');

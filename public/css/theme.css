@@ -1,0 +1,232 @@
+/**
+ * The colour tokens, and what they become in the dark.
+ *
+ * Every Tailwind colour in the three portal layouts resolves through these,
+ * so a page written in semantic classes — text-on-surface, bg-surface-container
+ * — follows the theme without carrying a dark: variant for each one. That is
+ * why the student portal had no dark mode at all: it uses the tokens and
+ * nothing else, and the tokens never changed.
+ */
+
+:root {
+    --c-background:                247 249 251;   /* #f7f9fb */
+    --c-error:                     186 26 26;   /* #ba1a1a */
+    --c-error-container:           255 218 214;   /* #ffdad6 */
+    --c-inverse-on-surface:        239 241 243;   /* #eff1f3 */
+    --c-inverse-primary:           128 178 255;   /* #80b2ff */
+    --c-inverse-surface:           45 49 51;   /* #2d3133 */
+    --c-on-background:             25 28 30;   /* #191c1e */
+    --c-on-error:                  255 255 255;   /* #ffffff */
+    --c-on-error-container:        147 0 10;   /* #93000a */
+    --c-on-primary:                255 255 255;   /* #ffffff */
+    --c-on-primary-container:      255 251 255;   /* #fffbff */
+    --c-on-primary-fixed:          0 19 48;   /* #001330 */
+    --c-on-primary-fixed-variant:  0 40 102;   /* #002866 */
+    --c-on-secondary:              255 255 255;   /* #ffffff */
+    --c-on-secondary-container:    104 64 0;   /* #684000 */
+    --c-on-secondary-fixed:        42 23 0;   /* #2a1700 */
+    --c-on-secondary-fixed-variant: 101 62 0;   /* #653e00 */
+    --c-on-surface:                25 28 30;   /* #191c1e */
+    --c-on-surface-variant:        70 69 84;   /* #464554 */
+    --c-on-tertiary:               255 255 255;   /* #ffffff */
+    --c-on-tertiary-container:     0 7 3;   /* #000703 */
+    --c-on-tertiary-fixed:         0 33 19;   /* #002113 */
+    --c-on-tertiary-fixed-variant: 0 82 54;   /* #005236 */
+    --c-outline:                   118 117 134;   /* #767586 */
+    --c-outline-variant:           199 196 215;   /* #c7c4d7 */
+    --c-primary:                   0 19 48;   /* #001330 */
+    --c-primary-container:         0 65 163;   /* #0041a3 */
+    --c-primary-fixed:             194 218 255;   /* #c2daff */
+    --c-primary-fixed-dim:         128 178 255;   /* #80b2ff */
+    --c-secondary:                 133 83 0;   /* #855300 */
+    --c-secondary-container:       254 166 25;   /* #fea619 */
+    --c-secondary-fixed:           255 221 184;   /* #ffddb8 */
+    --c-secondary-fixed-dim:       255 185 95;   /* #ffb95f */
+    --c-surface:                   247 249 251;   /* #f7f9fb */
+    --c-surface-bright:            247 249 251;   /* #f7f9fb */
+    --c-surface-container:         236 238 240;   /* #eceef0 */
+    --c-surface-container-high:    230 232 234;   /* #e6e8ea */
+    --c-surface-container-highest: 224 227 229;   /* #e0e3e5 */
+    --c-surface-container-low:     242 244 246;   /* #f2f4f6 */
+    --c-surface-container-lowest:  255 255 255;   /* #ffffff */
+    --c-surface-dim:               216 218 220;   /* #d8dadc */
+    --c-surface-tint:              0 26 66;   /* #001a42 */
+    --c-surface-variant:           224 227 229;   /* #e0e3e5 */
+    --c-tertiary:                  0 108 73;   /* #006c49 */
+    --c-tertiary-container:        0 136 93;   /* #00885d */
+    --c-tertiary-fixed:            111 251 190;   /* #6ffbbe */
+    --c-tertiary-fixed-dim:        78 222 163;   /* #4edea3 */
+}
+
+.dark {
+    --c-background:                10 17 32;   /* #0a1120 */
+    --c-error:                     255 180 171;   /* #ffb4ab */
+    --c-error-container:           147 0 10;   /* #93000a */
+    --c-inverse-on-surface:        10 17 32;   /* #0a1120 */
+    --c-inverse-primary:           0 19 48;   /* #001330 */
+    --c-inverse-surface:           227 236 250;   /* #e3ecfa */
+    --c-on-background:             227 236 250;   /* #e3ecfa */
+    --c-on-error:                  105 0 5;   /* #690005 */
+    --c-on-error-container:        255 218 214;   /* #ffdad6 */
+    --c-on-primary:                0 40 102;   /* #002866 */
+    --c-on-primary-container:      194 218 255;   /* #c2daff */
+    --c-on-secondary:              71 42 0;   /* #472a00 */
+    --c-on-secondary-container:    255 221 184;   /* #ffddb8 */
+    --c-on-surface:                227 236 250;   /* #e3ecfa */
+    --c-on-surface-variant:        170 185 208;   /* #aab9d0 */
+    --c-on-tertiary:               0 56 36;   /* #003824 */
+    --c-on-tertiary-container:     111 251 190;   /* #6ffbbe */
+    --c-outline:                   132 147 172;   /* #8493ac */
+    --c-outline-variant:           53 67 92;   /* #35435c */
+    --c-primary:                   128 178 255;   /* #80b2ff */
+    --c-primary-container:         0 65 163;   /* #0041a3 */
+    --c-secondary:                 255 185 95;   /* #ffb95f */
+    --c-secondary-container:       101 62 0;   /* #653e00 */
+    --c-surface:                   10 17 32;   /* #0a1120 */
+    --c-surface-bright:            26 39 64;   /* #1a2740 */
+    --c-surface-container:         19 32 56;   /* #132038 */
+    --c-surface-container-high:    26 40 66;   /* #1a2842 */
+    --c-surface-container-highest: 34 49 77;   /* #22314d */
+    --c-surface-container-low:     15 26 45;   /* #0f1a2d */
+    --c-surface-container-lowest:  6 11 22;   /* #060b16 */
+    --c-surface-dim:               6 11 22;   /* #060b16 */
+    --c-surface-tint:              128 178 255;   /* #80b2ff */
+    --c-surface-variant:           43 58 85;   /* #2b3a55 */
+    --c-tertiary:                  78 222 163;   /* #4edea3 */
+    --c-tertiary-container:        0 82 54;   /* #005236 */
+}
+
+/**
+ * The frosted surfaces.
+ *
+ * Every page defines its own .glass-panel / .glass-card / .soft-card with a
+ * white wash baked in, which over a dark background reads as murky grey. These
+ * are more specific than a bare class, so they win wherever they are declared
+ * without any page needing to be edited.
+ */
+.dark .glass-panel,
+.dark .glass-card,
+.dark .soft-card {
+    background: rgba(19, 32, 56, 0.72) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+.dark .glass-panel:hover,
+.dark .glass-card:hover,
+.dark .glass-panel-hover:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* The page itself, for anything that never got a background of its own. */
+.dark body {
+    background-color: rgb(var(--c-background));
+    color: rgb(var(--c-on-surface));
+}
+
+/* Form controls default to a white field in every browser. */
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: rgb(var(--c-surface-container-low));
+    border-color: rgb(var(--c-outline-variant));
+    color: rgb(var(--c-on-surface));
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder { color: rgb(var(--c-outline)); }
+
+/* Tailwind's own slate utilities are still spelled out on the admin panel;
+   these keep them in step with the navy surfaces rather than drifting grey. */
+.dark .bg-white { background-color: rgb(var(--c-surface-container-lowest)) !important; }
+
+/**
+ * The two places a page painted the brand by hand.
+ *
+ * The gradient button is the important one: in the dark theme `primary` is the
+ * light tone and `on-primary` the dark one, so a button that keeps the dark
+ * gradient ends up dark-on-dark. It has to flip with the token it stands for.
+ */
+.dark .btn-primary-gradient {
+    background: linear-gradient(135deg, #80b2ff, #a9c9ff);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.dark .btn-primary-gradient:hover {
+    background: linear-gradient(135deg, #a9c9ff, #80b2ff);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* The progress ring's unfilled track, which was a fixed light grey. */
+.progress-ring-track { stroke: rgb(var(--c-surface-container-highest)); }
+
+/**
+ * The bell's unread count.
+ *
+ * It used `bg-error`, which is correct as a semantic token — but `error` flips
+ * to the pale #ffb4ab in the dark theme, so a count that read as red on white
+ * came out as washed-out salmon carrying white text. A count that says
+ * "something needs you" should be the same red in either theme, so it is
+ * stated outright rather than borrowed from the palette.
+ */
+.notification-count {
+    background: #dc2626;
+    color: #ffffff;
+    border: 2px solid rgb(var(--c-surface-container-lowest));
+}
+
+/**
+ * The notification panel's scroll area.
+ *
+ * It had the browser's default scrollbar — a wide grey slab against a rounded
+ * panel — and the list ran hard into the header and the footer link, so there
+ * was nothing to say more was below. This gives it a slim thumb that only
+ * appears on hover, and fades the top and bottom edges so a partly-scrolled
+ * list looks scrollable.
+ */
+.notification-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
+    transition: scrollbar-color 0.25s ease;
+    overscroll-behavior: contain;
+}
+
+.notification-scroll::-webkit-scrollbar { width: 8px; }
+.notification-scroll::-webkit-scrollbar-track { background: transparent; }
+
+.notification-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.25s ease;
+}
+
+/* The thumb only shows once there is a reason to look at it. */
+.notification-scroll:hover { scrollbar-color: rgb(var(--c-outline) / 0.5) transparent; }
+
+.notification-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--c-outline) / 0.45);
+}
+
+.notification-scroll::-webkit-scrollbar-thumb:hover,
+.notification-scroll::-webkit-scrollbar-thumb:active {
+    background-color: rgb(var(--c-primary) / 0.65);
+}
+
+/* Rows lift very slightly as the pointer crosses them, so a long list still
+   tells you where you are. */
+.notification-row {
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.notification-row:hover { transform: translateX(2px); }
+
+/* An unread row carries a rail on its leading edge rather than only a tint,
+   which survives the hover state. */
+.notification-row.is-unread {
+    box-shadow: inset 3px 0 0 rgb(var(--c-primary));
+}

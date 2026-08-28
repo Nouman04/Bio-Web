@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Scout\Searchable;
 
 class QuestionBank extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUuid, Searchable;
 
     protected $table = 'question_bank';
 
     protected $fillable = [
         'chapter_id',
-        'topic_id',
         'question_categories_id',
         'question',
         'difficulty_level',
@@ -27,9 +28,13 @@ class QuestionBank extends Model
         return $this->belongsTo(Chapter::class);
     }
 
-    public function topic(): BelongsTo
+    /**
+     * Everywhere this question has been linked to a piece of content — a
+     * topic, summary, note, diagram or video lesson.
+     */
+    public function questionables(): HasMany
     {
-        return $this->belongsTo(Topic::class);
+        return $this->hasMany(QuestionableType::class, 'question_id');
     }
 
     public function category(): BelongsTo
@@ -47,9 +52,13 @@ class QuestionBank extends Model
         return $this->hasMany(QuestionAnswer::class);
     }
 
-    public function flashcards(): HasMany
+    /**
+     * Every place this question has been attached to an assessment — a
+     * flashcard deck, worksheet or quiz.
+     */
+    public function assessments(): HasMany
     {
-        return $this->hasMany(Flashcard::class, 'question_id');
+        return $this->hasMany(Assessment::class, 'question_id');
     }
 
     public function diagrams(): HasMany
@@ -70,5 +79,17 @@ class QuestionBank extends Model
     public function quizQuestions(): HasMany
     {
         return $this->hasMany(QuizQuestion::class);
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'question' => $this->question,
+            'difficulty_level' => $this->difficulty_level,
+        ];
     }
 }

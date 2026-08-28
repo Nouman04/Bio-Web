@@ -1,0 +1,332 @@
+/**
+ * Sidebar chrome shared by the admin and student rails.
+ *
+ * Both layouts used to carry their own near-identical copy of this, which is
+ * how the two sidebars drifted apart. Loaded from layouts/app.blade.php and
+ * layouts/student.blade.php; the layout keeps only what is genuinely its own.
+ */
+
+/* ── The rail ─────────────────────────────────────────────────────────────
+   The sidebar is the brand surface: #001330 in both themes. Everything on it
+   is therefore light, and the tokens below are the only place that decides
+   how light. Sitting here rather than on the elements is what stops the two
+   rails drifting apart, which is how they got out of step before. */
+:root {
+    --rail-bg: #001330;
+    --rail-line: rgba(255, 255, 255, 0.09);
+    --rail-idle: rgba(226, 236, 250, 0.72);
+    --rail-hover-bg: rgba(255, 255, 255, 0.07);
+    --rail-hover-ink: #ffffff;
+    --rail-active-bg: rgba(128, 178, 255, 0.15);
+    --rail-active-ink: #80b2ff;
+    --rail-muted: rgba(226, 236, 250, 0.42);
+}
+
+.sidebar-rail {
+    background: var(--rail-bg);
+    color: var(--rail-idle);
+    border-right: 1px solid var(--rail-line);
+}
+
+/* ── The active item ──────────────────────────────────────────────────────
+   A tinted pill plus a rail marker down the left edge. The marker grows out
+   of nothing rather than appearing, so moving between pages reads as motion. */
+.sidebar-item {
+    position: relative;
+    font-weight: 500;
+}
+
+.sidebar-item::before {
+    content: '';
+    position: absolute;
+    left: -0.75rem;
+    top: 50%;
+    width: 3px;
+    height: 0;
+    border-radius: 0 99px 99px 0;
+    background: var(--sidebar-accent, var(--rail-active-ink));
+    transform: translateY(-50%);
+    transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-item.active::before { height: 1.5rem; }
+.sidebar-item:hover:not(.active)::before { height: 0.75rem; opacity: 0.45; }
+
+.sidebar-item { color: var(--rail-idle); }
+
+.sidebar-item:hover:not(.active) {
+    background: var(--rail-hover-bg);
+    color: var(--rail-hover-ink);
+}
+
+.sidebar-item.active {
+    background: var(--rail-active-bg);
+    color: var(--rail-active-ink);
+    font-weight: 600;
+}
+
+/* Hovering nudges the row toward the content it opens. */
+.sidebar-item:hover { transform: translateX(2px); }
+.sidebar-item.active:hover { transform: none; }
+
+/* ── Icons ──────────────────────────────────────────────────────────────── */
+.sidebar-icon { transition: transform 0.2s ease, color 0.2s ease; }
+.sidebar-item:hover .sidebar-icon { transform: scale(1.12); }
+.sidebar-item.active .sidebar-icon { transform: scale(1.08); }
+
+/* ── Counts ─────────────────────────────────────────────────────────────── */
+.sidebar-badge {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.13);
+    color: #dbe7f7;
+    min-width: 1.375rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 99px;
+    background: rgba(118, 117, 134, 0.15);
+    color: rgb(90, 90, 105);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    text-align: center;
+}
+
+.dark .sidebar-badge { background: rgba(148, 163, 184, 0.2); color: rgb(203, 213, 225); }
+.sidebar-badge.is-urgent { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+.dark .sidebar-badge.is-urgent { background: rgba(248, 113, 113, 0.18); color: #fca5a5; }
+
+/* Collapsed, the number rides on the icon instead of vanishing. A bare dot
+   said only "something", which is less than the rail already knew. */
+.sidebar-count {
+    position: absolute;
+    top: 0.375rem;
+    right: 0.375rem;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    padding: 0 0.25rem;
+    border-radius: 99px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1.05rem;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+/* ── Collapsed rail ─────────────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+    #sidebar.collapsed .sidebar-count { opacity: 1; }
+
+    /* The label is gone, so hovering shows it beside the icon instead. */
+    #sidebar.collapsed .sidebar-item::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: calc(100% + 0.875rem);
+        top: 50%;
+        transform: translateY(-50%) translateX(-4px);
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.625rem;
+        background: #002866;
+        color: #fff;
+        border: 1px solid var(--rail-line);
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        z-index: 60;
+    }
+
+    #sidebar.collapsed .sidebar-item:hover::after {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    /* A collapsed rail has no room to slide. */
+    #sidebar.collapsed .sidebar-item:hover { transform: none; }
+}
+
+/* ── The person signed in, at the foot of the rail ──────────────────────── */
+.sidebar-user {
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-user:hover { background: var(--rail-hover-bg); }
+
+.sidebar-logout {
+    color: var(--rail-idle);
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.sidebar-logout:hover {
+    background: rgba(220, 38, 38, 0.16);
+    color: #ffb4ab;
+}
+
+/* ── Nav scroll area ────────────────────────────────────────────────────── */
+.sidebar-nav-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+}
+
+.sidebar-nav-scroll::-webkit-scrollbar { width: 5px; }
+.sidebar-nav-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 99px; }
+.sidebar-nav-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.32); }
+
+/* The tooltip has to escape the scroll box to be seen. */
+@media (min-width: 1024px) {
+    #sidebar.collapsed .sidebar-nav-scroll {
+        overflow: visible;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+/* ── Group labels ───────────────────────────────────────────────────────── */
+.sidebar-group-label {
+    transition: opacity 0.2s ease, height 0.2s ease, padding 0.2s ease, margin 0.2s ease;
+}
+
+@media (min-width: 1024px) {
+    #sidebar.collapsed .sidebar-group-label {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+    }
+}
+
+/* Anyone who has asked for less movement gets the colours without the motion. */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-item,
+    .sidebar-item::before,
+    .sidebar-item::after,
+    .sidebar-icon { transition: none; }
+    .sidebar-item:hover { transform: none; }
+}
+
+/* ── Remembered collapse, before the sidebar element exists ────────────────
+   The inline script in <head> can only reach <html>, so the collapsed look is
+   mirrored onto that selector. sidebar.js hands over to the real .collapsed
+   class on DOMContentLoaded; both render identically, so there is no flash. */
+@media (min-width: 1024px) {
+    html.sidebar-was-collapsed #sidebar { width: 6rem; }
+
+    html.sidebar-was-collapsed #sidebar .hide-on-collapse {
+        opacity: 0;
+        width: 0;
+        margin-left: 0;
+    }
+
+    html.sidebar-was-collapsed #sidebar .center-on-collapse { justify-content: center !important; }
+
+    html.sidebar-was-collapsed #sidebar .px-8.center-on-collapse {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    html.sidebar-was-collapsed #sidebar .sidebar-group-label {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+    }
+
+    html.sidebar-was-collapsed #sidebar .sidebar-count { opacity: 1; }
+}
+
+/* ── Collapsed alignment ──────────────────────────────────────────────────
+   `hide-on-collapse` sets width to 0, but that is not enough to take an
+   element out of the layout:
+
+     · the nav label carries Tailwind's `flex-1`, which is `flex: 1 1 0%` — it
+       still *grows*, shoving the icon off centre;
+     · `.sidebar-badge` sets its own min-width and padding, which outlive
+       width:0, so a row with a count sat further left than the rest;
+     · the user card's `gap-3` keeps a gap next to a zero-width child.
+
+   Neutralising all three is what actually centres the icons. */
+@media (min-width: 1024px) {
+    #sidebar.collapsed .hide-on-collapse,
+    html.sidebar-was-collapsed #sidebar .hide-on-collapse {
+        flex: 0 0 0 !important;
+        min-width: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-width: 0 !important;
+        overflow: hidden;
+    }
+
+    /* The gap would otherwise still separate the avatar from a hidden name. */
+    #sidebar.collapsed .sidebar-user,
+    html.sidebar-was-collapsed #sidebar .sidebar-user {
+        gap: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+/* ── The rest of the rail's furniture ─────────────────────────────────────
+   Each of these replaced a light-surface utility that was spelled out on the
+   element itself; the markup now carries only the hook. */
+.sidebar-brand { color: #ffffff; }
+.sidebar-brand-sub { color: var(--rail-muted); }
+.sidebar-group-label { color: var(--rail-muted); }
+.sidebar-divider { border-top: 1px solid var(--rail-line); }
+
+.sidebar-avatar {
+    background: var(--rail-active-bg);
+    color: var(--rail-active-ink);
+}
+
+.sidebar-user-name { color: #ffffff; }
+.sidebar-user-sub { color: var(--rail-muted); }
+
+.sidebar-toggle {
+    background: #002866;
+    border: 1px solid var(--rail-line);
+    color: var(--rail-idle);
+}
+
+.sidebar-toggle:hover {
+    background: #0041a3;
+    color: #ffffff;
+}
+
+.sidebar-close { color: var(--rail-idle); }
+.sidebar-close:hover { background: var(--rail-hover-bg); color: #ffffff; }
+
+/* The logo is a light mark on a light bag; on navy it needs its own plate. */
+.sidebar-rail img { border-radius: 0.75rem; }
+/* ── The rail in the dark theme ───────────────────────────────────────────
+   #001330 is the brand navy, and against a light page it reads as a strong
+   dark plane. Against the dark theme's own page it does not: measured on a
+   render, rail against content came out at 1.04:1 — the rail simply vanished.
+
+   So in the dark it lifts instead of sinking, to surface-container-high from
+   the same ramp every other panel uses (1.21:1 against the page), with a
+   firmer hairline to draw the edge. The inks are already light and stay put:
+   they measure 12.4:1 idle, 6.8:1 active and 14.7:1 on hover against it. */
+.dark {
+    --rail-bg: #1a2842;
+    --rail-line: rgba(255, 255, 255, 0.13);
+}
+
+/* The chrome that sat on the deeper navy needs to lift with it. */
+.dark .sidebar-toggle { background: #22314d; }
+.dark .sidebar-toggle:hover { background: #0041a3; }
+
+@media (min-width: 1024px) {
+    .dark #sidebar.collapsed .sidebar-item::after,
+    .dark html.sidebar-was-collapsed #sidebar .sidebar-item::after { background: #0a1120; }
+}

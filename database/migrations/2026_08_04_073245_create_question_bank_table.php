@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('question_bank', function (Blueprint $table) {
             $table->id();
             $table->foreignId('chapter_id')->nullable()->constrained('chapters')->nullOnDelete();
-            $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();
             $table->foreignId('question_categories_id')->constrained('question_categories')->cascadeOnDelete();
             $table->text('question');
             $table->string('difficulty_level')->nullable();

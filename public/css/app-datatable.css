@@ -1,0 +1,70 @@
+/**
+ * Shared loading-shimmer primitives.
+ *
+ * Each grid keeps its own chrome styling in its page's <style> block; only the
+ * skeleton pieces below are common, since every page draws the same bars.
+ *
+ *   <tr class="…-shimmer-row">        one skeleton row, cloned into <tbody>
+ *   <span class="shimmer-bar">        generic bar; -sm, -pill, -chip, -dots
+ *   <div class="app-stats">           stat-card grid blanked while loading
+ */
+
+.shimmer-row-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+.shimmer-row-inline .shimmer-bar { flex: 1; }
+
+.shimmer-bar,
+.shimmer-avatar {
+    display: block;
+    height: 0.75rem;
+    border-radius: 0.375rem;
+    background: linear-gradient(
+        90deg,
+        rgba(118, 117, 134, 0.10) 25%,
+        rgba(118, 117, 134, 0.20) 37%,
+        rgba(118, 117, 134, 0.10) 63%
+    );
+    background-size: 400% 100%;
+    animation: app-shimmer 1.4s ease infinite;
+}
+.dark .shimmer-bar,
+.dark .shimmer-avatar {
+    background: linear-gradient(
+        90deg,
+        rgba(148, 163, 184, 0.10) 25%,
+        rgba(148, 163, 184, 0.22) 37%,
+        rgba(148, 163, 184, 0.10) 63%
+    );
+    background-size: 400% 100%;
+    animation: app-shimmer 1.4s ease infinite;
+}
+.shimmer-bar-sm { height: 0.5625rem; opacity: 0.75; }
+.shimmer-pill { height: 1.5rem; border-radius: 9999px; }
+.shimmer-avatar { width: 1.75rem; height: 1.75rem; border-radius: 9999px; flex-shrink: 0; }
+.shimmer-chip { width: 2rem; height: 1.75rem; border-radius: 0.5rem; margin: 0 auto; }
+.shimmer-dots { width: 0.5rem; height: 1.5rem; border-radius: 9999px; margin: 0 auto; }
+
+/* ── Stat card shimmer ──────────────────────────────────────────────────────
+   Add .app-stats to the grid and .app-stat-value / .app-stat-shimmer inside
+   each card; App.dataTable toggles .is-loading while a draw is in flight. */
+.app-stat-shimmer {
+    display: none;
+    width: 3.5rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+}
+.app-stats.is-loading .app-stat-value { display: none; }
+.app-stats.is-loading .app-stat-shimmer { display: block; }
+
+@keyframes app-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .shimmer-bar,
+    .shimmer-avatar,
+    .app-stat-shimmer { animation: none; }
+}
