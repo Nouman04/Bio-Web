@@ -329,8 +329,9 @@ window.App = (function () {
     }
 
     function renderFileNames(input) {
-        // A field that already names its own file — the video dropzone does —
-        // opts out rather than showing the name twice.
+        // A field whose page already names the picked file opts out rather
+        // than showing it twice — the topics attachment list, the worksheet
+        // import, and the video and diagram edit dropzones all do their own.
         if (input.dataset.noFileName !== undefined) return;
 
         const container = fileFieldContainer(input);

@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('guides', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('chapter_id')->nullable()->constrained('chapters')->nullOnDelete();
             $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();
             $table->foreignId('added_by')->constrained('users')->cascadeOnDelete();

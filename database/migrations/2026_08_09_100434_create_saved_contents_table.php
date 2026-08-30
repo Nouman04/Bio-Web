@@ -6,23 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('saved_contents', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->morphs('contentable');
             $table->timestamps();
+
+            // A reader saves a given thing once.
+            $table->unique(
+                ['user_id', 'contentable_type', 'contentable_id'],
+                'saved_contents_owner_unique'
+            );
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('contents');
+        Schema::dropIfExists('saved_contents');
     }
 };

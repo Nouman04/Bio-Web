@@ -7,14 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Where a question came from in a past paper.
-     *
-     * It hangs off the question's link row rather than off the question itself:
-     * the same bank question can be attached to several topics, and each
-     * attachment may cite a different paper.
-     *
-     * `source` is the only optional part — a reference without a date, paper
-     * number and marks is not a reference.
+     * Where a question came from, when it came from a past paper. Hangs off the
+     * link between the question and the record it was attached to, not off the
+     * question itself — the same question can be cited differently elsewhere.
      */
     public function up(): void
     {
@@ -26,6 +21,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->date('date');
             $table->string('paper_no');
+            $table->string('question_no')->nullable();
             $table->decimal('marks', 8, 2);
             $table->string('source')->nullable();
             $table->timestamps();

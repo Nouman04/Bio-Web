@@ -69,7 +69,7 @@
                     </div>
                     <h3 class="text-base font-bold text-on-surface dark:text-white mb-1 text-center">Click or drag a file here to replace the diagram</h3>
                     <p class="text-xs font-medium text-outline dark:text-slate-500 mt-2">JPG, PNG, GIF up to 10MB</p>
-                    <input id="diagram-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" type="file" name="image"/>
+                    <input id="diagram-image" accept="image/*" data-no-file-name class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" type="file" name="image"/>
                 </div>
             </div>
 

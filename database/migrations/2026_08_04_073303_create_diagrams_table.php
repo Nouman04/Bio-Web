@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('diagrams', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('chapter_id')->nullable()->constrained('chapters')->nullOnDelete();
             $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();
             $table->string('image_path');

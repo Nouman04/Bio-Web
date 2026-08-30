@@ -10,8 +10,11 @@ return new class extends Migration
     {
         Schema::create('quizzes_chapters', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('quizz_id')->constrained('quizzes')->cascadeOnDelete();
-            $table->foreignId('chapter_id')->constrained('chapters')->cascadeOnDelete();
+            // Nullable: a quiz's questions hang off this row, so it exists
+            // before a chapter has been chosen.
+            $table->foreignId('chapter_id')->nullable()->constrained('chapters')->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

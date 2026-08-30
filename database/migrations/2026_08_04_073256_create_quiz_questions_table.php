@@ -10,8 +10,11 @@ return new class extends Migration
     {
         Schema::create('quiz_questions', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('quiz_chapter_id')->constrained('quizzes_chapters')->cascadeOnDelete();
             $table->foreignId('question_bank_id')->constrained('question_bank')->cascadeOnDelete();
+            // The order the questions are answered in.
+            $table->unsignedInteger('order')->default(0);
             $table->decimal('marks', 8, 2);
             $table->timestamps();
             $table->softDeletes();

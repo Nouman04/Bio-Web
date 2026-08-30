@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('worksheets_chapters', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('chapter_id')->constrained('chapters')->cascadeOnDelete();
             $table->foreignId('worksheet_id')->constrained('worksheets')->cascadeOnDelete();
             $table->timestamps();

@@ -108,7 +108,7 @@
                     </div>
                     <h4 class="text-base font-bold text-on-surface dark:text-white mb-1">Click to browse or drag a video here to replace it</h4>
                     <p class="text-sm text-on-surface-variant dark:text-slate-400 max-w-md text-center">Supports MP4, WebM, or Ogg up to 500MB.</p>
-                    <input id="video-file" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" type="file" name="video_file"/>
+                    <input id="video-file" accept="video/*" data-no-file-name class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" type="file" name="video_file"/>
                 </div>
 
                 <div class="flex items-center gap-4 py-2">

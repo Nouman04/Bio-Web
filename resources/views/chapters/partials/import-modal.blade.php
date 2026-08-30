@@ -52,7 +52,7 @@
                     </div>
                     <span class="text-sm font-semibold text-on-surface dark:text-slate-200">Choose a worksheet</span>
                     <span id="worksheet-file-name" class="text-xs text-on-surface-variant dark:text-slate-400 mt-1">.xlsx, .xls or .csv — up to 30MB</span>
-                    <input id="worksheet-file" name="worksheet" type="file" accept=".xlsx,.xls,.csv" class="hidden">
+                    <input id="worksheet-file" name="worksheet" type="file" accept=".xlsx,.xls,.csv" data-no-file-name class="hidden">
                 </label>
 
                 <p id="worksheet-file-error" class="hidden text-xs text-error"></p>

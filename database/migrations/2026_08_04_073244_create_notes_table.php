@@ -10,8 +10,12 @@ return new class extends Migration
     {
         Schema::create('notes', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('chapter_id')->constrained('chapters')->cascadeOnDelete();
-            $table->foreignId('topic_id')->constrained('topics')->cascadeOnDelete();
+            $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();
+            // Only set on notes of type `summary`: the chapter summary written from.
+            $table->foreignId('summary_id')->nullable()->constrained('summaries')->nullOnDelete();
+            $table->string('title')->nullable();
             $table->enum('type', ['exam_notes', 'summary', 'flashcards']);
             $table->longText('content');
             $table->timestamps();

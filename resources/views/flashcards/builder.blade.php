@@ -15,6 +15,22 @@
     .question-row.sortable-chosen { box-shadow: 0 10px 30px rgba(0, 19, 48, 0.12); }
     .question-drag { cursor: grab; }
     .question-drag:active { cursor: grabbing; }
+
+    /* A question is authored in the rich text editor, so the row renders its
+       markup rather than printing the tags. The block spacing is flattened and
+       anything oversized is reined in, so one row stays one row. */
+    .question-text > *:first-child { margin-top: 0; }
+    .question-text > *:last-child { margin-bottom: 0; }
+    .question-text p { margin: 0 0 0.25rem; }
+    .question-text ul { list-style: disc; padding-left: 1.25rem; margin: 0.25rem 0; }
+    .question-text ol { list-style: decimal; padding-left: 1.25rem; margin: 0.25rem 0; }
+    .question-text li { margin-bottom: 0.125rem; }
+    .question-text strong { font-weight: 600; }
+    .question-text em { font-style: italic; }
+    .question-text h2,
+    .question-text h3 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .question-text img { max-width: 100%; max-height: 6rem; width: auto; border-radius: 0.5rem; }
+    .question-text a { color: rgb(var(--c-primary)); text-decoration: underline; }
 </style>
 @endpush
 
@@ -150,7 +166,7 @@
                         </span>
                         <span class="question-position shrink-0 w-6 h-6 rounded-lg bg-surface-container-high dark:bg-slate-800 text-[11px] font-bold text-on-surface-variant dark:text-slate-300 flex items-center justify-center">${index + 1}</span>
                         <span class="flex-1 min-w-0">
-                            <span class="block text-sm text-on-surface dark:text-slate-200">${escapeHtml(question.text)}</span>
+                            <span class="question-text block text-sm text-on-surface dark:text-slate-200">${question.text ?? ''}</span>
                             ${question.meta ? `<span class="block text-[11px] text-on-surface-variant dark:text-slate-400 mt-0.5">${escapeHtml(question.meta)}</span>` : ''}
                         </span>
                         <button type="button" data-remove="${question.assessment_id}" class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors">

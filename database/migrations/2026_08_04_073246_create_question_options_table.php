@@ -10,8 +10,9 @@ return new class extends Migration
     {
         Schema::create('question_options', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('question_bank_id')->constrained('question_bank')->cascadeOnDelete();
-            $table->string('title');
+            $table->longText('title');
             $table->timestamps();
             $table->softDeletes();
         });

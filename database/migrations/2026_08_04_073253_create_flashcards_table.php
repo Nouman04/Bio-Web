@@ -6,13 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * A deck, built from whatever it was made out of — a note, a summary, a
+     * topic — which is what the `flashcardable` morph holds.
+     */
     public function up(): void
     {
         Schema::create('flashcards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('note_id')->constrained('notes')->cascadeOnDelete();
-            $table->foreignId('question_id')->constrained('question_bank')->cascadeOnDelete();
-            $table->foreignId('question_answer_id')->constrained('question_answers')->cascadeOnDelete();
+            $table->uuid('uuid')->nullable()->unique();
+            $table->string('title');
+            $table->foreignId('chapter_id')->nullable()->constrained('chapters')->nullOnDelete();
+            $table->nullableMorphs('flashcardable');
             $table->timestamps();
             $table->softDeletes();
         });

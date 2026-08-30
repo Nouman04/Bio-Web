@@ -283,7 +283,7 @@
                         <p class="text-sm font-semibold text-on-surface dark:text-white">Click or drag files to this area to upload</p>
                         <p class="text-xs font-medium text-outline dark:text-slate-500 mt-1">PDF, DOC, JPG, PNG up to 10MB each</p>
                         <input name="attachments[]" type="file" multiple
-                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*" data-no-file-name
                             class="topic-attachments absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     </div>
                     <ul class="topic-attachments-list hidden flex-col gap-1.5 mt-1"></ul>
@@ -334,7 +334,7 @@
                         <p class="text-sm font-semibold text-on-surface dark:text-white">Click or drag files to add</p>
                         <p class="text-xs font-medium text-outline dark:text-slate-500 mt-1">New files are added to the existing attachments</p>
                         <input name="attachments[]" type="file" multiple
-                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*" data-no-file-name
                             class="topic-attachments absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     </div>
                     <ul class="topic-attachments-list hidden flex-col gap-1.5 mt-1"></ul>
