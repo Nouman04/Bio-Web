@@ -1,4 +1,5 @@
 import forms from "@tailwindcss/forms";
+import { sizing } from "./tailwind.sizing.js";
 
 /**
  * The public marketing site's theme, built rather than compiled in the browser.
@@ -106,6 +107,11 @@ const inline = {
 
 export default {
     ...inline,
+    theme: {
+        ...inline.theme,
+        // The extra width/height steps, shared with the portal build.
+        extend: { ...inline.theme.extend, ...sizing },
+    },
     content: [
         "./resources/views/public/**/*.blade.php",
         "./resources/views/vendor/pagination/public.blade.php",

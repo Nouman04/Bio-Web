@@ -16,12 +16,14 @@
         transform: translateY(-2px);
         transition: all 0.3s ease;
     }
+    /* The brand button. Flat primary rather than the two-stop gradient it was;
+       theme.css flips it for the dark palette. */
     .btn-primary-gradient {
-        background: linear-gradient(135deg, #001330, #0041a3);
+        background: rgb(var(--c-primary));
         box-shadow: 0px 4px 15px rgba(0, 19, 48, 0.2);
     }
     .btn-primary-gradient:hover {
-        background: linear-gradient(135deg, #0041a3, #001330);
+        background: rgb(var(--c-primary-container));
         box-shadow: 0px 6px 20px rgba(0, 19, 48, 0.3);
         transform: translateY(-1px);
     }

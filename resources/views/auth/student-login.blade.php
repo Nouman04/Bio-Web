@@ -27,7 +27,7 @@
         @endif
 
         {{-- Login Form --}}
-        <form class="flex flex-col gap-sm" method="POST" action="{{ route('student.login.store') }}">
+        <form data-validate class="flex flex-col gap-sm" method="POST" action="{{ route('student.login.store') }}">
             @csrf
 
             {{-- Email --}}
@@ -52,7 +52,7 @@
                 </div>
                 <div class="relative flex items-center">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock</span>
-                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required>
+                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required minlength="8" data-label="Password">
                 </div>
                 @error('password')
                     <p class="text-sm text-error">{{ $message }}</p>

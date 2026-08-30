@@ -528,7 +528,7 @@ class StudentChaptersController extends Controller
         [$column, $direction] = $sorts[$sort];
 
         $videos = $crumbs['chapter']->videoLessons()
-            ->with(['addedBy:id,name', 'topic:id,title'])
+            ->with(['addedBy:id,name', 'topic:id,title', 'video'])
             ->when($search, fn ($query) => $query->where(fn ($q) => $q
                 ->where('title', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")))
@@ -559,12 +559,12 @@ class StudentChaptersController extends Controller
         $chapter = $crumbs['chapter'];
 
         $video = VideoLesson::where('uuid', $videoId)
-            ->with(['addedBy:id,name', 'topic:id,title'])
+            ->with(['addedBy:id,name', 'topic:id,title', 'video'])
             ->firstOrFail();
 
         abort_if($video->chapter_id !== $chapter->id, 404);
 
-        $playlist = $chapter->videoLessons()->orderBy('id')->get();
+        $playlist = $chapter->videoLessons()->with('video')->orderBy('id')->get();
         $position = $playlist->search(fn ($item) => $item->id === $video->id);
         $state = $this->progress->completionFor($request->user(), $playlist);
 

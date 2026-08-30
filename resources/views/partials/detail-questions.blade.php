@@ -21,7 +21,7 @@
             <div class="flex items-start justify-between gap-4">
                 <div class="flex-1 min-w-0">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-primary">Question {{ $loop->iteration }}</span>
-                    <p class="text-sm text-on-surface dark:text-slate-200 mt-1">{{ $question['text'] }}</p>
+                    <div class="text-sm text-on-surface dark:text-slate-200 mt-1 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_a]:text-primary [&_strong]:font-semibold [&_img]:rounded-lg [&_img]:max-w-full">{!! $question['text'] !!}</div>
                 </div>
                 <div class="flex flex-col items-end gap-1 shrink-0">
                     @if($showMarks)
@@ -51,9 +51,10 @@
                     @endforeach
                 </ul>
             @elseif(! empty($question['answer']))
-                <p class="mt-3 text-sm text-on-surface dark:text-slate-200 bg-primary/5 border border-primary/20 rounded-xl p-3">
-                    <span class="text-xs font-bold text-primary">Answer:</span> {{ $question['answer'] }}
-                </p>
+                <div class="mt-3 text-sm text-on-surface dark:text-slate-200 bg-primary/5 border border-primary/20 rounded-xl p-3 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_a]:text-primary [&_strong]:font-semibold [&_img]:rounded-lg [&_img]:max-w-full">
+                    <span class="text-xs font-bold text-primary">Answer:</span>
+                    {!! $question['answer'] !!}
+                </div>
             @else
                 <p class="mt-3 text-xs text-outline">No answer recorded.</p>
             @endif

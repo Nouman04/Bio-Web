@@ -106,7 +106,7 @@
                                         @if($key === 'diagram' && $record->image_url)
                                             style="background-image:url('{{ $record->image_url }}');background-size:cover;background-position:center;"
                                         @else
-                                            style="background-image:linear-gradient(135deg, {{ $palette[0] }}, {{ $palette[1] }});"
+                                            style="background-color: {{ $palette[0] }};"
                                         @endif>
                                         <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                                             <span class="material-symbols-outlined text-white text-4xl opacity-80 group-hover:opacity-100 transition-opacity" style="font-variation-settings: 'FILL' 1;">

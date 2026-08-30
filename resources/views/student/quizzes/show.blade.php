@@ -35,9 +35,14 @@
             <h1 class="text-2xl font-bold text-on-surface">{{ $quiz->title }}</h1>
             <p class="text-on-surface-variant text-sm mt-1">
                 {{ $questions->count() }} {{ Str::plural('question', $questions->count()) }}
-                &middot; {{ rtrim(rtrim((string) $questions->sum('marks'), '0'), '.') }} marks
-                @if($quiz->passing_score !== null)
-                    &middot; pass at {{ rtrim(rtrim((string) $quiz->passing_score, '0'), '.') }}
+                @if($quiz->isSelfMarked())
+                    {{-- Nobody scores this one, so it carries no marks. --}}
+                    &middot; you mark your own answers
+                @else
+                    &middot; {{ rtrim(rtrim((string) $questions->sum('marks'), '0'), '.') }} marks
+                    @if($quiz->passing_score !== null)
+                        &middot; pass at {{ rtrim(rtrim((string) $quiz->passing_score, '0'), '.') }}
+                    @endif
                 @endif
             </p>
         </div>
@@ -70,11 +75,13 @@
                     <div class="flex items-start justify-between gap-4 mb-4">
                         <h2 class="text-on-surface font-semibold text-base">
                             <span class="text-primary">{{ $index + 1 }}.</span>
-                            {{ $question?->question }}
+                            <span class="[&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $question?->question !!}</span>
                         </h2>
-                        <span class="text-xs font-semibold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-full shrink-0">
-                            {{ rtrim(rtrim((string) $link->marks, '0'), '.') }} {{ (float) $link->marks === 1.0 ? 'mark' : 'marks' }}
-                        </span>
+                        @unless($quiz->isSelfMarked())
+                            <span class="text-xs font-semibold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-full shrink-0">
+                                {{ rtrim(rtrim((string) $link->marks, '0'), '.') }} {{ (float) $link->marks === 1.0 ? 'mark' : 'marks' }}
+                            </span>
+                        @endunless
                     </div>
 
                     @if($isMcq)

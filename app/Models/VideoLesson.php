@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Laravel\Scout\Searchable;
 
 class VideoLesson extends Model
 {
-    use SoftDeletes, HasUuid, Searchable;
+    use SoftDeletes, HasUuid, HasAttachments, Searchable;
 
     protected $fillable = [
         'chapter_id',
@@ -19,25 +21,38 @@ class VideoLesson extends Model
         'title',
         'slug',
         'description',
-        'file_path',
         'external_link',
     ];
 
     /**
+     * The uploaded file, if the lesson was uploaded rather than linked.
+     *
+     * The path used to be a column on this table; it lives in `attachments`
+     * with every other upload now, under the `video` collection.
+     */
+    public function video(): MorphOne
+    {
+        return $this->morphOne(Attachment::class, 'attachmentable')
+            ->where('collection', Attachment::VIDEO)
+            ->latestOfMany();
+    }
+
+    /**
+     * The stored path, for the handful of places that want it rather than a
+     * URL. Null when the lesson is an external link.
+     */
+    public function getFilePathAttribute(): ?string
+    {
+        return $this->video?->file_path;
+    }
+
+    /**
      * Where the lesson can actually be watched: the uploaded file if there is
      * one, otherwise the external link.
-     *
-     * Built with asset() rather than Storage::url(), because the latter is
-     * pinned to APP_URL and breaks whenever the app is served on another port
-     * or from a subdirectory.
      */
     public function getVideoUrlAttribute(): ?string
     {
-        if ($this->file_path) {
-            return asset('storage/' . $this->file_path);
-        }
-
-        return $this->external_link ?: null;
+        return $this->video?->url ?: ($this->external_link ?: null);
     }
 
     /**
@@ -45,7 +60,7 @@ class VideoLesson extends Model
      */
     public function getIsExternalAttribute(): bool
     {
-        return ! $this->file_path && (bool) $this->external_link;
+        return ! $this->video && (bool) $this->external_link;
     }
 
     public function chapter(): BelongsTo

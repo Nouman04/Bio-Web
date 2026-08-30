@@ -7,11 +7,31 @@
 @section('page-subtitle', $summary->chapter?->title ?? 'Summary')
 
 @section('content')
-    {{-- Breadcrumbs --}}
-    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
+    {{-- Breadcrumbs.
+
+         A summary belongs to a chapter, which belongs to a course, and the
+         trail said none of that — it went straight from Home to the title, so
+         there was no way back to the chapter it was written for. The course and
+         chapter links only appear when the summary has them. --}}
+    @php
+        $crumbChapter = $summary->chapter;
+        $crumbCourse = $crumbChapter?->course;
+    @endphp
+    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6 flex-wrap">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a class="hover:text-primary transition-colors" href="{{ route('summaries') }}">Summaries</a>
+        <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
+        @if($crumbCourse)
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $crumbCourse) }}">{{ $crumbCourse->title }}</a>
+        @endif
+        @if($crumbChapter && $crumbCourse)
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$crumbCourse, $crumbChapter]) }}">{{ $crumbChapter->title }}</a>
+        @endif
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <a class="hover:text-primary transition-colors"
+            href="{{ route('summaries', $crumbChapter ? ['chapter' => $crumbChapter->uuid] : []) }}">Summaries</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold truncate max-w-xs">{{ $summary->title }}</span>
     </div>
@@ -43,7 +63,7 @@
             ]])
 
             <a href="{{ route('summaries', ['title' => $summary->title, 'open' => $summary->uuid]) }}"
-                class="w-full px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
+                class="w-full px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
                 <i class="fa-solid fa-pen text-xs"></i>
                 Edit summary
             </a>

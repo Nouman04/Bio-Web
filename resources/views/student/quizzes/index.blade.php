@@ -1,7 +1,7 @@
 @extends('layouts.student')
 
 @section('title', 'My Quizzes')
-@section('meta-description', 'Every quiz you have sat, and how each one went.')
+@section('meta-description', 'Every quiz set for you — what is still to do, and how the rest went.')
 
 @push('styles')
 <style>
@@ -33,10 +33,13 @@
         <h1 class="text-on-background" style="font-size:32px;line-height:40px;font-weight:700;letter-spacing:-0.01em;">My Quizzes</h1>
         <p class="text-on-surface-variant text-base mt-1 max-w-2xl">
             @if($anyFilter)
-                <span class="font-semibold text-primary">{{ $attempts->total() }}</span>
-                {{ Str::plural('quiz', $attempts->total()) }} matched.
+                <span class="font-semibold text-primary">{{ $quizzes->total() }}</span>
+                {{ Str::plural('quiz', $quizzes->total()) }} matched.
+            @elseif($outstanding)
+                <span class="font-semibold text-primary">{{ $outstanding }}</span>
+                {{ Str::plural('quiz', $outstanding) }} still to sit, then your latest attempt at each of the rest.
             @else
-                Every quiz you have sat, showing how your latest attempt at each one went.
+                Every quiz set for you, showing how your latest attempt at each one went.
             @endif
         </p>
     </div>
@@ -89,19 +92,21 @@
 
 {{-- The list --}}
 <div class="flex flex-col gap-3">
-    @forelse($attempts as $row)
+    @forelse($quizzes as $row)
         @php
             // Written out in full so the classes survive a Tailwind build.
             [$tone, $icon] = match ($row['status']) {
+                'not_started' => ['bg-surface-container-high text-on-surface-variant', 'radio_button_unchecked'],
                 'in_progress' => ['bg-primary/10 text-primary', 'play_circle'],
                 'pending_review' => ['bg-secondary/10 text-secondary', 'hourglass_top'],
+                'self_marked' => ['bg-primary/10 text-primary', 'fact_check'],
                 'expired' => ['bg-error/10 text-error', 'timer_off'],
                 default => $row['passed']
                     ? ['bg-tertiary/10 text-tertiary', 'check_circle']
                     : ['bg-error/10 text-error', 'cancel'],
             };
 
-            $sat = $counts[$row['quiz_id']] ?? 1;
+            $sat = $row['attempts'];
         @endphp
 
         <article class="glass-panel rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -113,17 +118,20 @@
                         @if($row['chapter']) &middot; {{ $row['chapter'] }} @endif
                         &middot;
                     @endif
-                    {{ $row['sat_at']?->diffForHumans() ?? 'not yet handed in' }}
+                    {{ $row['sat_at']?->diffForHumans() ?? ($sat ? 'not yet handed in' : 'not sat yet') }}
                 </p>
             </div>
 
             <div class="flex items-center gap-3 shrink-0 flex-wrap">
-                {{-- How many times this quiz has been sat, not just the latest. --}}
-                <span class="inline-flex items-center gap-1.5 bg-surface-container-high text-on-surface-variant text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap"
-                    title="You have sat this quiz {{ $sat }} {{ Str::plural('time', $sat) }}">
-                    <span class="material-symbols-outlined" style="font-size:14px;">replay</span>
-                    {{ $sat }} {{ Str::plural('attempt', $sat) }}
-                </span>
+                {{-- How many times this quiz has been sat, not just the latest.
+                     Nothing to say about one that has never been opened. --}}
+                @if($sat)
+                    <span class="inline-flex items-center gap-1.5 bg-surface-container-high text-on-surface-variant text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap"
+                        title="You have sat this quiz {{ $sat }} {{ Str::plural('time', $sat) }}">
+                        <span class="material-symbols-outlined" style="font-size:14px;">replay</span>
+                        {{ $sat }} {{ Str::plural('attempt', $sat) }}
+                    </span>
+                @endif
 
                 @if($row['earned_marks'] !== null)
                     <span class="text-on-surface font-semibold tabular-nums">
@@ -136,13 +144,35 @@
                     {{ $row['status_label'] }}
                 </span>
 
-                {{-- The marking itself: every question, what was written, and
-                     what the instructor gave it. --}}
-                <a href="{{ route('student.quizzes.report', $row['uuid']) }}"
-                    class="bg-primary text-on-primary text-xs font-semibold py-2 px-4 rounded-full flex items-center gap-1.5 hover:bg-primary/90 transition-colors">
-                    View marking
-                    <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
-                </a>
+                {{-- Somewhere to go: sit it, pick it back up, or read the
+                     marking — whichever the quiz is waiting on. --}}
+                @if(in_array($row['status'], ['not_started', 'in_progress'], true))
+                    @if($row['url'])
+                        <a href="{{ $row['url'] }}"
+                            class="bg-primary text-on-primary text-xs font-semibold py-2 px-4 rounded-full flex items-center gap-1.5 hover:bg-primary/90 transition-colors">
+                            {{ $row['status'] === 'in_progress' ? 'Resume quiz' : 'Start quiz' }}
+                            <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+                        </a>
+                    @endif
+                @elseif($row['attempt_uuid'])
+                    {{-- Sitting it again is a fresh attempt: the service only
+                         picks a previous one back up while it is still open, so
+                         this link starts a new one. The old attempt and its
+                         marking stay where they are. --}}
+                    @if($row['url'])
+                        <a href="{{ $row['url'] }}"
+                            class="border border-outline-variant text-on-surface-variant text-xs font-semibold py-2 px-4 rounded-full flex items-center gap-1.5 hover:border-primary hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined" style="font-size:16px;">replay</span>
+                            Try again
+                        </a>
+                    @endif
+
+                    <a href="{{ route('student.quizzes.report', $row['attempt_uuid']) }}"
+                        class="bg-primary text-on-primary text-xs font-semibold py-2 px-4 rounded-full flex items-center gap-1.5 hover:bg-primary/90 transition-colors">
+                        View marking
+                        <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+                    </a>
+                @endif
             </div>
         </article>
     @empty
@@ -151,13 +181,14 @@
                 <span class="material-symbols-outlined text-primary text-4xl">{{ $anyFilter ? 'search_off' : 'quiz' }}</span>
             </div>
             <h3 class="text-on-surface font-semibold text-lg mb-2">
-                {{ $anyFilter ? 'Nothing matched' : 'You have not sat a quiz yet' }}
+                {{ $anyFilter ? 'Nothing matched' : 'No quizzes are set for you yet' }}
             </h3>
             <p class="text-on-surface-variant text-sm max-w-md mb-6">
                 @if($anyFilter)
                     No quiz of yours matches those filters.
                 @else
-                    Quizzes you sit will appear here with your result and the marking.
+                    Quizzes set on your courses appear here — the ones still to sit first, then
+                    your result and the marking for the rest.
                 @endif
             </p>
             <a href="{{ $anyFilter ? route('student.quizzes') : route('student.courses') }}"
@@ -169,9 +200,9 @@
     @endforelse
 </div>
 
-@if($attempts->hasPages())
+@if($quizzes->hasPages())
     <div class="mt-10 flex justify-center">
-        {{ $attempts->links() }}
+        {{ $quizzes->links() }}
     </div>
 @endif
 

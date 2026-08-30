@@ -21,7 +21,7 @@
         </div>
 
         {{-- Signup Form --}}
-        <form class="flex flex-col gap-sm" method="POST" action="{{ route('register') }}">
+        <form data-validate class="flex flex-col gap-sm" method="POST" action="{{ route('register') }}">
             @csrf
 
             {{-- Name --}}
@@ -53,7 +53,7 @@
                 <label class="text-sm font-medium text-on-surface-variant" for="password">Password</label>
                 <div class="relative flex items-center">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock</span>
-                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="new-password">
+                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="new-password" data-password-policy data-label="Password">
                 </div>
                 @error('password')
                     <p class="text-sm text-error">{{ $message }}</p>
@@ -65,7 +65,7 @@
                 <label class="text-sm font-medium text-on-surface-variant" for="password_confirmation">Confirm Password</label>
                 <div class="relative flex items-center">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock_reset</span>
-                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password_confirmation" name="password_confirmation" placeholder="••••••••" type="password" required autocomplete="new-password">
+                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password_confirmation" name="password_confirmation" placeholder="••••••••" type="password" required autocomplete="new-password" data-rule-matches="password" data-label="Confirm Password" data-matches-message="The two passwords do not match.">
                 </div>
                 @error('password_confirmation')
                     <p class="text-sm text-error">{{ $message }}</p>

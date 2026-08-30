@@ -133,7 +133,7 @@
                 </p>
 
                 <button type="submit" id="worksheet-submit"
-                    class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-3 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    class="w-full bg-primary text-on-primary px-6 py-3 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-file-circle-plus text-xs"></i>
                     Create worksheet
                 </button>

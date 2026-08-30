@@ -164,7 +164,8 @@
         $dataRoute = $chain ? route('courses.chapters.questions.data', $chainIds) : route('questions.data');
         $createRoute = $chain ? route('courses.chapters.questions.create', $chainIds) : route('questions.create');
         $filtersOpen = request()->hasAny(array_filter([
-            'question', $chain ? null : 'chapter', 'linked_type', 'linked_id', 'difficulty', 'category', 'assignment',
+            'question', $chain ? null : 'course', $chain ? null : 'chapter',
+            'linked_type', 'linked_id', 'difficulty', 'category', 'assignment',
         ]));
     @endphp
 
@@ -191,7 +192,7 @@
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
         <a href="{{ $createRoute }}"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add Questions
         </a>
@@ -214,13 +215,27 @@
                         </div>
                         @unless($chain)
                             {{-- Only offered from the sidenav; through the chain
-                                 the chapter is already decided. --}}
+                                 the course and chapter are already decided. --}}
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</label>
+                                <select id="filter-course" name="course" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                    <option value="">All Courses</option>
+                                    @forelse($courses as $courseOption)
+                                        <option value="{{ $courseOption->uuid }}" {{ ($filters['course'] ?? '') == $courseOption->uuid ? 'selected' : '' }}>{{ $courseOption->title }}</option>
+                                    @empty
+                                        <option value="" disabled>No courses yet</option>
+                                    @endforelse
+                                </select>
+                            </div>
+
+                            {{-- Narrowed to the chosen course by the script
+                                 below, so the two filters never disagree. --}}
                             <div class="flex flex-col gap-1">
                                 <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</label>
-                                <select name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
+                                <select id="filter-chapter" name="chapter" class="w-full bg-white dark:bg-slate-900 border border-outline-variant rounded-xl text-sm py-2 px-3 focus:border-primary focus:ring-1 focus:ring-primary text-on-surface outline-none">
                                     <option value="">All Chapters</option>
-                                    @forelse($chapters as $chapter)
-                                        <option value="{{ $chapter->uuid }}" {{ ($filters['chapter'] ?? '') == $chapter->uuid ? 'selected' : '' }}>{{ $chapter->title }}</option>
+                                    @forelse($chapters as $chapterOption)
+                                        <option value="{{ $chapterOption->uuid }}" {{ ($filters['chapter'] ?? '') == $chapterOption->uuid ? 'selected' : '' }}>{{ $chapterOption->title }}</option>
                                     @empty
                                         <option value="" disabled>No chapters yet</option>
                                     @endforelse
@@ -343,7 +358,7 @@
                 @method('PUT')
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Question</label>
-                    <textarea id="edit-question-text" name="question" rows="3" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface resize-y" placeholder="Type the question…"></textarea>
+                    <textarea id="edit-question-text" name="question" data-quill data-quill-no-attachments data-quill-height="140px" placeholder="Type the question…"></textarea>
                 </div>
                 {{-- Chapter, type and difficulty come before the answer, since
                      the type decides what the answer looks like --}}
@@ -379,7 +394,7 @@
                 {{-- Theory: a written answer --}}
                 <div class="answer-theory flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Answer <span class="font-normal text-outline">(Optional)</span></label>
-                    <textarea id="edit-question-answer" name="answer" rows="3" class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface resize-y" placeholder="Attach the answer…"></textarea>
+                    <textarea id="edit-question-answer" name="answer" data-quill data-quill-no-attachments data-quill-height="140px" placeholder="Attach the answer…"></textarea>
                 </div>
 
                 {{-- MCQ: options, with the correct one selected --}}
@@ -433,6 +448,7 @@
                         // DataTables reserves `search`, so the filter box travels
                         // as search_term and is mapped back on the server.
                         params.search_term = filters.get('question') ?? '';
+                        params.course = filters.get('course') ?? '';
                         params.chapter = filters.get('chapter') ?? '';
                         params.linked_type = filters.get('linked_type') ?? '';
                         params.linked_id = filters.get('linked_id') ?? '';
@@ -461,6 +477,7 @@
                 filterForm.querySelectorAll('select').forEach(select => { select.value = ''; });
                 filterForm.querySelector('input[name="question"]').value = '';
                 resetLinkedRecords();
+                applyCourseToChapters();
                 questionsTable.ajax.reload();
             });
 
@@ -468,6 +485,10 @@
             document.getElementById('filter-linked-type')?.addEventListener('change', (e) => {
                 loadLinkedRecords(e.target.value);
             });
+
+            // Dependent picker: choosing a course narrows the chapter list.
+            document.getElementById('filter-course')?.addEventListener('change', applyCourseToChapters);
+            applyCourseToChapters();
 
             // ── Edit submit over AJAX ───────────────────────────────────────
             const editForm = document.getElementById('edit-question-form');
@@ -506,6 +527,63 @@
                 });
         }
 
+        /* ── Course → chapter ─────────────────────────────────────────────
+           The chapter list is every chapter in the library, which is a long
+           list once there are a few courses. Choosing a course narrows it to
+           that course's chapters, and drops a chapter that no longer belongs.
+           The two are checked independently server-side, so this is only about
+           not offering a pair that returns nothing. */
+
+        @php
+            $chapterOptions = $chain ? [] : $chapters
+                ->map(fn ($row) => [
+                    'value' => $row->uuid,
+                    'label' => $row->title,
+                    'course' => $row->course?->uuid,
+                ])
+                ->values();
+        @endphp
+
+        const chapterOptions = @json($chapterOptions);
+
+        function applyCourseToChapters() {
+            const courseSelect = document.getElementById('filter-course');
+            const chapterSelect = document.getElementById('filter-chapter');
+            if (!courseSelect || !chapterSelect) return;
+
+            const course = courseSelect.value;
+            const chosen = chapterSelect.value;
+            const offered = course
+                ? chapterOptions.filter(option => option.course === course)
+                : chapterOptions;
+
+            chapterSelect.replaceChildren();
+
+            const all = document.createElement('option');
+            all.value = '';
+            all.textContent = 'All Chapters';
+            chapterSelect.appendChild(all);
+
+            if (!offered.length) {
+                const empty = document.createElement('option');
+                empty.value = '';
+                empty.disabled = true;
+                empty.textContent = course ? 'No chapters in this course' : 'No chapters yet';
+                chapterSelect.appendChild(empty);
+                return;
+            }
+
+            offered.forEach(option => {
+                const node = document.createElement('option');
+                node.value = option.value;
+                node.textContent = option.label;
+                chapterSelect.appendChild(node);
+            });
+
+            // Keep the chapter only while it still belongs to the chosen course.
+            chapterSelect.value = offered.some(option => option.value === chosen) ? chosen : '';
+        }
+
         function resetLinkedRecords() {
             const recordSelect = document.getElementById('filter-linked-id');
             if (!recordSelect) return;
@@ -520,8 +598,8 @@
             form.action = `{{ url('questions') }}/${trigger.dataset.id}`;
             App.clearFieldErrors(form);
 
-            document.getElementById('edit-question-text').value = trigger.dataset.question ?? '';
-            document.getElementById('edit-question-answer').value = trigger.dataset.answer ?? '';
+            setEditorValue('edit-question-text', trigger.dataset.question ?? '');
+            setEditorValue('edit-question-answer', trigger.dataset.answer ?? '');
             document.getElementById('edit-question-chapter').value = trigger.dataset.chapterId ?? '';
             document.getElementById('edit-question-category').value = trigger.dataset.categoryId ?? '';
             document.getElementById('edit-question-difficulty').value = trigger.dataset.difficulty ?? '';
@@ -539,6 +617,19 @@
             QuestionForm.applyAnswerMode(form);
 
             document.getElementById('edit-question-modal-container').classList.remove('hidden');
+        }
+
+        // A Quill-backed field is filled through setQuillContent; a plain
+        // textarea still takes a value, which is what the fallback is for.
+        function setEditorValue(id, html) {
+            const field = document.getElementById(id);
+            if (!field) return;
+
+            if (field.setQuillContent) {
+                field.setQuillContent(html);
+            } else {
+                field.value = html;
+            }
         }
 
         function closeEditQuestionModal() {

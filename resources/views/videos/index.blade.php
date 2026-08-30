@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Video Lessons')
-@section('meta-description', 'Manage video lessons and recordings in EduAdmin LMS.')
+@section('meta-description', 'Manage video lessons and recordings in Your Biology.')
 
 @section('page-title', 'Video Lessons')
 @section('page-subtitle', 'Upload recordings or link hosted videos for your curriculum.')
@@ -175,7 +175,7 @@
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
         <button type="button" onclick="openAddVideoModal()"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add New Lesson
         </button>
@@ -306,7 +306,7 @@
                             <p class="text-sm font-semibold text-on-surface dark:text-white">Click or drag a video to upload</p>
                             <p class="text-xs font-medium text-outline dark:text-slate-500 mt-1">MP4, WebM, OGG or MOV up to 500MB</p>
                         </div>
-                        <input name="video_file" type="file" accept="video/*" class="video-file absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <input name="video_file" type="file" accept="video/*" data-no-file-name class="video-file absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     </div>
                 </div>
 
@@ -394,7 +394,7 @@
                             <p class="text-sm font-semibold text-on-surface dark:text-white">Click or drag to replace the video</p>
                             <p class="text-xs font-medium text-outline dark:text-slate-500 mt-1">Leave empty to keep the current one</p>
                         </div>
-                        <input name="video_file" type="file" accept="video/*" class="video-file absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <input name="video_file" type="file" accept="video/*" data-no-file-name class="video-file absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     </div>
                 </div>
 
@@ -489,7 +489,7 @@
                 },
                 columns: [
                     { data: 'title_cell', name: 'title' },
-                    { data: 'source_cell', name: 'file_path', orderable: false },
+                    { data: 'source_cell', name: 'external_link', orderable: false },
                     { data: 'chapter_cell', name: 'chapter.title', orderable: false },
                     { data: 'topic_cell', name: 'topic.title', orderable: false },
                     { data: 'date_cell', name: 'created_at' },

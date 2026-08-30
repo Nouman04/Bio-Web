@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Sign In') | EduAdmin LMS</title>
+    <title>@yield('title', 'Sign In') | Your Biology</title>
 
     {{-- Tailwind CSS --}}
     {{-- Opens the font connections while the document is still parsing. --}}
@@ -46,14 +46,11 @@
             border-color: #001330;
             box-shadow: 0 0 0 2px #80b2ff;
         }
-        .mesh-gradient {
-            background-color: #001330;
-            background-image:
-                radial-gradient(at 15% 15%, rgba(0, 65, 163, 0.85) 0px, transparent 55%),
-                radial-gradient(at 85% 10%, rgba(29, 95, 208, 0.55) 0px, transparent 50%),
-                radial-gradient(at 75% 80%, rgba(0, 40, 102, 0.95) 0px, transparent 55%),
-                radial-gradient(at 10% 90%, rgba(0, 19, 48, 1) 0px, transparent 60%),
-                radial-gradient(at 50% 50%, rgba(128, 178, 255, 0.16) 0px, transparent 65%);
+        /* The branding panel beside the sign-in form. It was a five-stop
+           radial mesh with two blurred glows over it; it is the flat brand
+           colour now, which is why it is no longer called a gradient. */
+        .brand-panel {
+            background-color: rgb(var(--c-primary));
         }
     </style>
 
@@ -61,6 +58,13 @@
 </head>
 <body class="@yield('body-class', 'bg-pattern min-h-screen flex items-center justify-center p-sm md:p-lg text-on-surface antialiased')">
     @yield('content')
+
+    {{-- SweetAlert2 and the shared form helpers: the sign-in, register and
+         password forms use App.validateForm to report a bad value inline
+         before the round trip. --}}
+    <script src="{{ asset('cdn/sweet-alert/sweetAlert2.min.js') }}"></script>
+    <script src="{{ asset('js/app-ajax.js') }}"></script>
+    <script src="{{ asset('js/password-strength.js') }}"></script>
 
     @stack('scripts')
 </body>

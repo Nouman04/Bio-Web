@@ -63,12 +63,18 @@ class QuestionController extends Controller
     {
         return view('questions.index', [
             'chain' => $this->chain($course, $chapter),
-            'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'uuid', 'title']),
+            'courses' => Course::orderBy('title')->get(['id', 'uuid', 'title']),
+            // `course` rides along so the chapter picker can narrow to whichever
+            // course is chosen rather than listing every chapter in the library.
+            'chapters' => Chapter::with('course:id,uuid,title')
+                ->orderBy('chapter_number')
+                ->get(['id', 'uuid', 'title', 'course_id']),
             'categories' => QuestionCategory::orderBy('type')->get(['id', 'uuid', 'type']),
             'linkables' => $this->linkableOptions(),
             'difficulties' => self::DIFFICULTIES,
             'filters' => [
                 'question' => $request->input('question', ''),
+                'course' => $request->input('course', ''),
                 'chapter' => $request->input('chapter', ''),
                 'linked_type' => $request->input('linked_type', ''),
                 'linked_id' => $request->input('linked_id', ''),
@@ -110,10 +116,22 @@ class QuestionController extends Controller
             fn ($query, $term) => $query->where('question', 'like', "%{$term}%")
         );
 
-        // Through the chain the chapter is fixed, so the filter is ignored.
-        $chain
-            ? $questions->where('chapter_id', $chain['chapter']->id)
-            : $questions->when($request->input('chapter'), fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid));
+        // Through the chain the chapter is fixed, so both filters are ignored.
+        if ($chain) {
+            $questions->where('chapter_id', $chain['chapter']->id);
+        } else {
+            // A question belongs to a course through its chapter, so filtering
+            // by course means "its chapter is one of that course's".
+            $questions->when(
+                $request->input('course'),
+                fn ($query, $uuid) => $query->whereRelation('chapter.course', 'uuid', $uuid)
+            );
+
+            $questions->when(
+                $request->input('chapter'),
+                fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid)
+            );
+        }
 
         $questions->when($request->input('difficulty'), fn ($query, $level) => $query->where('difficulty_level', $level));
         $questions->when($request->input('category'), fn ($query, $uuid) => $query->whereRelation('category', 'uuid', $uuid));
@@ -199,6 +217,8 @@ class QuestionController extends Controller
             ->when($request->input('q'), fn ($query, $term) => $query->where('question', 'like', "%{$term}%"))
             // Building through a chapter chain: only that chapter's questions.
             ->when($request->input('chapter'), fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid))
+            // Building for a course: only the questions in its chapters.
+            ->when($request->input('course'), fn ($query, $uuid) => $query->whereRelation('chapter.course', 'uuid', $uuid))
             // A theory or MCQ quiz only offers questions of that kind.
             ->when(
                 in_array($request->input('type'), ['theory', 'mcqs'], true),
@@ -242,7 +262,7 @@ class QuestionController extends Controller
         return response()->json(
             $questions->map(fn (QuestionBank $question) => [
                 'id' => $question->id,
-                'text' => $question->question,
+                'text' => $question->plain_question,
                 // The raw kind, so a caller can tell whether a picked question
                 // still suits the quiz after its type is changed.
                 'type' => $question->category?->type,

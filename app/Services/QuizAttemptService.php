@@ -75,6 +75,10 @@ class QuizAttemptService
             $total = 0.0;
             $needsReview = false;
 
+            // A quiz nobody marks is never scored, not even the multiple choice
+            // on it — decided here because it changes what each answer records.
+            $unscored = $attempt->quiz->isSelfMarked();
+
             foreach ($questions as $link) {
                 $marks = (float) $link->marks;
                 $total += $marks;
@@ -92,8 +96,11 @@ class QuizAttemptService
                     $attempt->answers()->create([
                         'quizzes_question_id' => $link->id,
                         'selected_option' => $picked,
+                        // Which option was right is still recorded — the reader
+                        // needs it to judge themselves — but an unmarked paper
+                        // is awarded nothing, because nothing is being scored.
                         'is_correct' => $correct,
-                        'marks_awarded' => $correct ? $marks : 0,
+                        'marks_awarded' => $unscored ? null : ($correct ? $marks : 0),
                     ]);
 
                     continue;
@@ -110,16 +117,28 @@ class QuizAttemptService
                 ]);
             }
 
+            // Written answers either go to an instructor or come straight
+            // back for the student to judge — the quiz says which.
+            $selfMarked = $needsReview && $unscored;
+            $awaitingInstructor = $needsReview && ! $selfMarked;
+
             $attempt->forceFill([
-                'status' => $needsReview ? 'pending_review' : ($auto ? 'submitted' : 'submitted'),
+                'status' => match (true) {
+                    $awaitingInstructor => 'pending_review',
+                    $selfMarked => 'self_marked',
+                    default => 'submitted',
+                },
                 'submitted_at' => now(),
                 'total_marks' => $total,
-                // Only a fully marked paper has a final score.
-                'earned_marks' => $needsReview ? null : $earned,
-                'passed' => $needsReview ? null : $this->passed($attempt->quiz, $earned),
+                // A paper with an instructor has no score yet. A self-marked one
+                // never gets one at all — nobody marks it, so there is no score
+                // and no verdict to record, only the answers themselves.
+                'earned_marks' => $awaitingInstructor || $selfMarked ? null : $earned,
+                'passed' => $awaitingInstructor || $selfMarked ? null : $this->passed($attempt->quiz, $earned),
             ])->save();
 
-            if ($needsReview) {
+            // Nobody is waiting on a self-marked paper, so nobody is told.
+            if ($awaitingInstructor) {
                 $this->notifyInstructor($attempt);
             }
 

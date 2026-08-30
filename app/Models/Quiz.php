@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -12,17 +14,47 @@ use Laravel\Scout\Searchable;
 
 class Quiz extends Model
 {
-    use SoftDeletes, HasUuid, Searchable;
+    use SoftDeletes, HasUuid, HasStatus, Searchable;
 
     protected $fillable = [
+        'course_id',
         'title',
         'description',
         'type',
         'duration',
         'passing_score',
         'shuffle_questions',
+        // Not a column: HasStatus writes it to the statuses table.
         'status',
+        'marking',
     ];
+
+    /**
+     * Who marks the written answers. `instructor` sends the paper to whoever
+     * owns the course; `self` hands it straight back with the model answers,
+     * with nobody notified and nothing queued for marking.
+     */
+    public const MARKING = [
+        'instructor' => 'Instructor marks the paper',
+        'self' => 'No marking — the student judges their own answers',
+    ];
+
+    /**
+     * Whether this quiz has written answers at all. An MCQ paper marks itself,
+     * so the marking mode never applies to one.
+     */
+    public function getIsMarkableAttribute(): bool
+    {
+        return in_array($this->type, ['theory', 'mixed'], true);
+    }
+
+    /**
+     * Whether the student marks their own written answers.
+     */
+    public function isSelfMarked(): bool
+    {
+        return $this->is_markable && $this->marking === 'self';
+    }
 
     protected $casts = [
         'shuffle_questions' => 'boolean',
@@ -44,6 +76,16 @@ class Quiz extends Model
         $text = html_entity_decode(strip_tags((string) $this->description), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/u', ' ', $text)), 160);
+    }
+
+    /**
+     * The course this quiz is set for. It decides which questions the builder
+     * offers, so it is a column of its own rather than something inferred from
+     * whichever chapter happens to be attached.
+     */
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
     }
 
     public function firstChapter(): ?Chapter

@@ -58,9 +58,27 @@
                             Save {{ \Laravel\Cashier\Cashier::formatAmount($saving, $option->currency) }} a year
                         </span>
                     @endif
+                    @if(($promos ?? collect())->has($option->billing_interval))
+                        {{-- The code itself, so the reader knows what to type at
+                             checkout. --}}
+                        <span class="block font-label-sm text-label-sm text-tertiary font-semibold">
+                            Use code {{ $promos[$option->billing_interval]->promo_code }}
+                            @if($promos[$option->billing_interval]->promo_expires_at)
+                                — until {{ $promos[$option->billing_interval]->promo_expires_at->format('j M Y') }}
+                            @endif
+                        </span>
+                    @endif
                 </span>
                 <span class="text-right shrink-0">
-                    <span class="block font-headline-md text-headline-md text-on-surface">{{ $option->formatted_price }}</span>
+                    @php $promo = ($promos ?? collect())->get($option->billing_interval); @endphp
+                    @if($promo)
+                        {{-- An offer is running, so the list price is shown struck
+                             through beside what a code actually brings it to. --}}
+                        <span class="block font-label-sm text-label-sm text-on-surface-variant line-through">{{ $option->formatted_price }}</span>
+                        <span class="block font-headline-md text-headline-md text-tertiary">{{ $promo->formatted_payable }}</span>
+                    @else
+                        <span class="block font-headline-md text-headline-md text-on-surface">{{ $option->formatted_price }}</span>
+                    @endif
                     <span class="block font-label-sm text-label-sm text-on-surface-variant">/{{ $option->billing_interval }}</span>
                 </span>
             </label>

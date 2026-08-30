@@ -53,6 +53,12 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::put('/{course}', [CourseController::class, 'update'])->middleware('can:edit course')->name('courses.update');
         Route::delete('/{course}', [CourseController::class, 'destroy'])->middleware('can:delete course')->name('courses.destroy');
 
+        // Pricing. Repricing writes a new row rather than editing the last
+        // one, so these two are "what does it cost, and what has it cost" and
+        // "charge this from now on".
+        Route::get('/{course}/pricing', [CourseController::class, 'pricing'])->middleware('can:edit course')->name('courses.pricing');
+        Route::put('/{course}/pricing', [CourseController::class, 'updatePrice'])->middleware('can:edit course')->name('courses.pricing.update');
+
         // Per-course settings page: which chapters are public
         Route::get('/{course}/configuration', [CourseController::class, 'configuration'])->middleware('can:view course')->name('courses.configuration');
         Route::put('/{course}/configuration', [CourseController::class, 'updateConfiguration'])->middleware('can:edit chapter')->name('courses.configuration.update');
@@ -148,6 +154,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
                 Route::get('/data', [NoteController::class, 'data'])->name('notes.data');
                 Route::post('/', [NoteController::class, 'store'])->name('notes.store');
                 Route::get('/{note}', [NoteController::class, 'show'])->name('notes.show');
+                Route::get('/{note}/questions', [NoteController::class, 'questions'])->name('notes.questions');
                 Route::put('/{note}', [NoteController::class, 'update'])->name('notes.update');
                 Route::delete('/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
             });

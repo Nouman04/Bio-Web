@@ -45,7 +45,7 @@
 <main class="relative">
     <!-- Page Header -->
     <section class="pt-xl pb-lg relative z-10">
-        <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent -z-10"></div>
+        <div class="absolute inset-0 bg-primary/5 -z-10"></div>
         <div class="max-w-container-max mx-auto px-md md:px-lg text-center">
             <h1 class="font-display-lg text-headline-lg md:text-display-lg text-on-surface mb-4">Our Courses</h1>
             <p class="text-on-surface-variant max-w-2xl mx-auto font-body-md text-lg">
@@ -104,7 +104,7 @@
 
             @if($courses->isEmpty())
                 <div class="glass-panel rounded-3xl p-16 text-center">
-                    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary-fixed to-white flex items-center justify-center text-primary mb-6">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-primary-fixed flex items-center justify-center text-primary mb-6">
                         <span class="material-symbols-outlined text-[32px]">search_off</span>
                     </div>
                     <h3 class="font-headline-md text-headline-md text-on-surface mb-2">No courses match your search</h3>
@@ -114,7 +114,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($courses as $course)
                         <article class="glass-panel rounded-3xl overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 group">
-                            <div class="h-44 relative overflow-hidden bg-gradient-to-br from-primary-fixed to-white flex items-center justify-center">
+                            <div class="h-44 relative overflow-hidden bg-primary-fixed flex items-center justify-center">
                                 <span class="material-symbols-outlined text-primary text-[56px] group-hover:scale-110 transition-transform duration-500">science</span>
                                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
                                     {{ $course['category'] ?: 'Course' }}

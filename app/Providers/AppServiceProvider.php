@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\CourseModule;
 use App\Observers\ModuleObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use App\View\Composers\SidebarComposer;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -26,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // The password policy, in one place: every form that sets a password
+        // asks for Password::defaults(), so this is what all of them enforce.
+        // Eight characters, at least one number and at least one symbol.
+        Password::defaults(fn () => Password::min(8)->numbers()->symbols());
         if (config('app.env') !== 'local') {
             URL::forceScheme('https');
         }

@@ -35,7 +35,7 @@
     </form>
 
     <a href="{{ route('student.worksheets.create') }}"
-        class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all shrink-0">
+        class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all shrink-0">
         <i class="fa-solid fa-plus text-xs"></i>
         Create Worksheet
     </a>

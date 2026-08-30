@@ -87,7 +87,7 @@
                 class="glass-panel rounded-xl overflow-hidden flex flex-col hover-lift group border-outline-variant/30 shadow-sm relative block h-full">
 
                 <div class="relative h-48 w-full overflow-hidden flex items-center justify-center"
-                    style="background-image: linear-gradient(135deg, {{ $palette[0] }}, {{ $palette[1] }});">
+                    style="background-color: {{ $palette[0] }};">
                     <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                         <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center transform scale-90 group-hover:scale-100 transition-all shadow-lg border border-white/30">
                             <span class="material-symbols-outlined text-white text-3xl ml-1" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
@@ -134,7 +134,7 @@
                                 Watch Again
                             </div>
                         @elseif($watched > 0)
-                            <div class="w-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold py-2.5 rounded-full flex justify-center items-center gap-2 group-hover:shadow-md transition-all">
+                            <div class="w-full bg-primary text-white text-sm font-semibold py-2.5 rounded-full flex justify-center items-center gap-2 group-hover:shadow-md transition-all">
                                 Resume Video
                             </div>
                         @else

@@ -42,7 +42,8 @@
             <section class="bg-surface-container-lowest dark:bg-slate-800 rounded-2xl border border-outline-variant/20 dark:border-slate-700 p-6 shadow-sm">
                 <div class="flex items-start justify-between gap-4 mb-3">
                     <h3 class="text-on-surface dark:text-slate-100 font-semibold">
-                        <span class="text-primary">{{ $index + 1 }}.</span> {{ $row['question'] }}
+                        <span class="text-primary">{{ $index + 1 }}.</span>
+                        <span class="[&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['question'] !!}</span>
                     </h3>
                     <span class="text-xs font-semibold text-on-surface-variant bg-surface-container-high dark:bg-slate-700 px-2 py-1 rounded-full shrink-0">
                         out of {{ rtrim(rtrim((string) $row['marks'], '0'), '.') }}
@@ -65,7 +66,7 @@
                     @if($row['expected'])
                         <div class="bg-tertiary/5 border-l-4 border-tertiary rounded-r-xl p-3 mb-4">
                             <div class="text-[11px] font-semibold uppercase tracking-wide text-tertiary mb-1">Expected answer</div>
-                            <p class="text-sm text-on-surface dark:text-slate-200">{{ $row['expected'] }}</p>
+                            <div class="text-sm text-on-surface dark:text-slate-200 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['expected'] !!}</div>
                         </div>
                     @endif
 

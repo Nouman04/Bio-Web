@@ -38,6 +38,9 @@ class StoreCourseRequest extends FormRequest
             'slug' => ['required', 'string', 'max:255', Rule::unique('courses', 'slug')],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'description' => ['nullable', 'string'],
+            // The cover shown on the catalogue and the course card. Stored as
+            // an attachment rather than a column — see AttachmentService.
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ];
     }
 }

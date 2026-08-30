@@ -82,16 +82,47 @@
                     </p>
                 </div>
 
+@php $selectedCourseId = $quiz->course_id; @endphp
                 @if($chain)
-                    {{-- Fixed by the chain, so it is shown rather than chosen --}}
-                    <div class="flex flex-col gap-1.5 max-w-md">
-                        <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</span>
-                        <div class="w-full bg-surface-container-low/60 dark:bg-slate-900/60 border border-outline-variant/50 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm text-on-surface dark:text-slate-200 inline-flex items-center gap-2">
-                            <i class="fa-solid fa-lock text-[11px] text-outline"></i>
-                            {{ $chain['chapter']->title }}
+                    {{-- Fixed by the chain, so both are shown rather than chosen.
+                         The course still posts, because it is a column on the
+                         quiz and the question search is narrowed by it. --}}
+                    <input type="hidden" name="course_id" value="{{ $chain['course']->id }}">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Course</span>
+                            <div class="w-full bg-surface-container-low/60 dark:bg-slate-900/60 border border-outline-variant/50 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm text-on-surface dark:text-slate-200 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-lock text-[11px] text-outline"></i>
+                                {{ $chain['course']->title }}
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Chapter</span>
+                            <div class="w-full bg-surface-container-low/60 dark:bg-slate-900/60 border border-outline-variant/50 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm text-on-surface dark:text-slate-200 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-lock text-[11px] text-outline"></i>
+                                {{ $chain['chapter']->title }}
+                            </div>
                         </div>
                     </div>
+                @else
+                    {{-- Off the sidenav the course is chosen here, and it decides
+                         which questions the next step will offer. --}}
+                    <div class="flex flex-col gap-1.5 max-w-md">
+                        <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400" for="course_id">Course</label>
+                        <select id="course_id" name="course_id" required data-label="Course"
+                            data-course-uuids="{{ $courses->mapWithKeys(fn ($c) => [$c->id => $c->uuid])->toJson() }}"
+                            class="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2.5 px-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface dark:text-slate-200">
+                            <option value="">Select a course</option>
+                            @foreach($courses as $courseOption)
+                                <option value="{{ $courseOption->id }}" @selected(old('course_id', $selectedCourseId ?? null) == $courseOption->id)>{{ $courseOption->title }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-outline dark:text-slate-500">
+                            Only this course's questions are offered in the next step.
+                        </p>
+                    </div>
                 @endif
+
 
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400" for="title">Quiz Title</label>
@@ -129,7 +160,7 @@
                     Cancel
                 </a>
                 <button type="button" id="wizard-next"
-                    class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+                    class="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
                     Next: Questions
                     <i class="fa-solid fa-arrow-right text-xs"></i>
                 </button>
@@ -145,8 +176,8 @@
                         <div class="flex justify-between items-center border-b border-outline-variant/30 dark:border-slate-700 pb-3">
                             <h3 class="text-base font-bold text-on-surface dark:text-white">Questions</h3>
                             <span class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">
-                                <span id="question-count">0</span> selected ·
-                                <span id="question-marks">0</span> marks
+                                <span id="question-count">0</span> selected<span class="marks-summary"> ·
+                                <span id="question-marks">0</span> marks</span>
                             </span>
                         </div>
 
@@ -194,7 +225,7 @@
 
                         <div class="flex flex-col gap-1.5">
                             <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400" for="passing_score">
-                                Passing Score <span class="font-normal text-outline">(marks out of <span id="total-marks">0</span>)</span>
+                                Passing Score <span class="font-normal text-outline marks-summary">(marks out of <span id="total-marks">0</span>)</span>
                             </label>
                             <input id="passing_score" name="passing_score" type="number" min="0" step="0.5"
                                 value="{{ old('passing_score', $quiz->passing_score !== null ? rtrim(rtrim(number_format((float) $quiz->passing_score, 2, '.', ''), '0'), '.') : 0) }}"
@@ -202,8 +233,33 @@
                             <p id="passing-score-error" class="text-xs text-error hidden">
                                 The passing score cannot be more than the total marks.
                             </p>
+                            <p id="passing-score-note" class="text-xs text-outline dark:text-slate-500 hidden">
+                                This quiz is not marked, so nothing is scored and there is no pass mark.
+                            </p>
                         </div>
 
+                        {{-- Only a paper with written answers has anything to mark. --}}
+                        <div id="marking-field" class="flex flex-col gap-1.5 pt-1 border-t border-outline-variant/20 dark:border-slate-700">
+                            <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Marking</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex items-start gap-2.5 cursor-pointer">
+                                    <input type="radio" name="marking" value="instructor" {{ old('marking', $quiz->marking) !== 'self' ? 'checked' : '' }}
+                                        class="mt-0.5 w-4 h-4 text-primary border-outline-variant focus:ring-primary/40 shrink-0">
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-on-surface dark:text-slate-200">Instructor marks the paper</span>
+                                        <span class="block text-xs text-on-surface-variant dark:text-slate-400">Written answers go to the course owner, who is notified.</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-2.5 cursor-pointer">
+                                    <input type="radio" name="marking" value="self" {{ old('marking', $quiz->marking) === 'self' ? 'checked' : '' }}
+                                        class="mt-0.5 w-4 h-4 text-primary border-outline-variant focus:ring-primary/40 shrink-0">
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-on-surface dark:text-slate-200">No marking — the student judges their own</span>
+                                        <span class="block text-xs text-on-surface-variant dark:text-slate-400">On handing in, every answer appears with the expected one beside it. The answers are still stored, and nobody is notified.</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
                         <div class="flex items-center justify-between py-1">
                             <div>
                                 <p class="text-sm font-semibold text-on-surface dark:text-slate-200">Shuffle Questions</p>
@@ -231,7 +287,7 @@
                         {{ $quiz->status === 'published' ? 'Unpublish to Draft' : 'Save Draft' }}
                     </button>
                     <button type="submit" data-status="published" data-loading-text="Publishing…"
-                        class="quiz-submit px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+                        class="quiz-submit px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                         {{ $quiz->status === 'published' ? 'Save Changes' : 'Publish Quiz' }}
                     </button>
@@ -274,6 +330,14 @@
             }
 
             document.getElementById('wizard-next').addEventListener('click', () => {
+                // Step 2 is the question list, and the course decides what is on
+                // it, so it has to be settled before moving on.
+                if (courseSelect && !courseSelect.value) {
+                    App.showFieldErrors(form, { course_id: 'Choose the course this quiz is for.' });
+                    courseSelect.focus();
+                    return;
+                }
+
                 const title = form.querySelector('#title');
 
                 if (!title.value.trim()) {
@@ -311,6 +375,59 @@
                 return Array.from(list.children).map(row => Number(row.dataset.questionId));
             }
 
+            /**
+             * The course the quiz is being built for.
+             *
+             * Through the chain it is the chapter's and cannot change. Off the
+             * sidenav it is chosen in step 1, and the question search below is
+             * narrowed to it — the endpoint matches on uuid, so the select's
+             * option values (which are keys) are mapped through.
+             */
+            const courseSelect = document.getElementById('course_id');
+            const courseUuids = courseSelect ? JSON.parse(courseSelect.dataset.courseUuids || '{}') : {};
+
+            function courseId() {
+                @if($chain)
+                    return @json($chain['course']->uuid);
+                @else
+                    return courseUuids[courseSelect?.value] ?? null;
+                @endif
+            }
+
+            function courseLabel() {
+                @if($chain)
+                    return @json($chain['course']->title);
+                @else
+                    return courseSelect?.selectedOptions[0]?.value
+                        ? courseSelect.selectedOptions[0].textContent.trim()
+                        : null;
+                @endif
+            }
+
+            /**
+             * Changing the course changes which questions exist, so anything
+             * already picked from the old one is dropped rather than quietly
+             * saved against a course it does not belong to.
+             */
+            function applyCourse() {
+                picker.clearOptions();
+                picker.clearCache?.();
+                picker.loadedSearches = {};
+
+                const dropped = list.children.length;
+                if (dropped) {
+                    list.replaceChildren();
+                    renumber();
+                    App.toast('warning', dropped === 1
+                        ? 'The question was removed — the quiz is for a different course now.'
+                        : `${dropped} questions were removed — the quiz is for a different course now.`);
+                }
+
+                applyType();
+            }
+
+            courseSelect?.addEventListener('change', applyCourse);
+
             const picker = new TomSelect('#question-search', {
                 valueField: 'id',
                 labelField: 'text',
@@ -325,6 +442,10 @@
                     const url = new URL(searchUrl, window.location.origin);
                     url.searchParams.set('q', query);
                     if (chapterId) url.searchParams.set('chapter', chapterId);
+
+                    // Only the chosen course's questions are on offer.
+                    const course = courseId();
+                    if (course) url.searchParams.set('course', course);
 
                     // A theory or MCQ quiz only offers questions of that kind.
                     const type = quizType();
@@ -425,12 +546,23 @@
                 totalLabel.textContent = label;
                 empty.classList.toggle('hidden', rows.length > 0);
 
+                // A question added after "no marking" was chosen has to come in
+                // hidden and disabled like the rest of them.
+                applyMarksVisibility();
+
                 // The pass mark has to stay reachable as the total moves.
                 passingScore.max = total;
                 checkPassingScore();
             }
 
             function checkPassingScore() {
+                // A quiz nobody marks has no pass mark to be wrong about.
+                if (passingScore.disabled) {
+                    passingError.classList.add('hidden');
+                    passingScore.classList.remove('border-error');
+                    return true;
+                }
+
                 const total = Number(totalLabel.textContent) || 0;
                 const tooHigh = Number(passingScore.value) > total;
 
@@ -446,11 +578,14 @@
              */
             function applyType() {
                 const type = quizType();
+                applyMarkingVisibility();
+                const within = courseLabel();
+
                 scopeLabel.textContent = {
                     mixed: 'all question types',
                     mcqs: 'MCQ questions',
                     theory: 'theory questions',
-                }[type];
+                }[type] + (within ? ` in ${within}` : '');
 
                 picker.clearOptions();
 
@@ -468,6 +603,83 @@
                         : `${dropped.length} questions were removed — they do not suit this quiz type.`);
                 }
             }
+
+            /**
+             * The marking choice only applies to a paper with written answers,
+             * so an MCQ quiz never sees it.
+             */
+            function applyMarkingVisibility() {
+                const field = document.getElementById('marking-field');
+                if (!field) return;
+
+                const markable = quizType() !== 'mcqs';
+                field.classList.toggle('hidden', !markable);
+                field.classList.toggle('flex', markable);
+
+                applyMarkingMode();
+            }
+
+            /** Whether the paper is handed back for the student to judge. */
+            function isSelfMarked() {
+                return document.querySelector('input[name="marking"]:checked')?.value === 'self'
+                    && quizType() !== 'mcqs';
+            }
+
+            /**
+             * Nobody marks a self-marked paper, so it is never scored — which
+             * leaves nothing for a pass mark to be measured against, and no
+             * reason to give any question a mark. The pass mark and every
+             * per-question box are cleared or hidden and disabled rather than
+             * quietly ignored, and a disabled input is not submitted, so the
+             * server sees no value either.
+             */
+            function applyMarkingMode() {
+                if (!passingScore) return;
+
+                const selfMarked = isSelfMarked();
+
+                applyMarksVisibility();
+
+                passingScore.disabled = selfMarked;
+                passingScore.classList.toggle('opacity-50', selfMarked);
+                passingScore.classList.toggle('cursor-not-allowed', selfMarked);
+
+                if (selfMarked) {
+                    passingScore.value = '';
+                    passingError.classList.add('hidden');
+                    passingScore.classList.remove('border-error');
+                }
+
+                const note = document.getElementById('passing-score-note');
+                if (note) note.classList.toggle('hidden', !selfMarked);
+            }
+
+            /**
+             * The per-question marks boxes, and the running totals that add
+             * them up. Hidden rather than merely disabled: a column of greyed
+             * out boxes down a question list reads as broken rather than as
+             * deliberately not applicable.
+             *
+             * The values are left alone, so switching the marking choice back
+             * restores the marks each question was given.
+             */
+            function applyMarksVisibility() {
+                const selfMarked = isSelfMarked();
+
+                list.querySelectorAll('.question-marks').forEach(input => {
+                    input.disabled = selfMarked;
+                    input.closest('label')?.classList.toggle('hidden', selfMarked);
+                });
+
+                // "n selected · n marks" above the list, and "out of n" beside
+                // the pass mark, both count something that no longer applies.
+                form.querySelectorAll('.marks-summary')
+                    .forEach(node => node.classList.toggle('hidden', selfMarked));
+            }
+
+            document.querySelectorAll('input[name="marking"]').forEach(radio => {
+                radio.addEventListener('change', applyMarkingMode);
+            });
 
             form.querySelectorAll('input[name="type"]').forEach(radio => {
                 radio.addEventListener('change', applyType);

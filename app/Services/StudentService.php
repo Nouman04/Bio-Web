@@ -87,7 +87,7 @@ class StudentService
         // How many of their papers are sitting with this user to be marked.
         $students->withCount([
             'quizAttempts as pending_quizzes_count' => fn ($q) => $q
-                ->where('status', 'pending_review')
+                ->whereStatus('pending_review')
                 ->whereIn('quiz_id', $this->quizIdsFor($user)),
         ]);
 
@@ -169,7 +169,7 @@ class StudentService
     {
         return QuizUserAttempt::query()
             ->where('user_id', $student->id)
-            ->where('status', 'pending_review')
+            ->whereStatus('pending_review')
             ->whereIn('quiz_id', $this->quizIdsFor($user))
             ->with('quiz')
             ->oldest('submitted_at')

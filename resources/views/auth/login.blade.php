@@ -6,24 +6,9 @@
 @section('content')
 <div class="w-full h-screen flex flex-col md:flex-row">
 
-    {{-- Left Panel: Branding & Mesh Gradient --}}
-    <div class="hidden md:flex md:w-1/2 mesh-gradient relative items-center justify-center p-lg overflow-hidden">
-        <div class="absolute inset-0 opacity-20 pointer-events-none">
-            <svg class="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="10%" cy="20%" fill="url(#grad1)" filter="blur(40px)" r="150"></circle>
-                <circle cx="90%" cy="80%" fill="url(#grad2)" filter="blur(60px)" r="200"></circle>
-                <defs>
-                    <radialGradient cx="50%" cy="50%" id="grad1" r="50%">
-                        <stop offset="0%" stop-color="#fff" stop-opacity="0.8"></stop>
-                        <stop offset="100%" stop-color="#fff" stop-opacity="0"></stop>
-                    </radialGradient>
-                    <radialGradient cx="50%" cy="50%" id="grad2" r="50%">
-                        <stop offset="0%" stop-color="#fff" stop-opacity="0.6"></stop>
-                        <stop offset="100%" stop-color="#fff" stop-opacity="0"></stop>
-                    </radialGradient>
-                </defs>
-            </svg>
-        </div>
+    {{-- Left Panel: Branding. A flat brand colour — it used to carry a
+         radial mesh with two blurred glows painted over it. --}}
+    <div class="hidden md:flex md:w-1/2 brand-panel relative items-center justify-center p-lg overflow-hidden">
         <div class="z-10 text-on-primary flex flex-col items-start max-w-md">
             <div class="flex items-center gap-sm mb-lg">
                 <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">school</span>
@@ -63,7 +48,7 @@
 
             <x-auth-session-status class="mb-md" :status="session('status')" />
 
-            <form action="{{ route('admin.login.store') }}" class="space-y-md" method="POST">
+            <form data-validate action="{{ route('admin.login.store') }}" class="space-y-md" method="POST">
                 @csrf
 
                 {{-- Email Field --}}
@@ -88,7 +73,7 @@
                     </div>
                     <div class="input-field rounded border border-transparent overflow-hidden flex items-center px-sm py-sm relative">
                         <span class="material-symbols-outlined text-on-surface-variant mr-sm">lock</span>
-                        <input autocomplete="current-password" class="w-full bg-transparent border-none p-0 focus:ring-0 text-base text-on-surface placeholder-outline-variant pr-10" id="password" name="password" placeholder="••••••••" required type="password"/>
+                        <input autocomplete="current-password" class="w-full bg-transparent border-none p-0 focus:ring-0 text-base text-on-surface placeholder-outline-variant pr-10" id="password" name="password" placeholder="••••••••" required type="password" minlength="8" data-label="Password"/>
                     </div>
                     @error('password')
                         <p class="text-sm text-error">{{ $message }}</p>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Courses')
-@section('meta-description', 'Manage courses and content catalog in EduAdmin LMS.')
+@section('meta-description', 'Manage courses and content catalog in Your Biology.')
 
 @section('page-title', 'Course Management')
 @section('page-subtitle', 'Manage and organize your educational content catalog.')
@@ -161,7 +161,7 @@
 @section('content')
 
     {{-- Ambient Background Glow --}}
-    <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10"></div>
+    <div class="absolute top-0 left-0 w-full h-96 bg-primary/5 pointer-events-none -z-10"></div>
 
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
@@ -182,7 +182,7 @@
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
         <button type="button" onclick="openAddCourseModal()"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add Course
         </button>
@@ -313,6 +313,8 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Description</label>
                     <textarea name="description" data-quill data-quill-no-attachments data-quill-height="150px" placeholder="Provide a brief overview of the course content"></textarea>
                 </div>
+                <x-file-field name="image" label="Cover Image" accept="image/*"
+                    hint="JPG, PNG or WebP up to 4MB — shown on the catalogue and the course card" />
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeAddCourseModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Creating…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Create Course</button>
@@ -360,6 +362,8 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Description</label>
                     <textarea id="edit-course-description" name="description" data-quill data-quill-no-attachments data-quill-height="150px" placeholder="Provide a brief overview of the course content"></textarea>
                 </div>
+                <x-file-field id="edit-course-image" name="image" label="Cover Image" accept="image/*"
+                    hint="Leave this empty to keep the cover the course already has" />
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeEditCourseModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Saving…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Save Changes</button>
@@ -367,6 +371,8 @@
             </form>
         </div>
     </div>
+
+    @include('courses.partials.price-modal')
 
 @endsection
 
@@ -503,6 +509,11 @@
                 description.value = trigger.dataset.description ?? '';
             }
 
+            // Says which cover the course already has, until a new one is
+            // picked; the field itself stays empty, so saving without touching
+            // it keeps what is stored.
+            setCurrentFile('edit-course-image', trigger.dataset.image ?? '');
+
             document.getElementById('edit-course-modal-container').classList.remove('hidden');
         }
 
@@ -513,6 +524,22 @@
             form.querySelectorAll('textarea[data-quill]').forEach(textarea => {
                 textarea.setQuillContent?.('');
             });
+        }
+
+        // Points a file field at the file the record already holds, and
+        // redraws the name under it.
+        function setCurrentFile(id, name) {
+            const input = document.getElementById(id);
+            if (!input) return;
+
+            input.value = '';
+            if (name) {
+                input.dataset.currentName = name;
+            } else {
+                delete input.dataset.currentName;
+            }
+
+            App.bindFileFields(input.closest('form') ?? document);
         }
 
         function closeEditCourseModal() {
@@ -554,6 +581,147 @@
                 App.toast('error', error.message);
             }
         }
+
+        /* ── Pricing ──────────────────────────────────────────────────────
+           Saving writes a new price rather than editing the last one, so the
+           modal shows the history alongside the form. */
+
+        let priceCurrent = {};
+
+        function openPriceModal(trigger) {
+            const form = document.getElementById('price-form');
+            const id = trigger.dataset.id;
+
+            form.action = `{{ url('courses') }}/${id}/pricing`;
+            App.clearFieldErrors(form);
+            form.reset();
+
+            document.getElementById('price-modal-course').textContent = trigger.dataset.title ?? '';
+            document.getElementById('price-history').replaceChildren();
+            document.getElementById('price-current').textContent = 'Loading…';
+
+            priceCurrent = {};
+            applyPromoVisibility();
+            applyPromoUnit();
+
+            App.request(`{{ url('courses') }}/${id}/pricing`)
+                .then(payload => {
+                    priceCurrent = payload.current ?? {};
+                    fillPriceFields();
+                    renderPriceHistory(payload.history ?? []);
+                })
+                .catch(() => {
+                    document.getElementById('price-current').textContent = 'Could not load the current price.';
+                });
+
+            document.getElementById('price-modal-container').classList.remove('hidden');
+        }
+
+        function closePriceModal() {
+            document.getElementById('price-modal-container').classList.add('hidden');
+        }
+
+        /** Fills the form from whatever the chosen interval is priced at now. */
+        function fillPriceFields() {
+            const interval = document.getElementById('price-interval').value;
+            const current = priceCurrent[interval] ?? null;
+            const note = document.getElementById('price-current');
+
+            document.getElementById('price-amount').value = current ? current.price : '';
+            document.getElementById('price-promo-code').value = current?.promo_code ?? '';
+            document.getElementById('price-promo-type').value = current?.promo_type ?? 'percent';
+            document.getElementById('price-promo-value').value = current?.promo_value ?? '';
+            document.getElementById('price-promo-expires').value = current?.promo_expires_at ?? '';
+            document.getElementById('price-promo-toggle').checked = Boolean(current?.promo_code);
+
+            note.textContent = current
+                ? `Currently ${current.formatted_price} per ${interval}` +
+                  (current.live_promo ? ` · ${current.promo_label}` : '')
+                : 'Not on sale on these terms yet.';
+
+            applyPromoVisibility();
+            applyPromoUnit();
+        }
+
+        function renderPriceHistory(rows) {
+            const list = document.getElementById('price-history');
+            list.replaceChildren();
+
+            if (!rows.length) {
+                const empty = document.createElement('li');
+                empty.className = 'text-xs text-outline dark:text-slate-500';
+                empty.textContent = 'No price has been set yet.';
+                list.appendChild(empty);
+                return;
+            }
+
+            rows.forEach((row, index) => {
+                const item = document.createElement('li');
+                item.className = 'flex items-center justify-between gap-3 text-xs rounded-lg border border-outline-variant/30 dark:border-slate-700 px-3 py-2';
+
+                const left = document.createElement('span');
+                left.className = 'font-semibold text-on-surface dark:text-slate-200';
+                left.textContent = `${row.formatted_price} / ${row.interval}`;
+
+                // The newest entry is the one being charged now.
+                if (index === 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'ml-2 text-[10px] font-bold uppercase tracking-wide text-primary';
+                    badge.textContent = 'current';
+                    left.appendChild(badge);
+                }
+
+                if (row.promo_label) {
+                    const promo = document.createElement('span');
+                    promo.className = 'ml-2 text-[10px] font-semibold text-tertiary';
+                    promo.textContent = row.promo_label;
+                    left.appendChild(promo);
+                }
+
+                const right = document.createElement('span');
+                right.className = 'text-on-surface-variant dark:text-slate-400 shrink-0';
+                right.textContent = [row.set_at, row.set_by].filter(Boolean).join(' · ');
+
+                item.append(left, right);
+                list.appendChild(item);
+            });
+        }
+
+        /** No code means no offer, so the rest of the block is put away. */
+        function applyPromoVisibility() {
+            const on = document.getElementById('price-promo-toggle').checked;
+            const fields = document.getElementById('price-promo-fields');
+
+            fields.classList.toggle('hidden', !on);
+            fields.classList.toggle('flex', on);
+
+            if (!on) {
+                document.getElementById('price-promo-code').value = '';
+                document.getElementById('price-promo-value').value = '';
+                document.getElementById('price-promo-expires').value = '';
+            }
+        }
+
+        /** A percentage and a fixed amount are not measured in the same thing. */
+        function applyPromoUnit() {
+            const percent = document.getElementById('price-promo-type').value === 'percent';
+            const value = document.getElementById('price-promo-value');
+
+            document.getElementById('price-promo-unit').textContent = percent ? '(%)' : '(USD)';
+            value.max = percent ? 100 : '';
+            value.placeholder = percent ? 'e.g. 25' : 'e.g. 5.00';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('price-interval')?.addEventListener('change', fillPriceFields);
+            document.getElementById('price-promo-toggle')?.addEventListener('change', applyPromoVisibility);
+            document.getElementById('price-promo-type')?.addEventListener('change', applyPromoUnit);
+
+            document.getElementById('price-form')?.addEventListener('ajax:success', () => {
+                closePriceModal();
+                coursesTable?.ajax.reload(null, false);
+            });
+        });
 
         function autoGenerateSlug(title) {
             const slug = title.toLowerCase()

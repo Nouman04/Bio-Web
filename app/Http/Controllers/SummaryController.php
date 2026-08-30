@@ -28,6 +28,13 @@ class SummaryController extends Controller
         return view('summaries.index', [
             'chapters' => Chapter::orderBy('chapter_number')->get(['id', 'uuid', 'title']),
             'topics' => Topic::orderBy('title')->get(['id', 'uuid', 'title']),
+            // Reached from a chapter the listing is filtered to it, and the
+            // breadcrumb should say so rather than reading as the whole library.
+            'scopedChapter' => $request->filled('chapter')
+                ? Chapter::with('course:id,uuid,title')
+                    ->where('uuid', $request->input('chapter'))
+                    ->first()
+                : null,
             'filters' => [
                 'title' => $request->input('title', ''),
                 'chapter' => $request->input('chapter', ''),
@@ -80,7 +87,7 @@ class SummaryController extends Controller
                 ->filter(fn ($link) => $link->question)
                 ->map(fn ($link) => [
                     'id' => $link->question->id,
-                    'text' => $link->question->question,
+                    'text' => $link->question->plain_question,
                 ])
                 ->values()
         );
@@ -92,7 +99,9 @@ class SummaryController extends Controller
     public function show(Summary $summary)
     {
         return view('summaries.show', [
-            'summary' => $summary->load('chapter:id,uuid,title', 'topic:id,title', 'addedBy:id,name'),
+            // The breadcrumb walks course › chapter › summary, so the
+            // chapter is loaded with its course rather than on its own.
+            'summary' => $summary->load('chapter:id,uuid,title,course_id', 'chapter.course:id,uuid,title', 'topic:id,title', 'addedBy:id,name'),
             'questions' => $this->linkedQuestions($summary),
         ]);
     }

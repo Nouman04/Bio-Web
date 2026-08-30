@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Diagrams')
-@section('meta-description', 'Manage diagrams and visual assets in EduAdmin LMS.')
+@section('meta-description', 'Manage diagrams and visual assets in Your Biology.')
 
 @section('page-title', 'Diagram Management')
 @section('page-subtitle', 'Upload and organise the visuals used across your curriculum.')
@@ -176,7 +176,7 @@
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
         <button type="button" onclick="openAddDiagramModal()"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add New Diagram
         </button>

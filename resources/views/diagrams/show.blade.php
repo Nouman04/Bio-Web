@@ -58,7 +58,7 @@
             ]])
 
             <a href="{{ route('diagrams', ['title' => $diagram->title, 'open' => $diagram->uuid]) }}"
-                class="w-full px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
+                class="w-full px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
                 <i class="fa-solid fa-pen text-xs"></i>
                 Edit diagram
             </a>

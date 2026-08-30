@@ -142,19 +142,20 @@
 .dark .bg-white { background-color: rgb(var(--c-surface-container-lowest)) !important; }
 
 /**
- * The two places a page painted the brand by hand.
+ * The brand button, in the dark.
  *
- * The gradient button is the important one: in the dark theme `primary` is the
- * light tone and `on-primary` the dark one, so a button that keeps the dark
- * gradient ends up dark-on-dark. It has to flip with the token it stands for.
+ * In the dark theme `primary` is the light tone and `on-primary` the dark one,
+ * so a button that keeps the light palette ends up dark-on-dark. It has to flip
+ * with the token it stands for. (The fill itself is flat — the site carries no
+ * gradients any more.)
  */
 .dark .btn-primary-gradient {
-    background: linear-gradient(135deg, #80b2ff, #a9c9ff);
+    background: rgb(var(--c-primary));
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .dark .btn-primary-gradient:hover {
-    background: linear-gradient(135deg, #a9c9ff, #80b2ff);
+    background: rgb(var(--c-primary-fixed-dim, var(--c-primary)));
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
@@ -230,3 +231,168 @@
 .notification-row.is-unread {
     box-shadow: inset 3px 0 0 rgb(var(--c-primary));
 }
+
+/**
+ * Grey text in the dark.
+ *
+ * The panel spells its muted text as `dark:text-slate-400` / `-500` rather than
+ * reaching for a token, and those tones were picked against a light card: on
+ * the navy surfaces they read as a flat grey that all but disappears. The
+ * utilities are re-pointed at the palette's own muted tones here rather than in
+ * four hundred separate class attributes.
+ *
+ * `!important` because app.css is loaded after this sheet and the compiled
+ * `dark:text-*` rules carry the same specificity.
+ */
+.dark .text-slate-400,
+.dark .text-gray-400 { color: rgb(var(--c-on-surface-variant)) !important; }
+
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-gray-500,
+.dark .text-gray-600 { color: rgb(var(--c-outline)) !important; }
+
+/* Body copy spelled the same way. */
+.dark .text-slate-700,
+.dark .text-slate-800,
+.dark .text-slate-900,
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 { color: rgb(var(--c-on-surface)) !important; }
+
+/**
+ * DataTables' own chrome.
+ *
+ * Each listing page styles its table inline, and several of those rules set a
+ * literal #767586 with no dark counterpart — the column headers, the "n of m"
+ * line, the length menu and the empty-table message. They are all muted text,
+ * so they follow the same tone as everything else above.
+ */
+.dark table.dataTable thead th,
+.dark table.dataTable tbody td.dt-empty,
+.dark .dt-container .dt-info,
+.dark .dt-container .dt-length,
+.dark .dt-container .dt-length label,
+.dark .dt-container .dt-paging .dt-paging-button {
+    color: rgb(var(--c-on-surface-variant)) !important;
+}
+
+.dark .dt-container .dt-paging .dt-paging-button.current,
+.dark .dt-container .dt-paging .dt-paging-button:hover {
+    color: rgb(var(--c-on-surface)) !important;
+}
+
+/* Placeholder text in filter boxes was the same washed-out grey. */
+.dark ::placeholder { color: rgb(var(--c-outline)); opacity: 1; }
+
+/**
+ * Form feedback, shared by all three shells.
+ *
+ * The admin layout declared these inline, which left the sign-in pages with
+ * nothing to render a validation message into. They live here now so a field
+ * looks the same wherever it is.
+ */
+.app-field-error {
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgb(var(--c-error));
+}
+
+.app-field-invalid {
+    border-color: rgb(var(--c-error)) !important;
+    box-shadow: 0 0 0 1px rgb(var(--c-error) / 0.25);
+}
+
+/**
+ * The names of the files a field is holding.
+ *
+ * A file input styled as a drop area hides the native "no file chosen" text
+ * along with the rest of the control, so nothing said whether a pick had taken.
+ * app-ajax.js fills this in for every file input on the page.
+ */
+.app-file-names {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+}
+
+.app-file-names[hidden] { display: none; }
+
+.app-file-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.375rem 0.625rem;
+    border: 1px solid rgb(var(--c-outline-variant) / 0.5);
+    border-radius: 0.625rem;
+    background: rgb(var(--c-surface-container-low));
+    font-size: 0.75rem;
+    color: rgb(var(--c-on-surface));
+}
+
+.app-file-name-icon { color: rgb(var(--c-primary)); font-size: 0.75rem; }
+
+.app-file-name-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.app-file-name-size {
+    flex: 0 0 auto;
+    color: rgb(var(--c-on-surface-variant));
+    font-variant-numeric: tabular-nums;
+}
+
+/**
+ * The password strength meter.
+ *
+ * Three requirements, each either met or not — a bar that only fills as the
+ * rules are actually satisfied, rather than a score nobody can act on.
+ */
+.password-meter { display: flex; flex-direction: column; gap: 0.375rem; margin-top: 0.5rem; }
+
+.password-meter-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgb(var(--c-outline-variant) / 0.6);
+    overflow: hidden;
+}
+
+.password-meter-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: rgb(var(--c-error));
+    transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.password-meter[data-met="2"] .password-meter-fill { background: rgb(var(--c-secondary)); }
+.password-meter[data-met="3"] .password-meter-fill { background: rgb(var(--c-tertiary)); }
+
+.password-meter-rules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: rgb(var(--c-on-surface-variant));
+}
+
+.password-meter-rule { display: inline-flex; align-items: center; gap: 0.3125rem; }
+.password-meter-rule::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: rgb(var(--c-outline-variant));
+    transition: background-color 0.2s ease;
+}
+.password-meter-rule.is-met { color: rgb(var(--c-tertiary)); }
+.password-meter-rule.is-met::before { background: rgb(var(--c-tertiary)); }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,21 +14,24 @@ use Laravel\Scout\Searchable;
 /**
  * One student sitting one quiz.
  *
- * An MCQ attempt marks itself the moment it is submitted. Anything with written
- * answers waits on an instructor, which is what `pending_review` means.
+ * An MCQ attempt marks itself the moment it is submitted. Written answers either
+ * wait on an instructor — `pending_review` — or come straight back to the student
+ * with the model answers beside them, which is `self_marked`. Which of the two
+ * depends on the quiz's marking mode.
  */
 class QuizUserAttempt extends Model
 {
-    use SoftDeletes, HasUuid, Searchable;
+    use SoftDeletes, HasUuid, HasStatus, Searchable;
 
     /**
      * Statuses that mean the student is finished, whether or not it is marked.
      */
-    public const CLOSED = ['submitted', 'pending_review', 'graded', 'expired'];
+    public const CLOSED = ['submitted', 'pending_review', 'self_marked', 'graded', 'expired'];
 
     protected $fillable = [
         'quiz_id',
         'user_id',
+        // Not a column: HasStatus writes it to the statuses table.
         'status',
         'started_at',
         'expires_at',
@@ -77,12 +81,12 @@ class QuizUserAttempt extends Model
 
     public function scopeOpen(Builder $query): Builder
     {
-        return $query->where('status', 'in_progress');
+        return $query->whereStatus('in_progress');
     }
 
     public function scopeAwaitingReview(Builder $query): Builder
     {
-        return $query->where('status', 'pending_review');
+        return $query->whereStatus('pending_review');
     }
 
     /**

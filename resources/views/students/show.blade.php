@@ -9,7 +9,7 @@
 @section('content')
 
     {{-- Ambient Background Glow --}}
-    <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10"></div>
+    <div class="absolute top-0 left-0 w-full h-96 bg-primary/5 pointer-events-none -z-10"></div>
 
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">

@@ -92,7 +92,7 @@
                 <span class="text-sm text-primary font-semibold" id="progressPercent">{{ round(100 / $cards->count()) }}%</span>
             </div>
             <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden shadow-inner">
-                <div id="progressBarFill" class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-500 ease-out shadow-sm"
+                <div id="progressBarFill" class="h-full bg-primary rounded-full transition-all duration-500 ease-out shadow-sm"
                     style="width: {{ round(100 / $cards->count()) }}%;"></div>
             </div>
         </div>

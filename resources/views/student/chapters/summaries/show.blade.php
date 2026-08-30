@@ -146,7 +146,7 @@
             @endif
 
             <!-- Next Steps -->
-            <div class="glass-panel rounded-xl p-5 bg-gradient-to-br from-primary/5 to-transparent">
+            <div class="glass-panel rounded-xl p-5 bg-primary/5">
                 <h3 class="text-sm font-semibold text-on-surface mb-4">Next Steps</h3>
                 <div class="space-y-3">
                     @if($quiz)

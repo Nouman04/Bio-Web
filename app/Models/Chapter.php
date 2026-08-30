@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,13 +15,14 @@ use Laravel\Scout\Searchable;
 
 class Chapter extends Model
 {
-    use SoftDeletes, HasUuid, Searchable;
+    use SoftDeletes, HasUuid, HasAttachments, HasStatus, Searchable;
 
     protected $fillable = [
         'course_id',
         'title',
         'chapter_number',
         'description',
+        // Not a column: HasStatus writes it to the statuses table.
         'status',
         'visibility',
     ];

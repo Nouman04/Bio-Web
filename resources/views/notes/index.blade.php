@@ -179,7 +179,7 @@
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
         <button type="button" onclick="openAddNoteModal()"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add New Note
         </button>
@@ -327,6 +327,7 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Content</label>
                     <textarea name="content" data-quill data-quill-height="200px" placeholder="Write your note content here..."></textarea>
                 </div>
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeAddNoteModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Creating…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Create Note</button>
@@ -394,6 +395,7 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Content</label>
                     <textarea id="edit-note-content" name="content" data-quill data-quill-height="200px" placeholder="Write your note content here..."></textarea>
                 </div>
+                @include('partials.question-widget', ['qwFieldName' => 'question_ids', 'qwLabel' => 'Linked Questions (Optional)'])
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeEditNoteModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Saving…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Save Changes</button>
@@ -527,6 +529,12 @@
                 content.value = trigger.dataset.content ?? '';
             }
 
+            const widget = form.querySelector('.question-widget');
+            widget?.resetQuestions?.();
+            App.request(`{{ url("courses/{$course->uuid}/chapters/{$chapter->uuid}/notes") }}/${id}/questions`)
+                .then(questions => widget?.setQuestions?.(questions))
+                .catch(() => App.toast('error', 'Could not load the linked questions.'));
+
             document.getElementById('edit-note-modal-container').classList.remove('hidden');
         }
 
@@ -534,13 +542,15 @@
             document.getElementById('edit-note-modal-container').classList.add('hidden');
         }
 
-        // Clears inputs and the Quill editor, which a native form.reset() misses.
+        // Clears inputs, the Quill editors and the question picker, none of
+        // which a native form.reset() touches.
         function resetNoteForm(form) {
             form.reset();
             App.clearFieldErrors(form);
             form.querySelectorAll('textarea[data-quill]').forEach(textarea => {
                 textarea.setQuillContent?.('');
             });
+            form.querySelector('.question-widget')?.resetQuestions?.();
             toggleSummaryField(form);
         }
 

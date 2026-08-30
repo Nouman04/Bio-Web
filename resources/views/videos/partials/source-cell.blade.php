@@ -4,7 +4,7 @@
         <i class="fa-solid fa-link text-[10px]"></i>
         External
     </span>
-@elseif($video->file_path)
+@elseif($video->video)
     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-tertiary-container/20 text-tertiary">
         <i class="fa-solid fa-upload text-[10px]"></i>
         Uploaded

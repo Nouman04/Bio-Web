@@ -1,4 +1,5 @@
 import forms from "@tailwindcss/forms";
+import { sizing } from "./tailwind.sizing.js";
 
 /**
  * The portal theme, built to a real stylesheet.
@@ -93,6 +94,10 @@ export default {
             fontFamily: {
                 sans: ["Geist", "sans-serif"],
             },
+
+            // The extra width/height steps, shared with the auth and public
+            // builds. See tailwind.sizing.js.
+            ...sizing,
         },
     },
 

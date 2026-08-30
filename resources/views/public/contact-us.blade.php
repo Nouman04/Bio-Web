@@ -36,9 +36,9 @@
 <div class="absolute inset-0 z-0">
 
 {{-- Photography brief: A serene, minimalist 3D rendering of a stylized biology laboratory desk. Soft, high-key lighting illuminates glass beakers and a microscope resting on... --}}
-<div class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out bg-gradient-to-br from-primary/25 via-primary/10 to-secondary/15" role="img" aria-label="A serene, minimalist 3D rendering of a stylized biology laboratory desk. Soft, high-key li..."></div>
+<div class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 ease-out bg-primary/20" role="img" aria-label="A serene, minimalist 3D rendering of a stylized biology laboratory desk. Soft, high-key li..."></div>
 </div>
-<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/50 to-transparent z-10"></div>
+<div class="absolute inset-0 bg-surface-container-lowest/70 z-10"></div>
 <p class="relative z-20 font-label-md text-label-md text-on-surface-variant italic">
                         "Biology is the study of complex things that appear to have been designed for a purpose."
                     </p>

@@ -14,12 +14,21 @@
         </a>
         @can('edit course')
             <button type="button"
+                onclick="openPriceModal(this)"
+                data-id="{{ $course->uuid }}"
+                data-title="{{ $course->title }}"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
+                <i class="fa-solid fa-tag w-4 text-on-surface-variant"></i>
+                Update Price
+            </button>
+            <button type="button"
                 onclick="openEditCourseModal(this)"
                 data-id="{{ $course->uuid }}"
                 data-category-id="{{ $course->category_id }}"
                 data-title="{{ $course->title }}"
                 data-slug="{{ $course->slug }}"
                 data-description="{{ $course->description }}"
+                data-image="{{ $course->image?->name }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
                 <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
                 Edit

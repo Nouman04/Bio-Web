@@ -5,8 +5,8 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'EduAdmin') | EduAdmin LMS</title>
-    <meta name="description" content="@yield('meta-description', 'EduAdmin - Learning Management System Administration Panel')">
+    <title>@yield('title', 'Dashboard') | Your Biology</title>
+    <meta name="description" content="@yield('meta-description', 'Your Biology — the teaching side of the learning platform.')">
 
     {{-- Tailwind CSS --}}
     <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
@@ -59,13 +59,15 @@
             transform: translateY(-2px);
         }
 
-        /* Icon gradient backgrounds */
-        .icon-bg-indigo { background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%); }
-        .icon-bg-orange { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
-        .icon-bg-teal   { background: linear-gradient(135deg, #34d399 0%, #10b981 100%); }
-        .icon-bg-blue   { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
-        .icon-bg-rose   { background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%); }
-        .icon-bg-amber  { background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%); }
+        /* Module tile icons. These were six different gradients; the panel is
+           painted in one brand colour now, so they all resolve to it and the
+           class names stay only because the tiles name them. */
+        .icon-bg-indigo,
+        .icon-bg-orange,
+        .icon-bg-teal,
+        .icon-bg-blue,
+        .icon-bg-rose,
+        .icon-bg-amber { background: rgb(var(--c-primary)); }
 
         /* Chart Styles */
         .bar-chart-bar {
@@ -762,7 +764,9 @@
                 }
 
                 function resetComposer() {
-                    newInput.value = '';
+                    // The question box is a Quill editor, so it is emptied through
+                    // its own handle rather than by blanking the textarea.
+                    newInput.setQuillContent ? newInput.setQuillContent('') : (newInput.value = '');
                     optionList?.replaceChildren();
 
                     if (paperToggle) {
@@ -807,7 +811,9 @@
                     heading.innerHTML = `
                         <span class="shrink-0 mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary">${typeLabel}</span>
                         <span class="text-sm text-on-surface dark:text-slate-200 break-words"></span>`;
-                    heading.querySelector('span:last-child').textContent = text;
+                    // `text` is the editor's HTML; the queue shows the words in
+                    // it, while the hidden field below carries the markup.
+                    heading.querySelector('span:last-child').textContent = plainText(text);
                     left.appendChild(heading);
 
                     if (options.length) {
@@ -899,9 +905,26 @@
                     return input;
                 }
 
+                /** The words inside a fragment of editor HTML. */
+                function plainText(html) {
+                    const holder = document.createElement('div');
+                    holder.innerHTML = html;
+                    return (holder.textContent || '').replace(/\s+/g, ' ').trim();
+                }
+
+                /**
+                 * Queues whatever is in the composer. Returns false when what is
+                 * there cannot be queued yet, so a caller can stop rather than
+                 * lose it.
+                 */
                 function submitNewQuestion() {
+                    // Quill writes into the textarea as it is typed, so its value
+                    // is the markup to store; the check is on the words in it.
                     const text = newInput.value.trim();
-                    if (!text) return;
+                    if (!text || plainText(text) === '') {
+                        App.toast('warning', 'Write the question first.');
+                        return false;
+                    }
 
                     const typeId = newType.value;
                     const typeLabel = newType.selectedOptions[0]?.textContent.trim() ?? '';
@@ -920,12 +943,14 @@
 
                         if (options.length < 2) {
                             App.toast('warning', 'An MCQ needs at least two options.');
-                            return;
+                            optionsBlock?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                            return false;
                         }
 
                         if (correctIndex === null) {
                             App.toast('warning', 'Tick which option is the correct answer.');
-                            return;
+                            optionsBlock?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                            return false;
                         }
                     }
 
@@ -942,21 +967,45 @@
                         // Source is the only optional part of a citation.
                         if (!paper.date || !paper.paper_no || paper.marks === '') {
                             App.toast('warning', 'A past paper reference needs a date, paper number and marks.');
-                            return;
+                            return false;
                         }
                     }
 
                     addNewQuestion(text, typeId, typeLabel, options, correctIndex, paper);
                     resetComposer();
-                    newInput.focus();
+                    (newInput.quillInstance ?? newInput).focus();
+
+                    return true;
                 }
 
                 addNewBtn?.addEventListener('click', submitNewQuestion);
-                newInput?.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        submitNewQuestion();
+
+                /**
+                 * A question still sitting in the composer is queued on the way
+                 * out rather than thrown away.
+                 *
+                 * The box is a rich text editor rather than a one-line input, so
+                 * it reads as a field to fill in and save — the question gets
+                 * written and the form submitted without "Add" ever being
+                 * pressed, and the composer holds no name, so what was typed
+                 * went nowhere. This listener is registered while the widget is
+                 * built, which is before app-ajax.js binds its own submit
+                 * handler, so the hidden fields exist by the time the FormData
+                 * is read.
+                 */
+                widget.closest('form')?.addEventListener('submit', (e) => {
+                    if (!canWriteNew || plainText(newInput.value) === '') {
+                        return;
                     }
+
+                    if (submitNewQuestion()) {
+                        return;
+                    }
+
+                    // Half a question is not something to drop silently; the
+                    // toast above already said what is missing.
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
                 });
 
                 list?.addEventListener('click', (e) => {
@@ -1013,7 +1062,12 @@
         // Upgrades every <textarea data-quill> into a Quill editor. The original
         // textarea stays in the form (hidden) and receives the editor's HTML, so
         // nothing about how these forms submit has to change.
-        document.addEventListener('DOMContentLoaded', () => {
+        //
+        // Exposed as window.enhanceQuillEditors(root) rather than run once at
+        // load, because editors now appear after it — a question row added to
+        // the bank form, or a modal built on demand. Calling it again is safe:
+        // a textarea it has already upgraded is skipped.
+        (() => {
             const Delta = Quill.import('delta');
 
             const toolbarFor = (allowAttachments) => [
@@ -1026,7 +1080,7 @@
                 ['clean'],
             ];
 
-            document.querySelectorAll('textarea[data-quill]').forEach(textarea => {
+            const upgrade = (textarea) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'quill-wrapper';
                 if (textarea.dataset.quillHeight) {
@@ -1102,8 +1156,18 @@
                         quill.focus();
                     }
                 });
-            });
-        });
+            };
+
+            window.enhanceQuillEditors = (root = document) => {
+                root.querySelectorAll('textarea[data-quill]').forEach(textarea => {
+                    if (textarea.dataset.quillReady) return;
+                    textarea.dataset.quillReady = 'true';
+                    upgrade(textarea);
+                });
+            };
+
+            document.addEventListener('DOMContentLoaded', () => window.enhanceQuillEditors());
+        })();
     </script>
 
     {{-- Arriving from a search hit: the listing is already filtered down to the

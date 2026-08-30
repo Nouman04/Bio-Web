@@ -71,8 +71,13 @@ class PublicCourseController extends Controller
         }
 
         return view('public.plans', [
-            'course' => $course->loadCount('chapters')->load(['category:id,title', 'plans']),
+            'course' => $course->loadCount('chapters')->load(['category:id,title', 'plans', 'prices']),
             'plan' => $course->plan,
+            // The offer running against each interval's current price, keyed by
+            // interval, so a plan row can say what a code takes off it.
+            'promos' => collect(StripeService::INTERVALS)
+                ->mapWithKeys(fn (string $interval) => [$interval => $course->currentPrice($interval)])
+                ->filter(fn ($price) => $price?->hasLivePromo()),
             // Monthly first, so the yearly saving reads as a discount on it.
             'plans' => $course->plans->sortBy(fn ($p) => $p->billing_interval === 'month' ? 0 : 1)->values(),
             'chapter' => $chapter,
@@ -406,7 +411,7 @@ class PublicCourseController extends Controller
     {
         return Quiz::query()
             ->whereIn('type', $types)
-            ->where('status', 'published')
+            ->whereStatus('published')
             ->whereHas('chapters', fn ($query) => $query->where('chapters.id', $chapter->id));
     }
 

@@ -30,7 +30,7 @@
             right: -100px;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(0, 19, 48, 0.15) 0%, rgba(255,255,255,0) 70%);
+            background: rgba(0, 19, 48, 0.08);
             border-radius: 50%;
             z-index: -1;
             pointer-events: none;
@@ -41,7 +41,7 @@
             left: -200px;
             width: 800px;
             height: 800px;
-            background: radial-gradient(circle, rgba(72,188,212,0.1) 0%, rgba(255,255,255,0) 70%);
+            background: rgba(0, 19, 48, 0.06);
             border-radius: 50%;
             z-index: -1;
             pointer-events: none;

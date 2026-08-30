@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Laravel\Scout\Searchable;
 
 class Course extends Model
 {
-    use SoftDeletes, HasUuid, Searchable;
+    use SoftDeletes, HasUuid, HasAttachments, Searchable;
 
     protected $fillable = [
         'created_by',
@@ -30,6 +31,41 @@ class Course extends Model
     public function plans(): HasMany
     {
         return $this->hasMany(CoursePlan::class);
+    }
+
+    /**
+     * Every price this course has ever been sold at, newest first.
+     *
+     * Repricing adds a row rather than editing the last one, so this is the
+     * history — see CoursePrice.
+     */
+    public function prices(): HasMany
+    {
+        return $this->hasMany(CoursePrice::class)->orderByDesc('id');
+    }
+
+    /**
+     * The price in force on one set of terms: the newest entry for that
+     * interval. Null for a course that has never been priced.
+     */
+    public function currentPrice(string $interval = 'month'): ?CoursePrice
+    {
+        // Reads the loaded history where there is one, so a listing that
+        // eager-loaded `prices` does not go back to the database per row.
+        if ($this->relationLoaded('prices')) {
+            return $this->prices->firstWhere('billing_interval', $interval);
+        }
+
+        return $this->prices()->where('billing_interval', $interval)->first();
+    }
+
+    /**
+     * The price in force on any terms, preferring monthly the same way plan()
+     * does — for a card or a listing that shows one figure.
+     */
+    public function headlinePrice(): ?CoursePrice
+    {
+        return $this->currentPrice('month') ?? $this->currentPrice('year');
     }
 
     /**

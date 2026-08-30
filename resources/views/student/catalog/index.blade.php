@@ -25,7 +25,7 @@
 
 @section('content')
 <!-- Hero Section -->
-<section class="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-container/20 to-surface-container-lowest p-8 md:p-12 border border-white/50 glass-card mt-4 mb-8">
+<section class="relative rounded-2xl overflow-hidden bg-surface-container-lowest p-8 md:p-12 border border-white/50 glass-card mt-4 mb-8">
     <div class="relative z-10 max-w-2xl">
         <h2 class="text-on-surface mb-4" style="font-size:48px;line-height:56px;letter-spacing:-0.02em;font-weight:700;">Discover Your Next Learning Adventure</h2>
         <p class="text-on-surface-variant mb-8" style="font-size:18px;line-height:28px;">
@@ -46,7 +46,7 @@
                     class="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-full pl-11 pr-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
             </div>
             <button type="submit"
-                class="bg-primary text-on-primary px-6 py-3 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 bg-gradient-to-r from-primary to-primary-container flex items-center gap-2">
+                class="bg-primary text-on-primary px-6 py-3 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 bg-primary flex items-center gap-2">
                 Start Exploring
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
@@ -112,7 +112,7 @@
         @endphp
         <article class="glass-card rounded-xl overflow-hidden flex flex-col h-full group">
             <div class="relative h-40 overflow-hidden flex items-center justify-center"
-                style="background-image: linear-gradient(135deg, {{ $palette[0] }}, {{ $palette[1] }});">
+                style="background-color: {{ $palette[0] }};">
                 <span class="text-white/90 font-bold transition-transform duration-500 group-hover:scale-110" style="font-size:44px;line-height:1;">
                     {{ Str::upper(Str::substr($course['title'], 0, 1)) }}
                 </span>

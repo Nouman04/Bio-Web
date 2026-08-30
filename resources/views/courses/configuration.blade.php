@@ -135,7 +135,7 @@
                     Cancel
                 </a>
                 <button type="submit" data-loading-text="Updating…" @disabled($chapters->isEmpty())
-                    class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none">
+                    class="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none">
                     <i class="fa-solid fa-circle-check text-xs"></i>
                     Update Configuration
                 </button>

@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attachment;
 use App\Models\Chapter;
 use App\Models\Course;
+use App\Services\AttachmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class ChapterController extends Controller
 {
+    public function __construct(private readonly AttachmentService $attachments)
+    {
+    }
+
     /**
      * Display the chapters belonging to a single course. The grid itself is
      * loaded by DataTables from the `courses.chapters.data` endpoint below.
@@ -34,7 +40,7 @@ class ChapterController extends Controller
      */
     public function data(Request $request, Course $course): JsonResponse
     {
-        $chapters = Chapter::query()->where('course_id', $course->id);
+        $chapters = Chapter::query()->where('course_id', $course->id)->with('image');
 
         // Filters from the filter card above the table.
         $chapters->when(
@@ -44,7 +50,7 @@ class ChapterController extends Controller
 
         $chapters->when(
             $request->input('status'),
-            fn ($query, $status) => $query->where('status', $status)
+            fn ($query, $status) => $query->whereStatus($status)
         );
 
         $table = DataTables::eloquent($chapters)
@@ -54,7 +60,7 @@ class ChapterController extends Controller
             ->addColumn('action', fn (Chapter $chapter) => view('chapters.partials.actions', ['chapter' => $chapter, 'courseId' => $course])->render())
             ->orderColumn('number_cell', 'chapter_number $1')
             ->orderColumn('title_cell', 'title $1')
-            ->orderColumn('status_cell', 'status $1')
+            ->orderColumn('status_cell', fn ($query, $order) => $query->orderByStatus($order))
             ->rawColumns(['number_cell', 'title_cell', 'status_cell', 'action'])
             ->only(['number_cell', 'title_cell', 'status_cell', 'action'])
             // Rides along on the DataTables payload so the stat cards stay in
@@ -77,7 +83,7 @@ class ChapterController extends Controller
         abort_if($chapterModel->course_id !== $courseModel->id, 404);
 
         // Every tile's figure, in one query rather than nine.
-        $chapterModel->loadCount([
+        $chapterModel->load('image')->loadCount([
             'topics', 'notes', 'summaries', 'diagrams', 'guides',
             'videoLessons', 'flashcards', 'questionBank', 'quizzes',
         ]);
@@ -90,7 +96,9 @@ class ChapterController extends Controller
                 'id' => $chapterModel->uuid,
                 'num' => $chapterModel->chapter_number,
                 'title' => $chapterModel->title,
-                'desc' => $chapterModel->description,
+                // The description is written in a rich text editor, so the
+                // stored value is markup; the header wants the words in it.
+                'desc' => $chapterModel->excerpt,
                 'status' => $chapterModel->status,
             ],
             'counts' => [
@@ -114,7 +122,7 @@ class ChapterController extends Controller
     private function stats(Course $course): array
     {
         $total = Chapter::where('course_id', $course->id)->count();
-        $drafts = Chapter::where('course_id', $course->id)->where('status', 'Draft')->count();
+        $drafts = Chapter::where('course_id', $course->id)->whereStatus('Draft')->count();
 
         return [
             'total' => $total,
@@ -130,7 +138,9 @@ class ChapterController extends Controller
     {
         $data = $this->validated($request, $course);
 
-        $chapter = Chapter::create($data);
+        $chapter = Chapter::create($this->withoutImage($data));
+
+        $this->attachments->replace($chapter, $request->file('image'), 'chapters', Attachment::IMAGE);
 
         return $this->respond($request, $course, $chapter->fresh(), 'Chapter created successfully.', 201);
     }
@@ -140,7 +150,9 @@ class ChapterController extends Controller
      */
     public function update(Request $request, Course $course, Chapter $chapter)
     {
-        $chapter->update($this->validated($request, $course));
+        $chapter->update($this->withoutImage($this->validated($request, $course)));
+
+        $this->attachments->replace($chapter, $request->file('image'), 'chapters', Attachment::IMAGE);
 
         return $this->respond($request, $course, $chapter->fresh(), 'Chapter updated successfully.');
     }
@@ -173,7 +185,23 @@ class ChapterController extends Controller
             'chapter_number' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:Draft,Published'],
+            // The chapter's cover, stored as an attachment rather than a column.
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
+    }
+
+    /**
+     * The cover arrives in the same validated payload as the rest, but it is
+     * not a column on the chapter.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withoutImage(array $data): array
+    {
+        unset($data['image']);
+
+        return $data;
     }
 
     /**

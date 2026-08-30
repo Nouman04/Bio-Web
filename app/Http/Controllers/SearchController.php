@@ -137,7 +137,7 @@ class SearchController extends Controller
                 QuestionBank::query()->with('chapter:id,title'),
                 'question', $term,
                 fn (QuestionBank $q) => [
-                    'title' => $q->question,
+                    'title' => $q->plain_question,
                     'meta' => $q->chapter?->title ?: 'Question bank',
                     'url' => route('questions', ['question' => $q->question, 'open' => $q->uuid]),
                 ]
@@ -215,7 +215,7 @@ class SearchController extends Controller
                 ]
             ),
             'quizzes' => $this->hits(
-                Quiz::query()->where('status', 'published')->whereIn('type', ['mcqs', 'theory'])
+                Quiz::query()->whereStatus('published')->whereIn('type', ['mcqs', 'theory'])
                     ->with('chapters'),
                 'title', $term,
                 function (Quiz $q) {

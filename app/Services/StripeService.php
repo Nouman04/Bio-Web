@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Course;
 use App\Models\CoursePlan;
+use App\Models\CoursePrice;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
@@ -175,6 +176,46 @@ class StripeService
         }
     }
 
+    /**
+     * Makes a price's promo code real in Stripe, so a customer can type it at
+     * checkout and be charged the discounted amount.
+     *
+     * A coupon carries the discount; a promotion code is the string a customer
+     * types to claim it. Both are created once and left alone — Stripe rejects
+     * a duplicate code, which is treated as "it already exists" rather than as
+     * a failure, because that is what it means here.
+     *
+     * Does nothing for a price with no live offer, or when no key is set.
+     */
+    public function syncPromotionCode(Course $course, CoursePrice $price): void
+    {
+        if (! $this->configured() || ! $price->hasLivePromo()) {
+            return;
+        }
+
+        try {
+            $coupon = $this->client()->coupons->create(array_filter([
+                'name' => $course->title . ' — ' . $price->promo_code,
+                'duration' => 'once',
+                'percent_off' => $price->promo_type === 'percent' ? $price->promo_value : null,
+                'amount_off' => $price->promo_type === 'amount' ? $price->promo_value : null,
+                'currency' => $price->promo_type === 'amount' ? self::CURRENCY : null,
+                'redeem_by' => $price->promo_expires_at?->getTimestamp(),
+            ], fn ($value) => $value !== null));
+
+            $this->client()->promotionCodes->create(array_filter([
+                'coupon' => $coupon->id,
+                'code' => $price->promo_code,
+                'expires_at' => $price->promo_expires_at?->getTimestamp(),
+                'metadata' => ['course_uuid' => $course->uuid],
+            ], fn ($value) => $value !== null));
+        } catch (ApiErrorException) {
+            // The code already exists in Stripe, or the account will not take
+            // it. The local record stands either way, and the price itself is
+            // already live — this only decides whether the code is claimable.
+        }
+    }
+
     /* ── Checkout ───────────────────────────────────────────────────────── */
 
     /**
@@ -192,6 +233,9 @@ class StripeService
             ->checkout([
                 'success_url' => $successUrl,
                 'cancel_url' => $cancelUrl,
+                // A course can be running a promo code; without this the box to
+                // type it into never appears.
+                'allow_promotion_codes' => true,
                 'metadata' => [
                     'course_uuid' => $course->uuid,
                     'course_title' => $course->title,

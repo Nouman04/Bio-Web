@@ -159,9 +159,26 @@
 @endpush
 
 @section('content')
-    {{-- Breadcrumbs --}}
-    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6">
+    {{-- Breadcrumbs.
+
+         Summaries are a library-wide listing, so from the sidenav the trail is
+         just Home › Summaries. Filtered to one chapter — which is how the
+         chapter dashboard and a summary's own page link here — it walks the
+         course and chapter it is showing instead. --}}
+    @php
+        $crumbChapter = $scopedChapter ?? null;
+        $crumbCourse = $crumbChapter?->course;
+    @endphp
+    <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6 flex-wrap">
         <a class="hover:text-primary transition-colors" href="{{ route('dashboard') }}">Home</a>
+        @if($crumbCourse)
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses') }}">Courses</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters', $crumbCourse) }}">{{ $crumbCourse->title }}</a>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <a class="hover:text-primary transition-colors" href="{{ route('courses.chapters.dashboard', [$crumbCourse, $crumbChapter]) }}">{{ $crumbChapter->title }}</a>
+        @endif
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-primary dark:text-primary-fixed-dim font-semibold">Summaries</span>
     </div>
@@ -178,7 +195,7 @@
             <i class="fa-solid fa-filter text-sm"></i>
         </button>
         <button type="button" onclick="openAddSummaryModal()"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             Add New Summary
         </button>

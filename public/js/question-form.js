@@ -125,8 +125,14 @@ window.QuestionForm = (function () {
 
         rows.appendChild(template.content.cloneNode(true));
         renumberQuestionRows();
+
+        // The question and answer fields are rich text, and the editor only
+        // exists once something upgrades the textarea — a row added after the
+        // page loaded has to ask for it.
+        window.enhanceQuillEditors?.(rows.lastElementChild);
+
         applyAnswerMode(rows.lastElementChild);
-        rows.lastElementChild?.querySelector('[data-name="question"]')?.focus();
+        rows.lastElementChild?.querySelector('[data-name="question"]')?.quillInstance?.focus();
     }
 
     function renumberQuestionRows() {

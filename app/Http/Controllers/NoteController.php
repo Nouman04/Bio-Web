@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksQuestions;
 use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\Note;
@@ -9,11 +10,14 @@ use App\Models\Summary;
 use App\Models\Topic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class NoteController extends Controller
 {
+    use LinksQuestions;
+
     /**
      * Note types, keyed by the enum value stored on the row.
      */
@@ -90,6 +94,24 @@ class NoteController extends Controller
     }
 
     /**
+     * The questions already linked to a note, for the edit modal's picker.
+     */
+    public function questions(Course $course, Chapter $chapter, Note $note): JsonResponse
+    {
+        $this->scope($course, $chapter, $note);
+
+        return response()->json(
+            $note->questionables()->with('question:id,question')->get()
+                ->filter(fn ($link) => $link->question)
+                ->map(fn ($link) => [
+                    'id' => $link->question->id,
+                    'text' => $link->question->plain_question,
+                ])
+                ->values()
+        );
+    }
+
+    /**
      * Read-only detail page for one note.
      */
     public function show(Course $course, Chapter $chapter, Note $note)
@@ -100,6 +122,7 @@ class NoteController extends Controller
             'course' => $courseModel,
             'chapter' => $chapterModel,
             'note' => $note->load('topic:id,title', 'summary:id,title', 'attachments'),
+            'questions' => $this->linkedQuestions($note),
         ]);
     }
 
@@ -112,16 +135,24 @@ class NoteController extends Controller
 
         $data = $this->validated($request, $chapter);
 
-        $note = Note::create([
-            // The chapter comes from the chain, not from a picker in the form.
-            'chapter_id' => $chapter->id,
-            'topic_id' => $data['topic_id'] ?? null,
-            // Only summary notes carry a summary.
-            'summary_id' => $data['type'] === 'summary' ? ($data['summary_id'] ?? null) : null,
-            'title' => $data['title'],
-            'type' => $data['type'],
-            'content' => $data['content'],
-        ]);
+        $this->validateNewQuestions($data);
+
+        $note = DB::transaction(function () use ($data, $chapter) {
+            $note = Note::create([
+                // The chapter comes from the chain, not from a picker in the form.
+                'chapter_id' => $chapter->id,
+                'topic_id' => $data['topic_id'] ?? null,
+                // Only summary notes carry a summary.
+                'summary_id' => $data['type'] === 'summary' ? ($data['summary_id'] ?? null) : null,
+                'title' => $data['title'],
+                'type' => $data['type'],
+                'content' => $data['content'],
+            ]);
+
+            $this->syncQuestionLinks($note, $data);
+
+            return $note;
+        });
 
         return $this->respond($request, $course, $chapter, $note->fresh(), 'Note created successfully.', 201);
     }
@@ -135,15 +166,21 @@ class NoteController extends Controller
 
         $data = $this->validated($request, $chapter);
 
-        // The chapter stays as it is — it belongs to the chain, not the form.
-        $note->update([
-            'topic_id' => $data['topic_id'] ?? null,
-            // Switching away from a summary note clears the link.
-            'summary_id' => $data['type'] === 'summary' ? ($data['summary_id'] ?? null) : null,
-            'title' => $data['title'],
-            'type' => $data['type'],
-            'content' => $data['content'],
-        ]);
+        $this->validateNewQuestions($data);
+
+        DB::transaction(function () use ($note, $data) {
+            // The chapter stays as it is — it belongs to the chain, not the form.
+            $note->update([
+                'topic_id' => $data['topic_id'] ?? null,
+                // Switching away from a summary note clears the link.
+                'summary_id' => $data['type'] === 'summary' ? ($data['summary_id'] ?? null) : null,
+                'title' => $data['title'],
+                'type' => $data['type'],
+                'content' => $data['content'],
+            ]);
+
+            $this->syncQuestionLinks($note, $data);
+        });
 
         return $this->respond($request, $course, $chapter, $note->fresh(), 'Note updated successfully.');
     }
@@ -155,7 +192,10 @@ class NoteController extends Controller
     {
         $this->scope($course, $chapter, $note);
 
-        $note->delete();
+        DB::transaction(function () use ($note) {
+            $note->questionables()->delete();
+            $note->delete();
+        });
 
         return $this->respond($request, $course, $chapter, null, 'Note deleted successfully.');
     }
@@ -190,7 +230,7 @@ class NoteController extends Controller
                 Rule::exists('summaries', 'id')->where('chapter_id', $chapter->id),
             ],
             'content' => ['required', 'string'],
-        ]);
+        ] + $this->questionLinkRules());
     }
 
     /**

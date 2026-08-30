@@ -16,10 +16,15 @@
 @php
     $pending = $attempt->status === 'pending_review';
     $expired = $attempt->status === 'expired';
+    // This quiz is marked by the student rather than by anyone else: the model
+    // answers are shown below and the verdict is theirs, so the header claims
+    // no result of its own.
+    $selfMarked = $attempt->status === 'self_marked';
     // A paper still with the instructor has no score to show yet, so the
     // header says where it is rather than inventing a result.
     $headline = match (true) {
         $pending => ['Waiting to be marked', 'bg-secondary/10 text-secondary', 'hourglass_top'],
+        $selfMarked => ['Mark your own answers', 'bg-primary/10 text-primary', 'fact_check'],
         $expired => ['Time ran out', 'bg-error/10 text-error', 'timer_off'],
         $attempt->passed => ['Passed', 'bg-tertiary/10 text-tertiary', 'check_circle'],
         default => ['Not passed', 'bg-error/10 text-error', 'cancel'],
@@ -59,7 +64,7 @@
                 </p>
             </div>
 
-            @unless($pending)
+            @unless($pending || $selfMarked)
                 <div class="text-right shrink-0">
                     <div class="text-4xl font-bold text-on-surface tabular-nums">
                         {{ rtrim(rtrim((string) $attempt->earned_marks, '0'), '.') }}<span class="text-on-surface-variant text-2xl">/{{ rtrim(rtrim((string) $attempt->total_marks, '0'), '.') }}</span>
@@ -69,7 +74,7 @@
             @endunless
         </div>
 
-        @unless($pending)
+        @unless($pending || $selfMarked)
             <div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden mt-6">
                 <div class="h-full {{ $attempt->passed ? 'bg-tertiary' : 'bg-error' }} rounded-full transition-all duration-700"
                     style="width: {{ $attempt->percent }}%"></div>
@@ -88,13 +93,13 @@
             <div>
                 <div class="text-on-surface-variant text-xs uppercase tracking-wide">Correct</div>
                 <div class="text-on-surface font-semibold text-lg">
-                    {{ $pending ? '—' : collect($report)->where('correct', true)->count() }}
+                    {{ $pending || $selfMarked ? '—' : collect($report)->where('correct', true)->count() }}
                 </div>
             </div>
             <div>
                 <div class="text-on-surface-variant text-xs uppercase tracking-wide">Pass mark</div>
                 <div class="text-on-surface font-semibold text-lg">
-                    {{ $quiz->passing_score !== null ? rtrim(rtrim((string) $quiz->passing_score, '0'), '.') : '—' }}
+                    {{ $selfMarked || $quiz->passing_score === null ? '—' : rtrim(rtrim((string) $quiz->passing_score, '0'), '.') }}
                 </div>
             </div>
         </div>
@@ -106,6 +111,21 @@
             </div>
         @endif
     </div>
+
+    @if($selfMarked)
+        <div class="glass-panel rounded-2xl p-6 mb-6 flex items-start gap-4">
+            <span class="material-symbols-outlined text-primary shrink-0">fact_check</span>
+            <div>
+                <h2 class="text-on-surface font-semibold mb-1">This one is yours to mark</h2>
+                <p class="text-on-surface-variant text-sm">
+                    Nobody else marks this quiz, so nothing on it is scored and there is no pass mark.
+                    Every question is below with what you answered and the answer that was expected —
+                    read them side by side and judge your own. Your answers are saved either way, so
+                    you can come back to this page whenever you like.
+                </p>
+            </div>
+        </div>
+    @endif
 
     @if($pending)
         <div class="glass-panel rounded-2xl p-6 mb-6 flex items-start gap-4">
@@ -132,12 +152,17 @@
 
             <section class="glass-panel rounded-2xl p-6 border-l-4 {{ $tone }}">
                 <div class="flex items-start justify-between gap-4 mb-3">
-                    <h2 class="text-on-surface font-semibold text-base">
-                        <span class="text-primary">{{ $index + 1 }}.</span> {{ $row['question'] }}
+                    <h2 class="text-on-surface font-semibold text-base flex items-start gap-1.5 min-w-0">
+                        <span class="text-primary shrink-0">{{ $index + 1 }}.</span>
+                        <span class="min-w-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['question'] !!}</span>
                     </h2>
                     <span class="text-xs font-semibold px-2 py-1 rounded-full shrink-0 tabular-nums
                         {{ $unmarked ? 'bg-surface-container-high text-on-surface-variant' : ($row['correct'] ? 'bg-tertiary/10 text-tertiary' : 'bg-error/10 text-error') }}">
-                        {{ $unmarked ? 'awaiting marking' : rtrim(rtrim((string) $row['awarded'], '0'), '.') . ' / ' . rtrim(rtrim((string) $row['marks'], '0'), '.') }}
+                        @if($unmarked)
+                            {{ $selfMarked ? 'mark yourself' : 'awaiting marking' }}
+                        @else
+                            {{ rtrim(rtrim((string) $row['awarded'], '0'), '.') }} / {{ rtrim(rtrim((string) $row['marks'], '0'), '.') }}
+                        @endif
                     </span>
                 </div>
 
@@ -176,11 +201,24 @@
                         </div>
                     @endif
 
-                    @if(! $unmarked && $row['expected'])
-                        <div class="mt-3 p-3 rounded-xl bg-tertiary/5 border-l-4 border-tertiary">
-                            <div class="text-xs font-semibold uppercase tracking-wide text-tertiary mb-1">Expected answer</div>
-                            <p class="text-sm text-on-surface">{{ $row['expected'] }}</p>
-                        </div>
+                    {{-- The recorded answer, beside what was written, so the
+                         two can be read against each other. Held back only while
+                         an instructor still has the paper — releasing it then
+                         would be handing out the answers before marking. --}}
+                    @if(! $unmarked || $selfMarked)
+                        @if($row['expected'])
+                            <div class="mt-3 p-3 rounded-xl bg-tertiary/5 border-l-4 border-tertiary">
+                                <div class="text-xs font-semibold uppercase tracking-wide text-tertiary mb-1">Expected answer</div>
+                                <div class="text-sm text-on-surface [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['expected'] !!}</div>
+                            </div>
+                        @else
+                            <div class="mt-3 p-3 rounded-xl bg-surface-container-high/60 border-l-4 border-outline-variant">
+                                <div class="text-xs font-semibold uppercase tracking-wide text-on-surface-variant mb-1">Expected answer</div>
+                                <p class="text-sm text-on-surface-variant">
+                                    No answer has been recorded for this question yet, so there is nothing to compare against.
+                                </p>
+                            </div>
+                        @endif
                     @endif
                 @endif
             </section>

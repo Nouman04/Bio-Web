@@ -71,7 +71,7 @@ class QuizController extends Controller
             fn ($query, $term) => $query->where('title', 'like', "%{$term}%")
         );
 
-        $quizzes->when($request->input('status'), fn ($query, $status) => $query->where('status', $status));
+        $quizzes->when($request->input('status'), fn ($query, $status) => $query->whereStatus($status));
         $quizzes->when($request->input('date_from'), fn ($query, $date) => $query->whereDate('created_at', '>=', $date));
         $quizzes->when($request->input('date_to'), fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
 
@@ -84,7 +84,7 @@ class QuizController extends Controller
             ->addColumn('action', fn (Quiz $quiz) => view('quizzes.partials.actions', compact('quiz') + ['chain' => $chain])->render())
             ->orderColumn('title_cell', 'title $1')
             ->orderColumn('date_cell', 'created_at $1')
-            ->orderColumn('status_cell', 'status $1')
+            ->orderColumn('status_cell', fn ($query, $order) => $query->orderByStatus($order))
             ->orderColumn('responses_cell', 'user_attempts_count $1')
             ->rawColumns(['title_cell', 'chapter_cell', 'date_cell', 'status_cell', 'responses_cell', 'action'])
             ->only(['title_cell', 'chapter_cell', 'date_cell', 'status_cell', 'responses_cell', 'action'])
@@ -101,8 +101,13 @@ class QuizController extends Controller
      */
     public function create(?Course $course = null, ?Chapter $chapter = null)
     {
+        $chain = $this->chain($course, $chapter);
+
         return view('quizzes.create', [
-            'chain' => $this->chain($course, $chapter),
+            'chain' => $chain,
+            // Only offered off the sidenav; through the chain the course is
+            // whichever one the chapter belongs to.
+            'courses' => $chain ? collect() : Course::orderBy('title')->get(['id', 'uuid', 'title']),
             'types' => self::TYPES,
         ]);
     }
@@ -113,18 +118,20 @@ class QuizController extends Controller
     public function store(Request $request, ?Course $course = null, ?Chapter $chapter = null)
     {
         $chain = $this->chain($course, $chapter);
-        $data = $this->validated($request);
+        $data = $this->validated($request, $chain);
 
         $this->validateQuestionSet($data);
 
         $quiz = DB::transaction(function () use ($data, $chain) {
             $quiz = Quiz::create([
+                'course_id' => $data['course_id'],
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
                 'type' => $data['type'],
                 'duration' => $data['duration'] ?? null,
                 'passing_score' => $data['passing_score'] ?? null,
                 'shuffle_questions' => (bool) ($data['shuffle_questions'] ?? false),
+                'marking' => $data['marking'] ?? 'instructor',
                 'status' => $data['status'],
             ]);
 
@@ -190,7 +197,8 @@ class QuizController extends Controller
 
         return view('quizzes.edit', [
             'chain' => $chain,
-            'quiz' => $quiz,
+            'quiz' => $quiz->load('course:id,uuid,title'),
+            'courses' => $chain ? collect() : Course::orderBy('title')->get(['id', 'uuid', 'title']),
             'types' => self::TYPES,
             'questions' => $this->pickedQuestions($quiz),
         ]);
@@ -203,17 +211,19 @@ class QuizController extends Controller
     {
         [$chain, $quiz] = $this->resolveEdit($course, $chapter, $quiz);
 
-        $data = $this->validated($request);
+        $data = $this->validated($request, $chain);
         $this->validateQuestionSet($data);
 
         DB::transaction(function () use ($quiz, $data, $chain) {
             $quiz->update([
+                'course_id' => $data['course_id'],
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
                 'type' => $data['type'],
                 'duration' => $data['duration'] ?? null,
                 'passing_score' => $data['passing_score'] ?? null,
                 'shuffle_questions' => (bool) ($data['shuffle_questions'] ?? false),
+                'marking' => $data['marking'] ?? 'instructor',
                 'status' => $data['status'],
             ]);
 
@@ -284,7 +294,7 @@ class QuizController extends Controller
 
                 return [
                     'id' => $question->id,
-                    'text' => $question->question,
+                    'text' => $question->plain_question,
                     'type' => $type,
                     'marks' => rtrim(rtrim(number_format((float) $link->marks, 2, '.', ''), '0'), '.'),
                     'meta' => implode(' • ', array_filter([
@@ -310,21 +320,52 @@ class QuizController extends Controller
      * Shared validation. Note there is no chapter rule — the chapter is decided
      * by the URL, so nothing the form posts could change it.
      */
-    private function validated(Request $request): array
+    private function validated(Request $request, ?array $chain = null): array
     {
+        // Reached through a chapter, the course is the chapter's — whatever the
+        // form says. Only the sidenav route lets it be chosen.
+        if ($chain) {
+            $request->merge(['course_id' => $chain['course']->id]);
+        }
+
+        $selfMarked = $request->input('marking') === 'self';
+
         // An untouched number box posts an empty string, which is not an integer.
+        // A quiz nobody marks is not scored either, so it has no pass mark —
+        // the form disables the field, and this makes sure a stale value cannot
+        // arrive behind it.
         $request->merge([
             'duration' => $request->input('duration') ?: null,
-            'passing_score' => $request->input('passing_score') ?: null,
+            'passing_score' => $selfMarked ? null : ($request->input('passing_score') ?: null),
         ]);
 
+        // Nothing on an unmarked paper is worth marks, so the builder hides the
+        // per-question boxes and every question is stored at zero. Forced here
+        // rather than left to the rules, so switching a scored quiz over to
+        // self-marking clears the marks its questions were already carrying.
+        if ($selfMarked && is_array($request->input('questions'))) {
+            $request->merge([
+                'questions' => array_map(
+                    fn ($row) => is_array($row) ? array_merge($row, ['marks' => 0]) : $row,
+                    $request->input('questions')
+                ),
+            ]);
+        }
+
         return $request->validate([
+            // Which course the quiz is set for. It decides which questions are
+            // on offer, so it is required rather than inferred later.
+            'course_id' => ['required', 'integer', 'exists:courses,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', Rule::in(array_keys(self::TYPES))],
             'duration' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'passing_score' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'shuffle_questions' => ['nullable', 'boolean'],
+            // Who marks the written answers. Meaningless on an MCQ paper, which
+            // is why the form hides it there and it defaults rather than being
+            // required.
+            'marking' => ['nullable', Rule::in(array_keys(Quiz::MARKING))],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'questions' => ['nullable', 'array'],
             'questions.*.question_bank_id' => ['required', 'integer', 'exists:question_bank,id'],
@@ -354,12 +395,33 @@ class QuizController extends Controller
             ]);
         }
 
-        // A theory or MCQ quiz only holds questions of that kind; mixed takes both.
-        if (! $rows || $data['type'] === 'mixed') {
+        if (! $rows) {
             return;
         }
 
-        $wrong = QuestionBank::whereIn('id', array_column($rows, 'question_bank_id'))
+        $questionIds = array_column($rows, 'question_bank_id');
+
+        // The picker only offers the chosen course's questions, so anything
+        // else on the list came from changing the course after picking — or
+        // from a forged id. Either way it does not belong on this quiz.
+        $foreign = QuestionBank::whereIn('id', $questionIds)
+            ->whereDoesntHave('chapter', fn ($query) => $query->where('course_id', $data['course_id']))
+            ->count();
+
+        if ($foreign) {
+            throw ValidationException::withMessages([
+                'questions' => $foreign === 1
+                    ? 'One of the questions does not belong to the chosen course.'
+                    : "{$foreign} of the questions do not belong to the chosen course.",
+            ]);
+        }
+
+        // A theory or MCQ quiz only holds questions of that kind; mixed takes both.
+        if ($data['type'] === 'mixed') {
+            return;
+        }
+
+        $wrong = QuestionBank::whereIn('id', $questionIds)
             ->whereHas('category', fn ($query) => $query->where('type', '!=', $data['type']))
             ->count();
 

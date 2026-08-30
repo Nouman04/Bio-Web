@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Student Portal') | EduAdmin LMS</title>
+    <title>@yield('title', 'Student Portal') | Your Biology</title>
     <meta name="description" content="@yield('meta-description', 'EduStudent – Your Biology Exam Simplified')">
 
     {{-- Tailwind CSS --}}
@@ -53,13 +53,15 @@
             transform: translateY(-2px);
         }
 
-        /* Icon gradient backgrounds */
-        .icon-bg-indigo { background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%); }
-        .icon-bg-orange { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
-        .icon-bg-teal   { background: linear-gradient(135deg, #34d399 0%, #10b981 100%); }
-        .icon-bg-blue   { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
-        .icon-bg-rose   { background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%); }
-        .icon-bg-amber  { background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%); }
+        /* Module tile icons. These were six different gradients; the panel is
+           painted in one brand colour now, so they all resolve to it and the
+           class names stay only because the tiles name them. */
+        .icon-bg-indigo,
+        .icon-bg-orange,
+        .icon-bg-teal,
+        .icon-bg-blue,
+        .icon-bg-rose,
+        .icon-bg-amber { background: rgb(var(--c-primary)); }
 
         /* Sidebar collapse / mobile drawer */
         #sidebar {

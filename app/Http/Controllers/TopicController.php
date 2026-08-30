@@ -150,7 +150,7 @@ class TopicController extends Controller
             'questions' => QuestionBank::with('category:id,type')->latest('id')->limit(25)->get()
                 ->map(fn (QuestionBank $question) => [
                     'id' => $question->id,
-                    'text' => $question->question,
+                    'text' => $question->plain_question,
                     'type' => $question->category?->type === 'mcqs' ? 'MCQ' : 'Theory',
                     'difficulty' => $question->difficulty_level ?: '—',
                 ]),

@@ -23,6 +23,20 @@ class QuestionBank extends Model
         'difficulty_level',
     ];
 
+    /**
+     * The question as words alone.
+     *
+     * The text is written in a rich text editor, so the stored value is markup.
+     * A picker label, a search result and a confirmation dialog all want the
+     * words rather than the tags around them.
+     */
+    public function getPlainQuestionAttribute(): string
+    {
+        $text = html_entity_decode(strip_tags((string) $this->question), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim(preg_replace('/\s+/u', ' ', $text));
+    }
+
     public function chapter(): BelongsTo
     {
         return $this->belongsTo(Chapter::class);

@@ -15,7 +15,7 @@
 </div>
 <h1 class="font-display-lg text-display-lg md:text-[64px] text-on-surface leading-[1.1] tracking-tight">
                     Master IGCSE Biology <br class="hidden lg:block">
-<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#8b5cf6]">with Confidence</span>
+<span class="text-transparent bg-clip-text bg-primary">with Confidence</span>
 </h1>
 <p class="font-body-lg text-body-lg text-on-surface-variant text-lg md:text-xl max-w-xl mx-auto lg:mx-0">
                     Biology made simpler. Exams made easier. Learn it, understand it, and ace your exams with our expert-crafted, interactive resources designed for the modern student.
@@ -42,7 +42,7 @@
 </div>
 </div>
 <div class="flex-1 w-full relative max-w-3xl lg:max-w-none mx-auto mt-12 lg:mt-0">
-<div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-[2.5rem] blur-3xl transform rotate-3"></div>
+<div class="absolute inset-0 bg-primary/20 rounded-[2.5rem] blur-3xl transform rotate-3"></div>
 <div class="glass-panel p-3 rounded-[2.5rem] relative transform hover:-translate-y-2 transition-transform duration-500 shadow-2xl">
 
 {{-- A preview of the real library rather than a stock photograph. --}}
@@ -122,7 +122,7 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 <!-- Card 1 -->
 <div class="glass-panel p-8 rounded-3xl flex flex-col items-start gap-6 hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl group">
-<div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-fixed to-white flex items-center justify-center text-primary shadow-inner group-hover:scale-110 transition-transform">
+<div class="w-16 h-16 rounded-2xl bg-primary-fixed flex items-center justify-center text-primary shadow-inner group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">schema</span>
 </div>
 <div>
@@ -132,7 +132,7 @@
 </div>
 <!-- Card 2 -->
 <div class="glass-panel p-8 rounded-3xl flex flex-col items-start gap-6 hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl group">
-<div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e0e7ff] to-white flex items-center justify-center text-[#4f46e5] shadow-inner group-hover:scale-110 transition-transform">
+<div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-[#4f46e5] shadow-inner group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">menu_book</span>
 </div>
 <div>
@@ -142,7 +142,7 @@
 </div>
 <!-- Card 3 -->
 <div class="glass-panel p-8 rounded-3xl flex flex-col items-start gap-6 hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl group">
-<div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#fce7f3] to-white flex items-center justify-center text-[#db2777] shadow-inner group-hover:scale-110 transition-transform">
+<div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-[#db2777] shadow-inner group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">quiz</span>
 </div>
 <div>
@@ -155,7 +155,7 @@
 </section>
 <!-- Courses List Section -->
 <section id="courses" class="py-2xl relative z-10">
-<div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent -z-10"></div>
+<div class="absolute inset-0 bg-primary/5 -z-10"></div>
 <div class="max-w-container-max mx-auto px-md md:px-lg">
 <div class="text-center mb-16">
 <h2 class="font-headline-lg text-headline-lg md:text-[40px] text-on-surface mb-4">Our Courses</h2>
@@ -164,7 +164,7 @@
 <div class="grid grid-cols-1 gap-8">
 @forelse($courses as $course)
 <div class="glass-panel rounded-3xl overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-shadow duration-300 group">
-<div class="md:w-[320px] h-48 md:h-auto relative overflow-hidden bg-gradient-to-br from-primary-fixed to-white flex items-center justify-center">
+<div class="md:w-[320px] h-48 md:h-auto relative overflow-hidden bg-primary-fixed flex items-center justify-center">
 <span class="material-symbols-outlined text-primary text-[64px] group-hover:scale-105 transition-transform duration-700">science</span>
 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">{{ $course->category?->title ?: 'Course' }}</div>
 </div>
@@ -184,7 +184,7 @@
 </div>
 @empty
 <div class="glass-panel rounded-3xl p-16 text-center">
-<div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary-fixed to-white flex items-center justify-center text-primary mb-6">
+<div class="w-16 h-16 mx-auto rounded-2xl bg-primary-fixed flex items-center justify-center text-primary mb-6">
 <span class="material-symbols-outlined text-[32px]">menu_book</span>
 </div>
 <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Courses are on the way</h3>
@@ -204,9 +204,9 @@
 <section class="py-2xl relative z-10">
 <div class="max-w-[1000px] mx-auto px-md">
 <div class="glass-panel p-12 md:p-16 rounded-[2.5rem] text-center relative overflow-hidden shadow-2xl">
-<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+<div class="absolute inset-0 bg-primary/5"></div>
 <div class="relative z-10">
-<div class="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-surface-tint rounded-full flex items-center justify-center mb-8 shadow-lg">
+<div class="w-20 h-20 mx-auto bg-primary rounded-full flex items-center justify-center mb-8 shadow-lg">
 <span class="material-symbols-outlined text-white text-[40px]">lightbulb</span>
 </div>
 <h2 class="font-headline-lg text-headline-lg md:text-[40px] text-on-surface mb-6">Our Mission: Biology Made Simpler</h2>

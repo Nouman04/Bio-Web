@@ -22,7 +22,10 @@ trait HasQuestionRules
             'question_ids' => ['nullable', 'array'],
             'question_ids.*' => ['integer', 'exists:question_bank,id'],
             'new_questions' => ['nullable', 'array'],
-            'new_questions.*.question' => ['required', 'string', 'max:1000'],
+            // Written in the rich text editor, so the value is markup as well
+            // as words — a length cap in characters would cut a short question
+            // short. The column is longText.
+            'new_questions.*.question' => ['required', 'string'],
             'new_questions.*.type' => ['required', 'integer', 'exists:question_categories,id'],
             'new_questions.*.options' => ['nullable', 'array'],
             'new_questions.*.options.*' => ['nullable', 'string', 'max:1000'],

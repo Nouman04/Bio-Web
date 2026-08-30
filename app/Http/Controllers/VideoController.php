@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\LinksQuestions;
+use App\Models\Attachment;
 use App\Models\Chapter;
 use App\Models\QuestionBank;
 use App\Models\QuestionCategory;
 use App\Models\Topic;
 use App\Models\VideoLesson;
+use App\Services\AttachmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
@@ -19,6 +20,10 @@ use Yajra\DataTables\Facades\DataTables;
 class VideoController extends Controller
 {
     use LinksQuestions;
+
+    public function __construct(private readonly AttachmentService $attachments)
+    {
+    }
 
     /**
      * Display the video lessons listing. The grid itself is loaded by
@@ -45,7 +50,7 @@ class VideoController extends Controller
     public function data(Request $request): JsonResponse
     {
         $videos = VideoLesson::query()
-            ->with(['chapter:id,title', 'topic:id,title'])
+            ->with(['chapter:id,title', 'topic:id,title', 'video'])
             ->withCount('questionables');
 
         // Filters from the filter card above the table.
@@ -58,11 +63,12 @@ class VideoController extends Controller
         $videos->when($request->input('date_from'), fn ($query, $date) => $query->whereDate('created_at', '>=', $date));
         $videos->when($request->input('date_to'), fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
 
-        // Uploaded file vs. external link.
+        // Uploaded file vs. external link. The upload is an attachment, so
+        // "has a file" is a question about the `video` collection.
         $videos->when($request->input('source'), function ($query, $source) {
             $source === 'uploaded'
-                ? $query->whereNotNull('file_path')->where('file_path', '!=', '')
-                : $query->where(fn ($q) => $q->whereNull('file_path')->orWhere('file_path', ''));
+                ? $query->whereHas('video')
+                : $query->whereDoesntHave('video');
         });
 
         $table = DataTables::eloquent($videos)
@@ -92,7 +98,7 @@ class VideoController extends Controller
                 ->filter(fn ($link) => $link->question)
                 ->map(fn ($link) => [
                     'id' => $link->question->id,
-                    'text' => $link->question->question,
+                    'text' => $link->question->plain_question,
                 ])
                 ->values()
         );
@@ -104,7 +110,7 @@ class VideoController extends Controller
     public function show(VideoLesson $video)
     {
         return view('videos.show', [
-            'video' => $video->load('chapter:id,uuid,title', 'topic:id,title', 'addedBy:id,name'),
+            'video' => $video->load('chapter:id,uuid,title', 'topic:id,title', 'addedBy:id,name', 'video'),
             'questions' => $this->linkedQuestions($video),
         ]);
     }
@@ -125,11 +131,10 @@ class VideoController extends Controller
                 'title' => $data['title'],
                 'slug' => $data['slug'],
                 'description' => $data['description'] ?? null,
-                'file_path' => $request->hasFile('video_file')
-                    ? $request->file('video_file')->store('videos', 'public')
-                    : null,
                 'external_link' => $data['external_link'] ?? null,
             ]);
+
+            $this->attachments->replace($video, $request->file('video_file'), 'videos', Attachment::VIDEO);
 
             $this->syncQuestionLinks($video, $data);
 
@@ -159,14 +164,12 @@ class VideoController extends Controller
                 'external_link' => $data['external_link'] ?? null,
             ];
 
-            if ($request->hasFile('video_file')) {
-                if ($video->file_path) {
-                    Storage::disk('public')->delete($video->file_path);
-                }
-                $attributes['file_path'] = $request->file('video_file')->store('videos', 'public');
-            }
-
             $video->update($attributes);
+
+            // Replacing removes the old upload, file and all; no upload leaves
+            // whatever the lesson already had alone.
+            $this->attachments->replace($video, $request->file('video_file'), 'videos', Attachment::VIDEO);
+
             $this->syncQuestionLinks($video, $data);
         });
 
@@ -198,7 +201,7 @@ class VideoController extends Controller
             'slug' => Str::slug($request->input('slug') ?: $request->input('title')),
         ]);
 
-        $hasStoredVideo = $video && ($video->file_path || $video->external_link);
+        $hasStoredVideo = $video && ($video->video()->exists() || $video->external_link);
 
         return $request->validate([
             'chapter_id' => ['nullable', 'integer', 'exists:chapters,id'],

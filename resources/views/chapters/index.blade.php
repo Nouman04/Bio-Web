@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Chapters — ' . $courseTitle)
-@section('meta-description', 'Manage course chapters and curriculum structure in EduAdmin LMS.')
+@section('meta-description', 'Manage course chapters and curriculum structure in Your Biology.')
 
 @section('page-title', 'Chapters')
 @section('page-subtitle', $courseTitle)
@@ -194,7 +194,7 @@
             Import Worksheet
         </button>
         <button type="button" onclick="openCreateChapterModal()"
-            class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
+            class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
             New Chapter
         </button>
@@ -342,6 +342,8 @@
                     </select>
                     <p class="text-xs text-outline dark:text-slate-500">Drafts stay hidden from students until published.</p>
                 </div>
+                <x-file-field name="image" label="Chapter Image" accept="image/*"
+                    hint="JPG, PNG or WebP up to 4MB" />
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeCreateChapterModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Creating…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Create Chapter</button>
@@ -388,6 +390,8 @@
                     </select>
                     <p class="text-xs text-outline dark:text-slate-500">Switching back to Draft hides the chapter from students.</p>
                 </div>
+                <x-file-field id="edit-chapter-image" name="image" label="Chapter Image" accept="image/*"
+                    hint="Leave this empty to keep the image the chapter already has" />
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeEditChapterModal()" class="px-5 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-slate-700 transition-colors">Cancel</button>
                     <button type="submit" data-loading-text="Saving…" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-sm hover:bg-primary/95 transition-colors inline-flex items-center">Save Changes</button>
@@ -505,7 +509,27 @@
                 desc.value = trigger.dataset.desc ?? '';
             }
 
+            // Names the image the chapter already has; the field itself stays
+            // empty, so saving without touching it keeps what is stored.
+            setCurrentFile('edit-chapter-image', trigger.dataset.image ?? '');
+
             document.getElementById('edit-chapter-modal-container').classList.remove('hidden');
+        }
+
+        // Points a file field at the file the record already holds, and
+        // redraws the name under it.
+        function setCurrentFile(id, name) {
+            const input = document.getElementById(id);
+            if (!input) return;
+
+            input.value = '';
+            if (name) {
+                input.dataset.currentName = name;
+            } else {
+                delete input.dataset.currentName;
+            }
+
+            App.bindFileFields(input.closest('form') ?? document);
         }
 
         function closeEditChapterModal() {

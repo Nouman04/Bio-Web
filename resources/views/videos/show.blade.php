@@ -21,7 +21,7 @@
             {{-- An uploaded file plays inline; an external link is offered as a
                  link, since it may be hosted anywhere. --}}
             <div class="glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl border border-outline-variant/30 dark:border-slate-700 shadow-sm overflow-hidden">
-                @if($video->file_path)
+                @if($video->video)
                     <video class="w-full max-h-[560px] bg-black" controls preload="metadata" src="{{ $video->video_url }}"></video>
                 @elseif($video->external_link)
                     <div class="p-10 text-center">
@@ -59,7 +59,7 @@
             @include('partials.detail-meta', ['rows' => [
                 'Chapter' => $video->chapter?->title,
                 'Topic' => $video->topic?->title,
-                'Source' => ['chip' => $video->file_path ? 'Uploaded' : 'External link'],
+                'Source' => ['chip' => $video->video ? 'Uploaded' : 'External link'],
                 'Slug' => $video->slug,
                 'Link' => $video->external_link ? ['url' => $video->external_link, 'label' => 'Open source'] : null,
                 'Added by' => $video->addedBy?->name,
@@ -68,7 +68,7 @@
             ]])
 
             <a href="{{ route('videos', ['title' => $video->title, 'open' => $video->uuid]) }}"
-                class="w-full px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
+                class="w-full px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
                 <i class="fa-solid fa-pen text-xs"></i>
                 Edit lesson
             </a>

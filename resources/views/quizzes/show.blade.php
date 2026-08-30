@@ -64,10 +64,17 @@
                 'Type' => $types[$quiz->type] ?? $quiz->type,
                 'Chapters' => $quiz->chapters->pluck('title')->filter()->implode(', ') ?: 'No chapter',
                 'Questions' => count($questions),
-                'Total marks' => $totalMarks,
-                'Pass mark' => $quiz->passing_score !== null
-                    ? rtrim(rtrim(number_format((float) $quiz->passing_score, 2, '.', ''), '0'), '.') . ' of ' . $totalMarks
+                'Total marks' => $quiz->isSelfMarked() ? 'Not scored' : $totalMarks,
+                // A paper the student judges themselves is never scored, so it
+                // has no pass mark to show — the builder disables the field.
+                'Marking' => $quiz->is_markable
+                    ? ($quiz->isSelfMarked() ? 'The student marks their own' : 'Instructor marks the paper')
                     : null,
+                'Pass mark' => $quiz->isSelfMarked()
+                    ? 'Not scored'
+                    : ($quiz->passing_score !== null
+                        ? rtrim(rtrim(number_format((float) $quiz->passing_score, 2, '.', ''), '0'), '.') . ' of ' . $totalMarks
+                        : null),
                 'Duration' => $quiz->duration ? $quiz->duration . ' minutes' : null,
                 'Shuffled' => $quiz->shuffle_questions ? 'Yes' : 'No',
                 'Created' => $quiz->created_at?->format('M j, Y'),
@@ -75,7 +82,7 @@
             ]])
 
             <a href="{{ $editRoute }}"
-                class="w-full px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
+                class="w-full px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
                 <i class="fa-solid fa-pen text-xs"></i>
                 Edit quiz
             </a>

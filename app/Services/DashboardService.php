@@ -89,7 +89,7 @@ class DashboardService
 
         return [
             'awaiting_marking' => QuizUserAttempt::awaitingReview()->whereIn('quiz_id', $quizIds)->count(),
-            'in_progress' => QuizUserAttempt::whereIn('quiz_id', $quizIds)->where('status', 'in_progress')->count(),
+            'in_progress' => QuizUserAttempt::whereIn('quiz_id', $quizIds)->whereStatus('in_progress')->count(),
             'subscribers' => $this->students->listing($user)->count(),
             'chapters_without_questions' => Chapter::whereDoesntHave('questionBank')->count(),
         ];

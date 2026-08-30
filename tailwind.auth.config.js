@@ -1,4 +1,5 @@
 import forms from "@tailwindcss/forms";
+import { sizing } from "./tailwind.sizing.js";
 
 /**
  * The sign-in shell.
@@ -89,6 +90,9 @@ export default {
             fontFamily: {
                 sans: ["Geist", "sans-serif"],
             },
+
+            // The extra width/height steps, shared with the portal build.
+            ...sizing,
         },
     },
 

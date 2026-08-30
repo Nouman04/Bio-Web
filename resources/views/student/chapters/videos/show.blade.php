@@ -68,7 +68,7 @@
 
         <!-- Lesson Info -->
         <div class="flex flex-col gap-4 bg-surface-container-lowest p-6 rounded-xl glass-panel relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-container"></div>
+            <div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
             <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 mb-2 flex-wrap">

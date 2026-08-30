@@ -64,7 +64,7 @@
             {{-- The two documents. --}}
             <div class="flex flex-col gap-2 lg:w-64">
                 <a href="{{ route('student.worksheets.paper', $worksheet->uuid) }}"
-                    class="w-full text-center bg-gradient-to-r from-primary to-primary-container text-on-primary px-5 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    class="w-full text-center bg-primary text-on-primary px-5 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-file-pdf text-xs"></i> Question paper
                 </a>
                 <a href="{{ route('student.worksheets.mark-scheme', $worksheet->uuid) }}"

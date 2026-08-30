@@ -9,7 +9,7 @@
 @section('content')
 
     {{-- Ambient Background Glow --}}
-    <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10"></div>
+    <div class="absolute top-0 left-0 w-full h-96 bg-primary/5 pointer-events-none -z-10"></div>
 
     {{-- Breadcrumbs --}}
     <div class="flex items-center text-xs font-medium text-on-surface-variant dark:text-slate-400 gap-2 mb-6 flex-wrap">
@@ -45,7 +45,7 @@
         $modules = [
             ['label' => 'Topics', 'stat' => $tile($counts['topics'], 'Section'), 'icon' => 'fa-solid fa-tags', 'bg' => 'icon-bg-blue', 'route' => route('topics', [$courseId, $chapter['id']])],
             ['label' => 'Study Notes', 'stat' => $tile($counts['notes'], 'Note'), 'icon' => 'fa-regular fa-note-sticky', 'bg' => 'icon-bg-blue', 'route' => route('notes', [$courseId, $chapter['id']])],
-            ['label' => 'Summaries', 'stat' => $tile($counts['summaries'], 'Document'), 'icon' => 'fa-solid fa-list-check', 'bg' => 'icon-bg-amber', 'route' => route('summaries')],
+            ['label' => 'Summaries', 'stat' => $tile($counts['summaries'], 'Document'), 'icon' => 'fa-solid fa-list-check', 'bg' => 'icon-bg-amber', 'route' => route('summaries', ['chapter' => $chapter['id']])],
             ['label' => 'Quizzes', 'stat' => $tile($counts['quizzes'], 'Quiz'), 'icon' => 'fa-solid fa-clipboard-question', 'bg' => 'icon-bg-teal', 'route' => route('courses.chapters.quizzes', [$courseId, $chapter['id']])],
             ['label' => 'Questions', 'stat' => $tile($counts['questions'], 'Item'), 'icon' => 'fa-regular fa-circle-question', 'bg' => 'icon-bg-rose', 'route' => route('courses.chapters.questions', [$courseId, $chapter['id']])],
             ['label' => 'Flashcards', 'stat' => $tile($counts['flashcards'], 'Deck'), 'icon' => 'fa-solid fa-layer-group', 'bg' => 'icon-bg-teal', 'route' => route('flashcards', [$courseId, $chapter['id']])],

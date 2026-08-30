@@ -34,7 +34,7 @@ body { font-family: 'Geist', sans-serif; }
 <div class="flex-1 w-full relative">
 
 {{-- Photography brief: Biology classroom --}}
-<div class="w-full h-80 object-cover rounded-lg shadow-sm bg-gradient-to-br from-primary/25 via-primary/10 to-secondary/15" role="img" aria-label="Biology classroom"></div>
+<div class="w-full h-80 object-cover rounded-lg shadow-sm bg-primary/20" role="img" aria-label="Biology classroom"></div>
 </div>
 </div>
 </div>
@@ -89,7 +89,7 @@ body { font-family: 'Geist', sans-serif; }
 </section>
 <!-- Core Philosophy & CTA -->
 <section class="bg-primary text-on-primary rounded-xl p-lg md:p-xl text-center relative overflow-hidden glass-shadow">
-<div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none"></div>
+<div class="absolute inset-0 opacity-10 bg-white pointer-events-none"></div>
 <div class="relative z-10 max-w-2xl mx-auto">
 <span class="material-symbols-outlined mb-sm opacity-80" style="font-size: 32px;">psychology</span>
 <p class="font-headline-lg text-headline-lg mb-lg">"Everything is designed with one goal: helping you understand Biology instead of simply memorising it."</p>

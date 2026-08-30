@@ -22,7 +22,7 @@
 
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form class="flex flex-col gap-sm" method="POST" action="{{ route('password.email') }}">
+        <form data-validate class="flex flex-col gap-sm" method="POST" action="{{ route('password.email') }}">
             @csrf
 
             <div class="flex flex-col gap-xs">

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quiz\SubmitQuizRequest;
-use App\Http\Resources\QuizAttemptResource;
+use App\Http\Resources\StudentQuizResource;
 use App\Http\Resources\QuizResource;
 use App\Models\Chapter;
 use App\Models\Course;
@@ -170,9 +170,11 @@ class StudentQuizController extends Controller
 
         return response()->json([
             'status' => $attempt->status,
-            'message' => $attempt->status === 'pending_review'
-                ? 'Handed in. Your written answers are with the instructor.'
-                : 'Handed in.',
+            'message' => match ($attempt->status) {
+                'pending_review' => 'Handed in. Your written answers are with the instructor.',
+                'self_marked' => 'Handed in. The model answers are on the next page — mark your own.',
+                default => 'Handed in.',
+            },
             'url' => route('student.quizzes.report', $attempt->uuid),
         ]);
     }
@@ -217,15 +219,13 @@ class StudentQuizController extends Controller
             'result' => $request->input('result'),
         ];
 
-        $attempts = $this->list->listing($student, $filters);
-
-        // Read before the collection is resolved to arrays: forView() maps the
-        // paginator in place.
-        $counts = $this->list->attemptCounts($student, $attempts->getCollection());
+        $quizzes = $this->list->listing($student, $filters);
 
         return view('student.quizzes.index', [
-            'attempts' => QuizAttemptResource::forView($attempts),
-            'counts' => $counts,
+            'quizzes' => StudentQuizResource::forView($quizzes),
+            // Every quiz still to sit, not just the ones on this page — the
+            // line above the list counts them.
+            'outstanding' => $this->list->outstanding($student),
             'courses' => $this->list->courses($student),
             'chapters' => $this->list->chapters($student, $filters['course']),
             'filters' => $filters,

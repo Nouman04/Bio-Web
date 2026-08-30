@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Course\StoreCourseRequest;
 use App\Http\Requests\Course\UpdateCourseConfigurationRequest;
+use App\Http\Requests\Course\UpdateCoursePriceRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
+use App\Models\CoursePrice;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\User;
 use App\Services\CourseService;
+use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -80,14 +83,14 @@ class CourseController extends Controller
 
     public function store(StoreCourseRequest $request)
     {
-        $course = $this->courses->create($request->validated(), $request->user());
+        $course = $this->courses->create($request->validated(), $request->user(), $request->file('image'));
 
         return $this->respond($request, $course, 'Course created successfully.', 201);
     }
 
     public function update(UpdateCourseRequest $request, Course $course)
     {
-        $course = $this->courses->update($course, $request->validated());
+        $course = $this->courses->update($course, $request->validated(), $request->file('image'));
 
         return $this->respond($request, $course, 'Course updated successfully.');
     }
@@ -97,6 +100,73 @@ class CourseController extends Controller
         $this->courses->delete($course);
 
         return $this->respond($request, null, 'Course deleted successfully.');
+    }
+
+    /**
+     * What the course costs today, and what it has cost before.
+     *
+     * The pricing modal reads this when it opens: the fields are filled from
+     * the current price, and the history below it is the record of every change
+     * since — which is the point of keeping one.
+     */
+    public function pricing(Course $course): JsonResponse
+    {
+        $course->load('prices.author:id,name');
+
+        return response()->json([
+            'current' => collect(StripeService::INTERVALS)
+                ->mapWithKeys(fn (string $interval) => [
+                    $interval => $this->pricePayload($course->currentPrice($interval)),
+                ]),
+            'history' => $course->prices
+                ->map(fn (CoursePrice $price) => $this->pricePayload($price) + [
+                    'set_by' => $price->author?->name,
+                    'set_at' => $price->created_at?->format('j M Y, g:ia'),
+                ])
+                ->values(),
+        ]);
+    }
+
+    /**
+     * Sets a new price. The old one is kept — see CourseService::reprice().
+     */
+    public function updatePrice(UpdateCoursePriceRequest $request, Course $course)
+    {
+        $price = $this->courses->reprice($course, $request->terms(), $request->user());
+
+        return $this->respond(
+            $request,
+            $course->fresh(),
+            "Price updated to {$price->formatted_price} per {$price->billing_interval}."
+        );
+    }
+
+    /**
+     * One price, in the shape the modal reads.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function pricePayload(?CoursePrice $price): ?array
+    {
+        if (! $price) {
+            return null;
+        }
+
+        return [
+            'interval' => $price->billing_interval,
+            // The form works in whole currency, the column in cents.
+            'price' => round($price->price / 100, 2),
+            'formatted_price' => $price->formatted_price,
+            'formatted_payable' => $price->formatted_payable,
+            'promo_code' => $price->promo_code,
+            'promo_type' => $price->promo_type,
+            'promo_value' => $price->promo_type === 'amount' && $price->promo_value !== null
+                ? round($price->promo_value / 100, 2)
+                : $price->promo_value,
+            'promo_expires_at' => $price->promo_expires_at?->format('Y-m-d\TH:i'),
+            'promo_label' => $price->promo_label,
+            'live_promo' => $price->hasLivePromo(),
+        ];
     }
 
     /**

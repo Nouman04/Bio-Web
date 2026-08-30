@@ -31,11 +31,17 @@
             <div class="h-px bg-outline-variant/30 dark:bg-slate-700 flex-1"></div>
         </div>
 
-        {{-- Compose a brand new question --}}
+        {{-- Compose a brand new question. The editor is not a form field —
+             what is written here is queued below, and only then submitted with
+             the record. Anything left unqueued is added on submit rather than
+             dropped, but the hint says so up front. --}}
         <div class="question-widget-composer flex flex-col gap-2">
-            <input type="text"
-                class="question-widget-new-input w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-2 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                placeholder="Type a new question…">
+            <span class="text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant/70 dark:text-slate-500">
+                Write a new question
+                <span class="font-normal normal-case tracking-normal text-outline">— press Add to put it on the list below</span>
+            </span>
+            <textarea class="question-widget-new-input" data-quill data-quill-no-attachments
+                data-quill-height="110px" placeholder="Type a new question…"></textarea>
 
             <div class="flex flex-col sm:flex-row gap-2">
                 <select class="question-widget-new-type flex-1 bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-2 px-3 text-sm text-on-surface dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none">

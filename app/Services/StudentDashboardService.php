@@ -173,7 +173,7 @@ class StudentDashboardService
 
         // A paper still open: the clock may well be running.
         QuizUserAttempt::where('user_id', $student->id)
-            ->where('status', 'in_progress')
+            ->whereStatus('in_progress')
             ->with('quiz')
             ->latest('id')
             ->take(3)
@@ -197,7 +197,7 @@ class StudentDashboardService
 
         // Handed in and waiting on the instructor.
         QuizUserAttempt::where('user_id', $student->id)
-            ->where('status', 'pending_review')
+            ->whereStatus('pending_review')
             ->with('quiz')
             ->latest('submitted_at')
             ->take(3)
@@ -214,7 +214,7 @@ class StudentDashboardService
 
         // Marked since they last looked.
         QuizUserAttempt::where('user_id', $student->id)
-            ->where('status', 'graded')
+            ->whereStatus('graded')
             ->with('quiz')
             ->latest('graded_at')
             ->take(3)

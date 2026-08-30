@@ -63,7 +63,7 @@
                 <a href="{{ $bankRoute }}" class="px-5 py-2.5 rounded-full text-sm font-semibold border border-outline-variant/60 dark:border-slate-600 text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-700 transition-colors">
                     Cancel
                 </a>
-                <button type="submit" data-loading-text="Saving…" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+                <button type="submit" data-loading-text="Saving…" class="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
                     <i class="fa-solid fa-circle-check text-xs"></i>
                     Save Questions
                 </button>
@@ -83,7 +83,7 @@
                 </button>
             </div>
 
-            <textarea data-name="question" rows="2" class="w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-2 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-y" placeholder="Type the question…"></textarea>
+            <textarea data-name="question" data-quill data-quill-no-attachments data-quill-height="120px" placeholder="Type the question…"></textarea>
 
             {{-- Type and difficulty sit above the answer: they decide its shape --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -103,7 +103,7 @@
             {{-- Theory: a written answer --}}
             <div class="answer-theory flex flex-col gap-1.5">
                 <span class="text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant/70 dark:text-slate-500">Answer <span class="font-normal normal-case tracking-normal text-outline">(Optional)</span></span>
-                <textarea data-name="answer" rows="2" class="w-full bg-white dark:bg-slate-800 border border-outline-variant/60 dark:border-slate-700 rounded-lg py-2 px-3 text-sm text-on-surface dark:text-slate-200 placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-y" placeholder="Answer…"></textarea>
+                <textarea data-name="answer" data-quill data-quill-no-attachments data-quill-height="120px" placeholder="Answer…"></textarea>
             </div>
 
             {{-- MCQ: options, with the correct one selected --}}

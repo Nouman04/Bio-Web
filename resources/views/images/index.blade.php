@@ -29,7 +29,7 @@
             <h2 class="text-2xl md:text-3xl font-bold text-on-surface dark:text-white">Images</h2>
             <p class="text-sm text-on-surface-variant dark:text-slate-400 mt-1">Manage and organize visual assets for course content.</p>
         </div>
-        <a href="{{ route('images.create') }}" class="bg-gradient-to-r from-primary to-primary-container text-white px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all flex items-center gap-2">
+        <a href="{{ route('images.create') }}" class="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all flex items-center gap-2">
             <i class="fa-solid fa-plus text-[16px]"></i>
             Add New Image
         </a>

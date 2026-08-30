@@ -75,7 +75,7 @@ class QuestionLinkService
                 $answer = $question->answer->first();
 
                 return [
-                    'text' => $question->question,
+                    'text' => $question->plain_question,
                     'type' => $question->category?->type === 'mcqs' ? 'MCQ' : 'Theory',
                     'difficulty' => $question->difficulty_level,
                     'options' => $question->options
@@ -103,7 +103,7 @@ class QuestionLinkService
             ->filter(fn ($link) => $link->question)
             ->map(fn ($link) => [
                 'id' => $link->question->id,
-                'text' => $link->question->question,
+                'text' => $link->question->plain_question,
             ])
             ->values();
     }

@@ -17,9 +17,9 @@
 
 <div class="glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col h-full bg-surface-container-lowest">
     <div class="relative h-48 w-full shrink-0 flex items-center justify-center"
-        style="background-image: linear-gradient(135deg, {{ $palette[0] }}, {{ $palette[1] }});">
+        style="background-color: {{ $palette[0] }};">
         <span class="text-white/90 font-bold" style="font-size:56px;line-height:1;">{{ Str::upper(Str::substr($course->title, 0, 1)) }}</span>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
+        <div class="absolute inset-0 bg-black/30 opacity-60"></div>
         <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs text-primary font-semibold tracking-wide shadow-sm flex items-center gap-1.5">
             <span class="material-symbols-outlined" style="font-size:16px;">school</span>
             {{ $course->category?->title ?: 'Uncategorised' }}

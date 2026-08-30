@@ -53,6 +53,8 @@
                     </ul>
                 </div>
             @endif
+
+            @include('partials.detail-questions', ['questions' => $questions])
         </div>
 
         <div class="lg:col-span-4 flex flex-col gap-6">
@@ -68,7 +70,7 @@
             ]])
 
             <a href="{{ route('notes', [$course, $chapter, 'title' => $note->title, 'open' => $note->uuid]) }}"
-                class="w-full px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-container text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
+                class="w-full px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2">
                 <i class="fa-solid fa-pen text-xs"></i>
                 Edit note
             </a>

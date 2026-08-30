@@ -84,7 +84,7 @@ class ImageController extends Controller
                 ->filter(fn ($link) => $link->question)
                 ->map(fn ($link) => [
                     'id' => $link->question->id,
-                    'text' => $link->question->question,
+                    'text' => $link->question->plain_question,
                 ])
                 ->values()
         );
