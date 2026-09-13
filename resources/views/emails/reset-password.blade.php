@@ -38,7 +38,7 @@
                                 {{ $brand }}
                             </span>
                             <span style="display:block; margin-top:4px; color:#c2daff; font-size:13px;">
-                                Your Biology Exam Simplified
+                                Biology Simplified
                             </span>
                         </td>
                     </tr>

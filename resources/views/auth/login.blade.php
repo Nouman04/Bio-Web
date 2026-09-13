@@ -71,9 +71,12 @@
                             <a class="text-xs font-semibold text-primary hover:text-primary-container transition-colors" href="{{ route('password.request') }}">Forgot Password?</a>
                         @endif
                     </div>
-                    <div class="input-field rounded border border-transparent overflow-hidden flex items-center px-sm py-sm relative">
-                        <span class="material-symbols-outlined text-on-surface-variant mr-sm">lock</span>
-                        <input autocomplete="current-password" class="w-full bg-transparent border-none p-0 focus:ring-0 text-base text-on-surface placeholder-outline-variant pr-10" id="password" name="password" placeholder="••••••••" required type="password" minlength="8" data-label="Password"/>
+                    <div class="input-field rounded border border-transparent flex items-center px-sm py-sm gap-2">
+                        <span class="material-symbols-outlined text-on-surface-variant shrink-0">lock</span>
+                        <input autocomplete="current-password" class="flex-1 bg-transparent border-none p-0 focus:ring-0 text-base text-on-surface placeholder-outline-variant min-w-0" id="password" name="password" placeholder="••••••••" required type="password" minlength="8" data-label="Password"/>
+                        <button type="button" onclick="togglePwd('password','adminEyeIcon')" class="password-toggle-btn text-on-surface-variant hover:text-primary" aria-label="Show/hide password">
+                            <span id="adminEyeIcon" class="material-symbols-outlined" style="font-size:20px;">visibility_off</span>
+                        </button>
                     </div>
                     @error('password')
                         <p class="text-sm text-error">{{ $message }}</p>
@@ -113,3 +116,16 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function togglePwd(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+        if (!input) return;
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        icon.textContent = showing ? 'visibility_off' : 'visibility';
+    }
+</script>
+@endpush

@@ -24,9 +24,9 @@
         class="mobile-fade flex items-center w-full px-8 mb-6 center-on-collapse transition-all duration-300 justify-center lg:justify-start group">
         <img src="{{ asset('images/logo.png') }}" alt="Your Biology"
             class="w-12 h-12 rounded-xl object-contain shadow-lg flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-        <div class="block ml-4 hide-on-collapse">
-            <span class="sidebar-brand font-bold text-xl">Your Biology</span>
-            <p class="sidebar-brand-sub text-xs">Exam Simplified</p>
+        <div class="block ml-3 hide-on-collapse leading-snug">
+            <span class="block text-white font-bold text-base tracking-wide">Biology</span>
+            <span class="block text-white font-bold text-base tracking-wide">Simplified</span>
         </div>
     </a>
 

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Student Portal') | Your Biology</title>
-    <meta name="description" content="@yield('meta-description', 'EduStudent – Your Biology Exam Simplified')">
+    <meta name="description" content="@yield('meta-description', 'FatBio – Your Biology – Biology Simplified')">
 
     {{-- Tailwind CSS --}}
     <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
@@ -138,6 +138,13 @@
                 document.documentElement.classList.add('sidebar-was-collapsed');
             }
         } catch (e) { /* private windows simply start expanded */ }
+
+        // Force fresh load on back/forward browser navigation to prevent restoring stale authenticated views after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+                window.location.reload();
+            }
+        });
     </script>
 </head>
 

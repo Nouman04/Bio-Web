@@ -39,7 +39,7 @@
 
         <div class="space-y-3">
             {{-- Stripe: the live one. --}}
-            <a data-stripe-checkout href="{{ route('public.subscribe.checkout', $course) }}"
+            <a data-stripe-checkout href="{{ route('public.subscribe.checkout', ['course' => $course, 'return_url' => url()->current()]) }}"
                 class="group flex items-center gap-4 w-full p-4 rounded-lg border-2 border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10 transition-all">
                 <span class="flex items-center justify-center w-11 h-11 rounded-lg bg-[#635bff] text-white shrink-0">
                     <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">credit_card</span>
@@ -97,16 +97,23 @@
         const chosen = document.querySelector('.plan-interval:checked');
         const link = modal.querySelector('[data-stripe-checkout]');
 
-        if (chosen && link) {
+        if (link) {
             const url = new URL(link.href, window.location.origin);
-            url.searchParams.set('interval', chosen.value);
+            if (chosen) {
+                url.searchParams.set('interval', chosen.value);
+            }
+            if (!url.searchParams.has('return_url')) {
+                url.searchParams.set('return_url', window.location.href);
+            }
             link.href = url.toString();
 
-            const row = chosen.closest('label');
-            const price = modal.querySelector('[data-plan-price]');
-            const interval = modal.querySelector('[data-plan-interval]');
-            if (price && row) { price.textContent = row.querySelector('.text-headline-md')?.textContent.trim() ?? price.textContent; }
-            if (interval) { interval.textContent = chosen.value; }
+            if (chosen) {
+                const row = chosen.closest('label');
+                const price = modal.querySelector('[data-plan-price]');
+                const interval = modal.querySelector('[data-plan-interval]');
+                if (price && row) { price.textContent = row.querySelector('.text-headline-md')?.textContent.trim() ?? price.textContent; }
+                if (interval) { interval.textContent = chosen.value; }
+            }
         }
 
         lastFocused = document.activeElement;

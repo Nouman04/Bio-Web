@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="">
 <head>
     <meta charset="utf-8"/>
@@ -391,6 +391,13 @@
                 document.documentElement.classList.add('sidebar-was-collapsed');
             }
         } catch (e) { /* private windows simply start expanded */ }
+
+        // Force fresh load on back/forward browser navigation to prevent restoring stale authenticated views after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+                window.location.reload();
+            }
+        });
     </script>
 </head>
 

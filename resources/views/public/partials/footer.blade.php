@@ -14,11 +14,14 @@
 <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
 <!-- Brand Info -->
 <div class="col-span-1 md:col-span-5">
-<a class="font-headline-md text-headline-md font-bold text-white flex items-center gap-2 mb-4" href="{{ route('public.home') }}">
-<img src="{{ asset('images/logo.png') }}" alt="Your Biology"
-    class="w-9 h-9 rounded-lg object-contain">
-                        Your Biology
-                    </a>
+<a class="flex items-center gap-3 mb-4" href="{{ route('public.home') }}">
+<img src="{{ asset('images/logo.png') }}" alt="Biology Simplified"
+    class="w-10 h-10 rounded-lg object-contain">
+    <div class="flex flex-col justify-center leading-snug">
+        <span class="text-base font-bold text-white tracking-wide">Biology</span>
+        <span class="text-base font-bold text-white tracking-wide">Simplified</span>
+    </div>
+</a>
 <p class="text-white/65 text-body-md mb-6 max-w-sm">Empowering IGCSE students worldwide with premium biology learning resources.</p>
 <div class="flex gap-4">
 <a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/75 hover:bg-white/20 hover:text-white transition-colors" href="{{ route('public.contact') }}">

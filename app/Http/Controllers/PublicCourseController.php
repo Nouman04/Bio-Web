@@ -48,15 +48,21 @@ class PublicCourseController extends Controller
     /**
      * The paywall a locked chapter leads to.
      */
-    public function subscribe(?Course $course = null, ?Chapter $chapter = null)
+    public function subscribe(?Course $course = null, ?Chapter $chapter = null, ?StripeService $stripe = null)
     {
         abort_if($chapter && $course && $chapter->course_id !== $course->id, 404);
+
+        if ($course) {
+            $course->loadMissing(['plans', 'prices']);
+        }
 
         return view('public.subscribe', [
             'course' => $course,
             'chapter' => $chapter,
             // Lets the payment popup name the price without a second page.
-            'plan' => $course?->loadMissing('plans')->plan,
+            'plan' => $course?->plan,
+            'price' => $course?->headlinePrice(),
+            'subscribed' => ($course && $stripe) ? $stripe->subscribedTo(request()->user(), $course) : false,
         ]);
     }
 
@@ -97,16 +103,19 @@ class PublicCourseController extends Controller
                 ->with('error', 'This course is not on sale yet.');
         }
 
-        // Subscribing needs an account, so sign in first and come straight back.
+        // Subscribing needs an account, so sign up first and come straight back.
         if (! $request->user()) {
             $request->session()->put('url.intended', $request->fullUrl());
 
-            return redirect()->route('student.login');
+            return redirect()->route('register')
+                ->with('info', 'Please create your account to continue with your course subscription.');
         }
 
         if ($stripe->subscribedTo($request->user(), $course)) {
             return redirect()->to($back)->with('success', 'You already subscribe to this course.');
         }
+
+        $cancelUrl = $request->query('return_url') ?: route('public.subscribe.plans', $course);
 
         try {
             return $stripe->checkoutForCourse(
@@ -115,7 +124,7 @@ class PublicCourseController extends Controller
                 // Stripe fills the placeholder in, so the return can verify the
                 // session rather than taking the redirect's word for it.
                 route('public.subscribe.success', $course) . '?session_id={CHECKOUT_SESSION_ID}',
-                route('public.subscribe.plans', $course),
+                $cancelUrl,
                 // Which terms the reader picked on the plan page.
                 in_array($request->query('interval'), StripeService::INTERVALS, true)
                     ? $request->query('interval')

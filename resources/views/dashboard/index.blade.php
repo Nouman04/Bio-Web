@@ -58,10 +58,10 @@
 </div>
 
 {{-- ── Needs attention + subscriptions ────────────────────────────────── --}}
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
     @php
         $tiles = [
-            ['Awaiting marking', $attention['awaiting_marking'], 'fa-solid fa-pen-to-square', route('quizzes.review'), $attention['awaiting_marking'] > 0],
+           // ['Awaiting marking', $attention['awaiting_marking'], 'fa-solid fa-pen-to-square', route('quizzes.review'), $attention['awaiting_marking'] > 0], 
             ['Quizzes in progress', $attention['in_progress'], 'fa-solid fa-hourglass-half', route('quizzes'), false],
             ['Subscribed students', $attention['subscribers'], 'fa-solid fa-user-check', route('students'), false],
             ['Chapters with no questions', $attention['chapters_without_questions'], 'fa-solid fa-triangle-exclamation', route('questions'), $attention['chapters_without_questions'] > 0],

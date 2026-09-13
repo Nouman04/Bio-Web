@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \App\Http\Middleware\PreventBackHistory::class,
+        ]);
+
         $middleware->alias([
             'staff' => \App\Http\Middleware\EnsureUserIsStaff::class,
             'student' => \App\Http\Middleware\EnsureUserIsStudent::class,

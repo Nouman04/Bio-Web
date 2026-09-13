@@ -24,14 +24,12 @@
          class="w-11 h-11 md:w-16 md:h-16 shrink-0 rounded-lg object-contain">
 
     <!-- Brand Text -->
-    <div class="flex flex-col justify-center min-w-0">
-        <span class="text-lg md:font-headline-md md:text-headline-md font-bold leading-tight truncate">
-            Your Biology
+    <div class="flex flex-col justify-center min-w-0 leading-snug">
+        <span class="text-sm md:text-base font-bold text-white tracking-wide">
+            Biology
         </span>
-
-        {{-- Kept to one line: wrapped, it was tall enough to break the bar. --}}
-        <span class="text-[11px] md:text-sm font-medium text-gray-300 leading-tight mt-0.5 md:mt-1 truncate">
-            Examination Simplified
+        <span class="text-sm md:text-base font-bold text-white tracking-wide">
+            Simplified
         </span>
     </div>
 

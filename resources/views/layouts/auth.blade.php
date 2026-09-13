@@ -52,6 +52,24 @@
         .brand-panel {
             background-color: rgb(var(--c-primary));
         }
+        .password-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            margin-right: 6px;
+            flex-shrink: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 9999px;
+            padding: 0;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .password-toggle-btn:hover {
+            background-color: rgba(0, 19, 48, 0.08);
+        }
     </style>
 
     @stack('styles')

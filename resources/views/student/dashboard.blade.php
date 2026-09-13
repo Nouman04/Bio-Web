@@ -42,19 +42,70 @@
 @endphp
 
 {{-- Hero --}}
-<section class="mb-6 sm:mb-8 pt-2 sm:pt-4">
-    <h2 class="text-on-background mb-2" style="font-size:clamp(28px, 6vw, 48px);line-height:clamp(34px, 7vw, 56px);letter-spacing:-0.02em;font-weight:700;">
-        Welcome back, {{ $firstName }}!
-    </h2>
-    <p class="text-on-surface-variant" style="font-size:clamp(15px, 3vw, 18px);line-height:clamp(22px, 4vw, 28px);">
-        @if($resume)
-            Ready to pick up where you left off?
-        @elseif($courses->isNotEmpty())
-            Your courses are ready when you are.
-        @else
-            Browse the catalog to get started.
-        @endif
-    </p>
+<section class="mb-6 sm:mb-8 pt-2 sm:pt-4 relative z-20">
+    <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+            <h2 class="text-on-background mb-2" style="font-size:clamp(28px, 6vw, 48px);line-height:clamp(34px, 7vw, 56px);letter-spacing:-0.02em;font-weight:700;">
+                Welcome back, {{ $firstName }}!
+            </h2>
+            <p class="text-on-surface-variant" style="font-size:14px;line-height:22px;">
+                @if($resume)
+                    Ready to pick up where you left off?
+                @elseif($courses->isNotEmpty())
+                    Your courses are ready when you are.
+                @else
+                    Browse the catalog to get started.
+                @endif
+            </p>
+        </div>
+
+        {{-- Overall progress, tucked into a small ring so it stays out of the
+             way; tap it to see the full breakdown. --}}
+        <div class="relative shrink-0">
+            <button type="button" id="overallProgressTrigger" onclick="toggleOverallProgress(event)"
+                class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full glass-panel flex items-center justify-center hover:shadow-md transition-shadow"
+                aria-label="Overall progress" aria-expanded="false" aria-controls="overallProgressPanel">
+                <svg class="progress-ring absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle class="progress-ring-track" cx="50" cy="50" fill="transparent" r="40" stroke-width="10"></circle>
+                    <circle class="value" cx="50" cy="50" fill="transparent" r="40"
+                        stroke="#001330"
+                        stroke-dasharray="{{ round($ring, 1) }}"
+                        stroke-dashoffset="{{ round($ring * (1 - min(100, $overall['progress']) / 100), 1) }}"
+                        stroke-linecap="round" stroke-width="10"></circle>
+                </svg>
+                <span class="text-on-background font-bold" style="font-size:14px;">{{ round($overall['progress']) }}%</span>
+            </button>
+
+            <div id="overallProgressPanel"
+                class="hidden opacity-0 scale-95 origin-top-right absolute right-0 top-full mt-3 w-72 max-w-[80vw] z-20 glass-panel rounded-xl p-6 flex flex-col items-center shadow-lg transition-all duration-150 ease-out">
+                <h3 class="text-on-background w-full text-left mb-6" style="font-size:18px;line-height:26px;font-weight:600;">Overall progress</h3>
+
+                <div class="relative w-32 h-32 flex items-center justify-center mb-4">
+                    <svg class="progress-ring w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle class="progress-ring-track" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+                        <circle class="value" cx="50" cy="50" fill="transparent" r="40"
+                            stroke="#001330"
+                            stroke-dasharray="{{ round($ring, 1) }}"
+                            stroke-dashoffset="{{ round($ring * (1 - min(100, $overall['progress']) / 100), 1) }}"
+                            stroke-linecap="round" stroke-width="8"></circle>
+                    </svg>
+                    <div class="absolute flex flex-col items-center">
+                        <span class="text-on-background" style="font-size:18px;line-height:26px;letter-spacing:-0.02em;font-weight:700;">{{ round($overall['progress']) }}%</span>
+                    </div>
+                </div>
+
+                <p class="text-on-surface-variant text-center text-sm">
+                    @if($overall['total_weight'] > 0)
+                        You have completed
+                        <strong class="text-on-background font-semibold">{{ $overall['completed_weight'] }} of {{ $overall['total_weight'] }}</strong>
+                        items across {{ $stats['courses'] }} {{ Str::plural('course', $stats['courses']) }}.
+                    @else
+                        Nothing is being tracked yet.
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
 </section>
 
 {{-- The numbers --}}
@@ -70,8 +121,8 @@
                 <span class="material-symbols-outlined" style="font-size:20px;">{{ $icon }}</span>
             </span>
             <div class="min-w-0">
-                <p class="text-on-background font-bold leading-tight" style="font-size:22px;">{{ $value }}</p>
-                <p class="text-on-surface-variant text-xs truncate">{{ $label }}</p>
+                <p class="text-on-background font-bold leading-tight" style="font-size:18px;">{{ $value }}</p>
+                <p class="text-on-surface-variant truncate" style="font-size:14px;">{{ $label }}</p>
             </div>
         </div>
     @endforeach
@@ -93,7 +144,7 @@
                             {{ $resume['completed'] ? 'Last completed' : 'Continue where you left off' }}
                         </div>
 
-                        <h3 class="text-on-background mb-2" style="font-size:clamp(22px, 4.5vw, 32px);line-height:clamp(28px, 5.5vw, 40px);letter-spacing:-0.01em;font-weight:600;">
+                        <h3 class="text-on-background mb-2" style="font-size:18px;line-height:26px;letter-spacing:-0.01em;font-weight:600;">
                             {{ $resume['title'] }}
                         </h3>
                         <p class="text-on-surface-variant mb-6 text-sm">
@@ -124,7 +175,7 @@
                     <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
                         <span class="material-symbols-outlined" style="font-size:28px;">rocket_launch</span>
                     </div>
-                    <h3 class="text-on-background mb-2" style="font-size:24px;line-height:32px;font-weight:600;">Nothing started yet</h3>
+                    <h3 class="text-on-background mb-2" style="font-size:18px;line-height:26px;font-weight:600;">Nothing started yet</h3>
                     <p class="text-on-surface-variant text-sm mb-6 max-w-md">
                         {{ $courses->isNotEmpty()
                             ? 'Open a chapter and the dashboard will keep your place from then on.'
@@ -141,7 +192,7 @@
 
         {{-- Every course they are subscribed to --}}
         <div class="flex items-center justify-between gap-3">
-            <h3 class="text-on-background" style="font-size:20px;line-height:28px;font-weight:600;">My courses</h3>
+            <h3 class="text-on-background" style="font-size:18px;line-height:26px;font-weight:600;">My courses</h3>
             @if($courses->isNotEmpty())
                 <a href="{{ route('student.courses') }}" class="text-primary hover:underline text-xs font-semibold">View all</a>
             @endif
@@ -208,40 +259,10 @@
     {{-- Side column --}}
     <div class="md:col-span-4 flex flex-col gap-6">
 
-        {{-- Overall progress across every subscribed course --}}
-        <div class="glass-panel rounded-xl p-6 flex flex-col items-center relative overflow-hidden">
-            <h3 class="text-on-background w-full text-left mb-6" style="font-size:20px;line-height:28px;font-weight:600;">Overall progress</h3>
-
-            <div class="relative w-40 h-40 flex items-center justify-center mb-4">
-                <svg class="progress-ring w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle class="progress-ring-track" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
-                    <circle class="value" cx="50" cy="50" fill="transparent" r="40"
-                        stroke="#001330"
-                        stroke-dasharray="{{ round($ring, 1) }}"
-                        stroke-dashoffset="{{ round($ring * (1 - min(100, $overall['progress']) / 100), 1) }}"
-                        stroke-linecap="round" stroke-width="8"></circle>
-                </svg>
-                <div class="absolute flex flex-col items-center">
-                    <span class="text-on-background" style="font-size:44px;line-height:52px;letter-spacing:-0.02em;font-weight:700;">{{ round($overall['progress']) }}</span>
-                    <span class="text-outline -mt-2 text-xs font-medium">%</span>
-                </div>
-            </div>
-
-            <p class="text-on-surface-variant text-center text-sm max-w-[85%]">
-                @if($overall['total_weight'] > 0)
-                    You have completed
-                    <strong class="text-on-background font-semibold">{{ $overall['completed_weight'] }} of {{ $overall['total_weight'] }}</strong>
-                    items across {{ $stats['courses'] }} {{ Str::plural('course', $stats['courses']) }}.
-                @else
-                    Nothing is being tracked yet.
-                @endif
-            </p>
-        </div>
-
         {{-- What is waiting on them --}}
         <div class="glass-panel rounded-xl p-6 flex-1">
             <div class="flex justify-between items-center mb-5 gap-3">
-                <h3 class="text-on-background" style="font-size:20px;line-height:28px;font-weight:600;">Needs your attention</h3>
+                <h3 class="text-on-background" style="font-size:18px;line-height:26px;font-weight:600;">Needs your attention</h3>
                 <a class="text-primary hover:underline text-xs font-semibold" href="{{ route('student.quizzes') }}">View all</a>
             </div>
 
@@ -276,7 +297,7 @@
         </div>
 
         {{-- Straight to the things they use most --}}
-        <div class="glass-panel rounded-xl p-6">
+        <!-- <div class="glass-panel rounded-xl p-6">
             <h3 class="text-on-background mb-4" style="font-size:20px;line-height:28px;font-weight:600;">Jump to</h3>
             <div class="grid grid-cols-2 gap-3">
                 @foreach([
@@ -292,8 +313,42 @@
                     </a>
                 @endforeach
             </div>
-        </div>
+        </div> -->
     </div>
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    // Overall progress lives as a small ring at the top right; clicking it
+    // pops the full breakdown open instead of taking up side-column space.
+    function toggleOverallProgress(event) {
+        event.stopPropagation();
+        const panel = document.getElementById('overallProgressPanel');
+        const trigger = document.getElementById('overallProgressTrigger');
+        const opening = panel.classList.contains('hidden');
+
+        if (opening) {
+            panel.classList.remove('hidden');
+            requestAnimationFrame(() => panel.classList.remove('opacity-0', 'scale-95'));
+        } else {
+            panel.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => panel.classList.add('hidden'), 150);
+        }
+
+        trigger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    }
+
+    document.addEventListener('click', (event) => {
+        const panel = document.getElementById('overallProgressPanel');
+        const trigger = document.getElementById('overallProgressTrigger');
+        if (!panel || panel.classList.contains('hidden')) return;
+        if (panel.contains(event.target) || trigger.contains(event.target)) return;
+
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => panel.classList.add('hidden'), 150);
+        trigger.setAttribute('aria-expanded', 'false');
+    });
+</script>
+@endpush

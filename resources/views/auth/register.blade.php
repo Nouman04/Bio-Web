@@ -16,9 +16,18 @@
             <div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center mb-sm shadow-sm">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">school</span>
             </div>
-            <h1 class="text-3xl font-semibold text-primary">EduStudent</h1>
+            <h1 class="text-3xl font-semibold text-primary">FatBio</h1>
             <p class="text-base text-secondary">Create your account to start learning.</p>
         </div>
+
+        <x-auth-session-status class="text-center" :status="session('status')" />
+
+        @if (session('info'))
+            <div class="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-2.5 text-xs text-on-surface">
+                <span class="material-symbols-outlined text-primary text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">info</span>
+                <span class="leading-relaxed">{{ session('info') }}</span>
+            </div>
+        @endif
 
         {{-- Signup Form --}}
         <form data-validate class="flex flex-col gap-sm" method="POST" action="{{ route('register') }}">
@@ -51,9 +60,12 @@
             {{-- Password --}}
             <div class="flex flex-col gap-xs">
                 <label class="text-sm font-medium text-on-surface-variant" for="password">Password</label>
-                <div class="relative flex items-center">
+                <div class="relative flex items-center bg-surface-container-low rounded pr-sm focus-within:bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary transition-all duration-200">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock</span>
-                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="new-password" data-password-policy data-label="Password">
+                    <input class="flex-1 bg-transparent border-none rounded pl-[44px] pr-2 py-sm text-base text-on-surface focus:ring-0 focus:outline-none min-w-0" id="password" name="password" placeholder="••••••••" type="password" required autocomplete="new-password" data-password-policy data-label="Password">
+                    <button type="button" onclick="togglePwd('password','regEyeIcon1')" class="password-toggle-btn text-outline-variant hover:text-primary" aria-label="Show/hide password">
+                        <span id="regEyeIcon1" class="material-symbols-outlined" style="font-size:20px;">visibility_off</span>
+                    </button>
                 </div>
                 @error('password')
                     <p class="text-sm text-error">{{ $message }}</p>
@@ -63,9 +75,12 @@
             {{-- Confirm Password --}}
             <div class="flex flex-col gap-xs">
                 <label class="text-sm font-medium text-on-surface-variant" for="password_confirmation">Confirm Password</label>
-                <div class="relative flex items-center">
+                <div class="relative flex items-center bg-surface-container-low rounded pr-sm focus-within:bg-surface-container-lowest focus-within:ring-2 focus-within:ring-primary transition-all duration-200">
                     <span class="material-symbols-outlined absolute left-sm text-outline-variant pointer-events-none z-10">lock_reset</span>
-                    <input class="w-full bg-surface-container-low border-none rounded pl-[44px] pr-sm py-sm text-base text-on-surface focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all duration-200" id="password_confirmation" name="password_confirmation" placeholder="••••••••" type="password" required autocomplete="new-password" data-rule-matches="password" data-label="Confirm Password" data-matches-message="The two passwords do not match.">
+                    <input class="flex-1 bg-transparent border-none rounded pl-[44px] pr-2 py-sm text-base text-on-surface focus:ring-0 focus:outline-none min-w-0" id="password_confirmation" name="password_confirmation" placeholder="••••••••" type="password" required autocomplete="new-password" data-rule-matches="password" data-label="Confirm Password" data-matches-message="The two passwords do not match.">
+                    <button type="button" onclick="togglePwd('password_confirmation','regEyeIcon2')" class="password-toggle-btn text-outline-variant hover:text-primary" aria-label="Show/hide confirm password">
+                        <span id="regEyeIcon2" class="material-symbols-outlined" style="font-size:20px;">visibility_off</span>
+                    </button>
                 </div>
                 @error('password_confirmation')
                     <p class="text-sm text-error">{{ $message }}</p>
@@ -107,3 +122,16 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function togglePwd(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+        if (!input) return;
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        icon.textContent = showing ? 'visibility_off' : 'visibility';
+    }
+</script>
+@endpush

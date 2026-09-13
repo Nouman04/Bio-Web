@@ -22,11 +22,11 @@
     {{-- Logo --}}
     <a href="{{ route('student.dashboard') }}"
         class="mobile-fade flex items-center w-full px-8 mb-6 center-on-collapse transition-all duration-300 justify-center lg:justify-start group">
-        <img src="{{ asset('images/logo.png') }}" alt="Your Biology Exam Simplified"
+        <img src="{{ asset('images/logo.png') }}" alt="Your Biology – Biology Simplified"
             class="w-12 h-12 object-contain flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-        <div class="block ml-4 hide-on-collapse">
-            <span class="sidebar-brand font-bold text-xl">Your Biology</span>
-            <p class="sidebar-brand-sub text-xs">Exam Simplified</p>
+        <div class="block ml-3 hide-on-collapse leading-snug">
+            <span class="block text-white font-bold text-base tracking-wide">Biology</span>
+            <span class="block text-white font-bold text-base tracking-wide">Simplified</span>
         </div>
     </a>
 
@@ -67,7 +67,9 @@
     {{-- Who is signed in, and the way out --}}
     <div class="mobile-fade mt-auto px-6 w-full pt-3">
         <div class="sidebar-divider pt-3">
-            <div class="sidebar-user flex items-center gap-3 px-3 py-2 rounded-2xl center-on-collapse justify-center lg:justify-start">
+            <a href="{{ route('profile.edit') }}"
+                class="sidebar-user flex items-center gap-3 px-3 py-2 rounded-2xl center-on-collapse justify-center lg:justify-start hover:opacity-80 transition-opacity"
+                title="Go to Settings">
                 <span class="sidebar-avatar w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-xs font-bold uppercase">
                     {{ Str::of(auth()->user()?->name ?? '')->explode(' ')->take(2)->map(fn ($part) => Str::substr($part, 0, 1))->implode('') ?: '?' }}
                 </span>
@@ -75,7 +77,7 @@
                     <p class="sidebar-user-name text-sm font-semibold truncate">{{ auth()->user()?->name }}</p>
                     <p class="sidebar-user-sub text-[11px] truncate">{{ auth()->user()?->email }}</p>
                 </div>
-            </div>
+            </a>
 
             <form method="POST" action="{{ route('logout') }}" class="mt-1">
                 @csrf
