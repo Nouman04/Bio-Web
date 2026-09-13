@@ -65,7 +65,7 @@
 <!-- Pricing Cards Container -->
 <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-lg relative items-stretch pt-6">
 <!-- Free Card -->
-<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl pt-10 px-8 pb-8 flex flex-col justify-between h-full transition-all duration-300 hover:shadow-lg hover:border-outline">
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl px-8 flex flex-col justify-between h-full transition-all duration-300 hover:shadow-lg hover:border-outline" style="padding-top: 2.5rem; padding-bottom: 2rem;">
     <div>
         <div class="mb-6 border-b border-outline-variant/30 pb-6">
             <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Free Preview</h2>
@@ -137,7 +137,7 @@
 </div>
 
 <!-- Premium Card -->
-<div class="bg-surface-container-lowest border-2 border-primary/40 rounded-2xl pt-10 px-8 pb-8 flex flex-col justify-between h-full relative shadow-primary-glow z-10 transition-all duration-300 hover:shadow-[0_15px_30px_-5px_rgba(0,19,48,0.15)] hover:border-primary">
+<div class="bg-surface-container-lowest border-2 border-primary/40 rounded-2xl px-8 flex flex-col justify-between h-full relative shadow-primary-glow z-10 transition-all duration-300 hover:shadow-[0_15px_30px_-5px_rgba(0,19,48,0.15)] hover:border-primary" style="padding-top: 2.5rem; padding-bottom: 2rem;">
 <!-- Highlight Badge -->
 <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-sm text-label-sm px-4 py-1.5 rounded-full shadow-md whitespace-nowrap z-20" style="top: -14px;">
     Most Popular Choice
