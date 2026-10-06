@@ -193,6 +193,11 @@
             <i class="fa-solid fa-file-arrow-up text-xs"></i>
             Import Worksheet
         </button>
+        <button type="button" onclick="document.getElementById('import-pdf-modal').classList.remove('hidden')"
+            class="flex items-center gap-2 border border-outline-variant/40 dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface dark:text-slate-200 px-5 py-2.5 rounded-full text-sm font-semibold shadow-sm hover:border-primary/40 hover:text-primary transition-colors">
+            <i class="fa-solid fa-file-pdf text-xs"></i>
+            Import Past Paper PDF
+        </button>
         <button type="button" onclick="openCreateChapterModal()"
             class="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all">
             <i class="fa-solid fa-plus text-xs"></i>
@@ -201,6 +206,7 @@
     </div>
 
     @include('chapters.partials.import-modal')
+    @include('chapters.partials.import-pdf-modal')
 
     {{-- Filters Card (toggleable) --}}
     <div id="filterCardWrapper" class="filter-card-wrapper {{ $filtersOpen ? 'is-open' : '' }}">

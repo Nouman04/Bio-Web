@@ -83,7 +83,7 @@
                 </button>
             </div>
 
-            <textarea data-name="question" data-quill data-quill-no-attachments data-quill-height="120px" placeholder="Type the question…"></textarea>
+            <textarea data-name="question" data-quill data-quill-height="120px" placeholder="Type the question…"></textarea>
 
             {{-- Type and difficulty sit above the answer: they decide its shape --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

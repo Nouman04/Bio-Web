@@ -76,6 +76,8 @@ Route::middleware(['auth', 'staff'])->group(function () {
             Route::post('/import', [WorksheetImportController::class, 'store'])->name('courses.import.store');
             Route::get('/import/latest', [WorksheetImportController::class, 'latest'])->name('courses.import.latest');
             Route::get('/import/{import}', [WorksheetImportController::class, 'status'])->name('courses.import.status');
+            // Past-paper PDFs: read in the browser, one request per PDF.
+            Route::post('/import-pdf', [\App\Http\Controllers\PastPaperPdfImportController::class, 'store'])->name('courses.import.pdf');
             Route::get('/{chapter}/dashboard', [ChapterController::class, 'dashboard'])->middleware('can:view course')->name('courses.chapters.dashboard');
             Route::post('/', [ChapterController::class, 'store'])->middleware('can:add chapter')->name('courses.chapters.store');
             Route::put('/{chapter}', [ChapterController::class, 'update'])->middleware('can:edit chapter')->name('courses.chapters.update');

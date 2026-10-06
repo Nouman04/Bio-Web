@@ -26,7 +26,7 @@
                 <span class="marks">[{{ rtrim(rtrim(number_format((float) $ref->marks, 1, '.', ''), '0'), '.') }}]</span>
             @endif
             <span class="num">{{ $index + 1 }}.</span>
-            <span class="text">{{ $question->question }}</span>
+            <div class="text question-html">{!! $question->pdf_question !!}</div>
         </div>
 
         @if($ref)
@@ -44,8 +44,9 @@
                     <li>{{ $option->title }}</li>
                 @endforeach
             </ol>
-        @else
-            {{-- Room to write, sized off what the question is worth. --}}
+        @elseif(! preg_match('/\.{10,}/', $question->question))
+            {{-- Room to write, sized off what the question is worth. Imported
+                 past-paper questions carry their own dotted answer lines. --}}
             @php $lines = max(3, min(12, (int) ceil((float) ($ref->marks ?? 3)) * 2)); @endphp
             <div class="lines">
                 @for($line = 0; $line < $lines; $line++)

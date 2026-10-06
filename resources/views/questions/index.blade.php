@@ -358,7 +358,7 @@
                 @method('PUT')
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Question</label>
-                    <textarea id="edit-question-text" name="question" data-quill data-quill-no-attachments data-quill-height="140px" placeholder="Type the question…"></textarea>
+                    <textarea id="edit-question-text" name="question" data-quill data-quill-height="140px" placeholder="Type the question…"></textarea>
                 </div>
                 {{-- Chapter, type and difficulty come before the answer, since
                      the type decides what the answer looks like --}}

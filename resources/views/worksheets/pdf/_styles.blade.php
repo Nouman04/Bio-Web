@@ -57,7 +57,21 @@
         font-weight: bold;
         color: #001330;
     }
-    .q .text { font-weight: 600; }
+    .q .num { float: left; }
+    .q .text { margin-left: 22px; }
+    .q .text:after { content: ""; display: block; clear: both; }
+
+    /* Question markup comes from the Quill editor; mirror the classes it writes. */
+    .question-html p { margin: 0; }
+    .question-html .ql-indent-1 { padding-left: 2em; }
+    .question-html .ql-indent-2 { padding-left: 4em; }
+    .question-html .ql-indent-3 { padding-left: 6em; }
+    .question-html .ql-align-center { text-align: center; }
+    .question-html .ql-align-right { text-align: right; }
+    .question-html img { max-width: 100%; height: auto; margin: 4px 0; }
+    .question-html table { width: 100%; border-collapse: collapse; margin: 4px 0; page-break-inside: avoid; }
+    .question-html td, .question-html th { border: 1px solid #45464f; padding: 4px 6px; }
+    .question-html p, .question-html img { page-break-inside: avoid; }
     .q .marks { float: right; font-size: 9pt; color: #45464f; white-space: nowrap; }
     .q .ref { font-size: 8.5pt; color: #767586; margin: 2px 0 0 22px; }
 

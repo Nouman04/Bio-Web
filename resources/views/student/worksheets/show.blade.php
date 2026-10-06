@@ -87,7 +87,7 @@
         <div class="px-6 py-4 flex items-start gap-4">
             <span class="text-primary font-bold text-sm shrink-0 w-6">{{ $index + 1 }}.</span>
             <div class="min-w-0 flex-1">
-                <p class="text-sm text-on-surface dark:text-slate-200">{{ $question->question }}</p>
+                <div class="question-html text-sm text-on-surface dark:text-slate-200">{!! $question->safe_question !!}</div>
                 <p class="text-[11px] text-on-surface-variant dark:text-slate-500 mt-1">
                     {{ $question->category?->type === 'mcqs' ? 'Multiple choice' : 'Theory' }}
                     @if($question->difficulty_level) &middot; {{ $question->difficulty_level }} @endif
@@ -108,3 +108,22 @@
 </div>
 
 @endsection
+
+@push('styles')
+<style>
+    /* Question markup comes from the Quill editor; mirror the classes it writes. */
+    .question-html p { margin: 0; }
+    .question-html .ql-indent-1 { padding-left: 2em; }
+    .question-html .ql-indent-2 { padding-left: 4em; }
+    .question-html .ql-indent-3 { padding-left: 6em; }
+    .question-html .ql-align-center { text-align: center; }
+    .question-html .ql-align-right { text-align: right; }
+    .question-html img { display: inline-block; max-width: 100%; height: auto; margin: 0.5rem 0; }
+    .question-html table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+    .question-html td, .question-html th { border: 1px solid currentColor; padding: 0.35rem 0.6rem; opacity: 0.9; }
+    .question-html ol, .question-html ul { padding-left: 1.5em; }
+    .question-html ol { list-style: decimal; }
+    .question-html ul { list-style: disc; }
+    .question-html p { overflow-wrap: anywhere; }
+</style>
+@endpush

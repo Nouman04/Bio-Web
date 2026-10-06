@@ -30,9 +30,40 @@ class QuestionBank extends Model
      * A picker label, a search result and a confirmation dialog all want the
      * words rather than the tags around them.
      */
+    /**
+     * The question's markup, safe to print unescaped on student pages: only
+     * formatting tags survive, with no event handlers or script URLs.
+     */
+    public function getSafeQuestionAttribute(): string
+    {
+        // ponytail: tag allowlist + regex; swap for a real sanitizer if question HTML ever comes from students.
+        $html = strip_tags((string) $this->question, '<p><br><strong><b><em><i><u><s><sub><sup><span><ol><ul><li><table><tbody><thead><tr><td><th><img><h2><h3><blockquote>');
+        $html = preg_replace('/\s+on\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
+
+        return preg_replace('/(href|src)\s*=\s*(["\']?)\s*javascript:[^"\'\s>]*\2/i', '$1=""', $html);
+    }
+
+    /**
+     * safe_question for the PDF renderer: our own stored images are read
+     * straight off disk. Fetching them over HTTP would deadlock the
+     * single-threaded dev server that is busy rendering this very PDF.
+     */
+    public function getPdfQuestionAttribute(): string
+    {
+        return preg_replace_callback('/src="[^"]*\/storage\/([^"]+)"/', function ($m) {
+            $path = storage_path('app/public/' . rawurldecode($m[1]));
+
+            return is_file($path) ? 'src="file:///' . str_replace('\\', '/', $path) . '"' : $m[0];
+        }, $this->safe_question);
+    }
+
     public function getPlainQuestionAttribute(): string
     {
-        $text = html_entity_decode(strip_tags((string) $this->question), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Break at block tags so paragraphs and table cells don't run together.
+        $html = preg_replace('/<(\/p|br|\/li|\/td|\/tr|\/h\d)\b[^>]*>/i', ' ', (string) $this->question);
+        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Dotted answer lines are space to write in, not words.
+        $text = preg_replace('/[.…]{4,}/u', ' ', $text);
 
         return trim(preg_replace('/\s+/u', ' ', $text));
     }

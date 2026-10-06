@@ -73,6 +73,12 @@ Route::get('/disclaimer', [PublicPageController::class, 'page'])->defaults('page
 Route::get('/privacy-policy', [PublicPageController::class, 'page'])->defaults('page', 'privacy')->name('public.privacy');
 Route::get('/terms-and-conditions', [PublicPageController::class, 'page'])->defaults('page', 'terms')->name('public.terms');
 
+// Past-paper PDF -> Quill test page. Open to everyone for now; it runs fully in
+// the browser, so it skips the session (and the database behind it).
+Route::view('/pdf-extractor', 'pdf-extractor')
+    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('pdf-extractor');
+
 // The root lands on the public home page.
 Route::get('/', fn () => redirect()->route('public.home'))->name('home');
 

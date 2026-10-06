@@ -59,7 +59,7 @@
                 <span class="marks">[{{ rtrim(rtrim(number_format((float) $ref->marks, 1, '.', ''), '0'), '.') }}]</span>
             @endif
             <span class="num">{{ $index + 1 }}.</span>
-            <span class="text">{{ $question->question }}</span>
+            <div class="text question-html">{!! $question->pdf_question !!}</div>
         </div>
 
         <p class="ref">
