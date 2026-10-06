@@ -18,7 +18,7 @@ const HEADER = 0.065;     // top/bottom page fractions that hold headers, barcod
 const FOOTER = 0.074;
 const SIDE = 40;          // pt; the right side holds the rotated "DO NOT WRITE" margin
 const BAND_GAP = 10;      // pt; graphics closer than this belong to the same block
-const NOISE = /^(\[?Turn over|BLANK PAGE|DO NOT WRITE)/i;
+const NOISE = /^(\[?Turn over|BLANK PAGE|DO NOT WRITE|PUBLISHED$)/i;
 
 export async function extractQuestions(pdf, { createCanvas, onProgress } = {}) {
     const blocks = [];
@@ -48,7 +48,10 @@ async function pageBlocks(page, createCanvas) {
         const [, b, , , e, f] = it.transform;
         if (!it.str.trim() || Math.abs(b) > 0.01 || it.height < 7) continue;
         const base = H - f, h = it.height;
-        if (base < top || base > bottom || e < left || e > right) continue;
+        // A question's last "[Total: 5]" can sit as low as the footer line; marks
+        // never look like footer text, so they are kept wherever they are.
+        const isMarks = /^\[(Total:\s*)?\d+\]$/.test(it.str.trim());
+        if (base < top || (base > bottom && !isMarks) || e < left || e > right) continue;
         const item = { str: it.str, x: e, x1: e + it.width, top: base - h, bottom: base + h * 0.25, base, h };
         (NOISE.test(it.str.trim()) ? noise : items).push(item);
     }
@@ -291,14 +294,66 @@ function toQuestions(blocks) {
 export async function readCover(pdf) {
     const page = await pdf.getPage(1);
     const text = (await page.getTextContent()).items.map(i => i.str).join(' ');
-    const code = text.match(/\b(\d{4})\/(\d{2})\b/);
-    const session = text.match(/\b(February\/March|May\/June|October\/November)\s+(\d{4})\b/i);
+    // Items may split "0610/41" into "0610", "/", "41", so allow spaces around the slash.
+    const code = text.match(/\b(\d{4})\s*\/\s*(\d{2})\b/);
+    const found = text.match(/\b(February|May|October)\s*\/\s*(March|June|November)\s+(\d{4})\b/i);
+    const session = found && [found[0], `${found[1]}/${found[2]}`, found[3]];
     return {
         syllabus: code?.[1] ?? null,
         paperNo: code?.[2] ?? null,
         session: session?.[1] ?? null,
         year: session ? +session[2] : null,
     };
+}
+
+// Mark scheme PDF -> { questionNumber: html }. Cambridge mark schemes are one
+// table, "Question | Answer | Marks | Guidance", a row per part ("1(a)(i)").
+// The narrow Question and Marks headers give the column edges; pages before
+// the first header (generic marking principles) are skipped.
+// ponytail: text only; figures/tables inside an answer cell come through as plain lines.
+export async function extractAnswers(pdf, { onProgress } = {}) {
+    const rows = [];
+    let cols = null, row = null;
+    for (let n = 1; n <= pdf.numPages; n++) {
+        const page = await pdf.getPage(n);
+        const H = page.getViewport({ scale: 1 }).height;
+        const items = [];
+        for (const it of (await page.getTextContent()).items) {
+            const [, b, , , e, f] = it.transform;
+            const base = H - f, h = it.height;
+            if (!it.str.trim() || NOISE.test(it.str.trim()) || Math.abs(b) > 0.01 || h < 4 || base < H * HEADER || base > H * (1 - FOOTER)) continue;
+            items.push({ str: it.str, x: e, x1: e + it.width, top: base - h, bottom: base + h * 0.25, base, h });
+        }
+        page.cleanup();
+        onProgress?.(n, pdf.numPages);
+
+        for (const l of toLines(items)) {
+            // The header repeats at the top of each page and of each question's table.
+            const at = w => l.items.find(i => i.str.trim() === w);
+            if (at('Question') && at('Answer') && at('Marks')) {
+                cols = { question: at('Question').x1 + 8, answer: at('Marks').x - 8, marks: at('Marks').x1 + 8 };
+                continue;
+            }
+            if (!cols) continue;
+            const cell = (from, to) => toLines(l.items.filter(i => i.x >= from && i.x < to)).map(c => c.text).join(' ');
+            const ref = cell(-Infinity, cols.question).replace(/\s+/g, '');
+            const m = ref.match(/^(\d{1,2})(\(.*)?$/);
+            if (m) rows.push(row = { number: +m[1], ref, answer: [], marks: [], guidance: [] });
+            if (!row) continue;
+            for (const [key, from, to] of [['answer', cols.question, cols.answer], ['marks', cols.answer, cols.marks], ['guidance', cols.marks, Infinity]]) {
+                const text = cell(from, to);
+                if (text) row[key].push(esc(text));
+            }
+        }
+    }
+
+    const out = {};
+    for (const r of rows) {
+        const guidance = r.guidance.length ? `<td><em>${r.guidance.join('<br>')}</em></td>` : '<td></td>';
+        out[r.number] = (out[r.number] ?? '') + `<tr><td><strong>${r.ref}</strong></td><td>${r.answer.join('<br>')}</td><td>${r.marks.join(' ')}</td>${guidance}</tr>`;
+    }
+    for (const k in out) out[k] = `<table><tbody>${out[k]}</tbody></table>`;
+    return out;
 }
 
 const indent = level => (level ? ` class="ql-indent-${level}"` : '');

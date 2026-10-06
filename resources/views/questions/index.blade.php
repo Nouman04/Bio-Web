@@ -346,19 +346,19 @@
     {{-- Edit Question Modal --}}
     <div id="edit-question-modal-container" class="fixed inset-0 z-[100] flex items-center justify-center hidden" aria-modal="true" role="dialog">
         <div class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onclick="closeEditQuestionModal()"></div>
-        <div class="relative w-full max-w-3xl mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
+        <div class="relative w-full max-w-7xl mx-4 glass-panel bg-surface-container-lowest dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 dark:border-slate-700 animate-[fadeSlideIn_0.25s_ease]">
             <div class="p-6 border-b border-outline-variant/20 dark:border-slate-700 flex justify-between items-center bg-surface-container-low/40 dark:bg-slate-900/40">
                 <h3 class="text-lg font-bold text-on-surface dark:text-white">Edit Question</h3>
                 <button type="button" onclick="closeEditQuestionModal()" class="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error/10 transition-all">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <form id="edit-question-form" data-ajax-form data-question-form action="#" method="POST" class="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+            <form id="edit-question-form" data-ajax-form data-question-form action="#" method="POST" class="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
                 @csrf
                 @method('PUT')
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Question</label>
-                    <textarea id="edit-question-text" name="question" data-quill data-quill-height="140px" placeholder="Type the question…"></textarea>
+                    <textarea id="edit-question-text" name="question" data-quill data-quill-height="140px" data-quill-max-height="320px" placeholder="Type the question…"></textarea>
                 </div>
                 {{-- Chapter, type and difficulty come before the answer, since
                      the type decides what the answer looks like --}}
@@ -394,7 +394,7 @@
                 {{-- Theory: a written answer --}}
                 <div class="answer-theory flex flex-col gap-1.5">
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Answer <span class="font-normal text-outline">(Optional)</span></label>
-                    <textarea id="edit-question-answer" name="answer" data-quill data-quill-no-attachments data-quill-height="140px" placeholder="Attach the answer…"></textarea>
+                    <textarea id="edit-question-answer" name="answer" data-quill data-quill-no-attachments data-quill-height="140px" data-quill-max-height="320px" placeholder="Attach the answer…"></textarea>
                 </div>
 
                 {{-- MCQ: options, with the correct one selected --}}

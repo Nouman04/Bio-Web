@@ -208,6 +208,7 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
 
         DB::table('question_bank')->insert(array_map(fn ($row) => [
             'uuid' => $row['uuid'],
+            'course_id' => $this->import->course_id,
             'chapter_id' => $row['chapter_id'],
             'question_categories_id' => $categoryId,
             'question' => $row['question'],

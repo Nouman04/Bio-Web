@@ -343,6 +343,9 @@
         }
         .quill-wrapper .ql-editor {
             min-height: var(--quill-min-height, 180px);
+            /* Long content scrolls inside the editor instead of stretching the form. */
+            max-height: var(--quill-max-height, none);
+            overflow-y: auto;
         }
         .quill-wrapper .ql-editor.ql-blank::before {
             font-style: normal;
@@ -1092,6 +1095,9 @@
                 wrapper.className = 'quill-wrapper';
                 if (textarea.dataset.quillHeight) {
                     wrapper.style.setProperty('--quill-min-height', textarea.dataset.quillHeight);
+                }
+                if (textarea.dataset.quillMaxHeight) {
+                    wrapper.style.setProperty('--quill-max-height', textarea.dataset.quillMaxHeight);
                 }
 
                 const editor = document.createElement('div');

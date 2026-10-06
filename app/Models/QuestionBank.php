@@ -17,11 +17,42 @@ class QuestionBank extends Model
     protected $table = 'question_bank';
 
     protected $fillable = [
+        'course_id',
         'chapter_id',
         'question_categories_id',
         'question',
         'difficulty_level',
     ];
+
+    /**
+     * A question with a chapter belongs to that chapter's course, so callers
+     * that only set the chapter still get course_id filled in.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (QuestionBank $question) {
+            if ($question->chapter_id && $question->isDirty('chapter_id')) {
+                $question->course_id = Chapter::whereKey($question->chapter_id)->value('course_id');
+            }
+        });
+    }
+
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * What a chapter's question bank shows: its own questions, plus its
+     * course's questions that have no chapter yet (past-paper imports), so
+     * they can be found and given one.
+     */
+    public function scopeForChapter($query, Chapter $chapter)
+    {
+        return $query->where(fn ($q) => $q
+            ->where('chapter_id', $chapter->id)
+            ->orWhere(fn ($q) => $q->whereNull('chapter_id')->where('course_id', $chapter->course_id)));
+    }
 
     /**
      * The question as words alone.

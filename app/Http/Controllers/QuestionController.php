@@ -118,13 +118,13 @@ class QuestionController extends Controller
 
         // Through the chain the chapter is fixed, so both filters are ignored.
         if ($chain) {
-            $questions->where('chapter_id', $chain['chapter']->id);
+            $questions->forChapter($chain['chapter']);
         } else {
-            // A question belongs to a course through its chapter, so filtering
-            // by course means "its chapter is one of that course's".
+            // course_id is set with or without a chapter, so chapter-less
+            // past-paper questions are found too.
             $questions->when(
                 $request->input('course'),
-                fn ($query, $uuid) => $query->whereRelation('chapter.course', 'uuid', $uuid)
+                fn ($query, $uuid) => $query->whereRelation('course', 'uuid', $uuid)
             );
 
             $questions->when(

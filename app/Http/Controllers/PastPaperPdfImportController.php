@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Chapter;
 use App\Models\Course;
 use App\Models\PastPaperReference;
+use App\Models\QuestionAnswer;
 use App\Models\QuestionableType;
 use App\Models\QuestionBank;
 use App\Models\QuestionCategory;
-use App\Models\Topic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -21,18 +20,16 @@ use Illuminate\Support\Str;
  *
  * The PDF itself is read in the browser (resources/js/past-paper-import.js);
  * this receives one Quill-ready HTML string per question plus the cover page
- * details, and files them like a worksheet row: question, topic link, citation.
+ * details. Questions belong to the course only, with no chapter yet; the
+ * citation hangs off a link to the course.
  */
 class PastPaperPdfImportController extends Controller
 {
-    private const TOPIC = 'Past Paper Questions';
-
     private const SESSIONS = ['february/march' => 3, 'may/june' => 6, 'october/november' => 11];
 
     public function store(Request $request, Course $course): JsonResponse
     {
         $data = $request->validate([
-            'chapter_id' => ['required', 'integer'],
             'filename' => ['required', 'string', 'max:255'],
             'cover.paperNo' => ['nullable', 'string', 'max:20'],
             'cover.session' => ['nullable', 'string', 'max:40'],
@@ -41,43 +38,58 @@ class PastPaperPdfImportController extends Controller
             'questions.*.number' => ['required', 'integer', 'min:1'],
             'questions.*.html' => ['required', 'string'],
             'questions.*.marks' => ['nullable', 'numeric', 'min:0'],
+            'questions.*.answer' => ['nullable', 'string'],
         ]);
 
-        $chapter = Chapter::where('course_id', $course->id)->findOrFail($data['chapter_id']);
-        $topic = Topic::firstOrCreate(['chapter_id' => $chapter->id, 'title' => self::TOPIC]);
         $categoryId = QuestionCategory::firstOrCreate(['type' => 'theory'])->id;
 
         $cover = $data['cover'] ?? [];
         $month = self::SESSIONS[mb_strtolower($cover['session'] ?? '')] ?? null;
         $date = ($month && ! empty($cover['year'])) ? Carbon::createFromDate($cover['year'], $month, 1)->toDateString() : null;
 
-        // Question numbers of this PDF already in this chapter, so a re-upload is harmless.
-        $existing = PastPaperReference::where('source', $data['filename'])
-            ->whereHas('link', fn ($q) => $q->where('chapter_id', $chapter->id))
-            ->pluck('question_no')
+        // Question number => question id for this PDF's questions already in this
+        // course, so a re-upload is harmless (and can still add the answers).
+        $existing = PastPaperReference::with('link:id,question_id')
+            ->where('source', $data['filename'])
+            ->whereHas('link', fn ($q) => $q->where('questionable_type', Course::class)->where('questionable_id', $course->id))
+            ->get()
+            ->mapWithKeys(fn ($ref) => [$ref->question_no => $ref->link->question_id])
             ->all();
 
         $imported = 0;
         $skipped = 0;
+        $answered = 0;
 
-        DB::transaction(function () use ($data, $chapter, $topic, $categoryId, $cover, $date, $existing, &$imported, &$skipped) {
+        DB::transaction(function () use ($data, $course, $categoryId, $cover, $date, $existing, &$imported, &$skipped, &$answered) {
             foreach ($data['questions'] as $q) {
-                if (in_array((string) $q['number'], $existing, true)) {
+                // From the mark scheme; stored like a theory answer typed in the editor.
+                $answer = $q['answer'] ?? null;
+
+                if (isset($existing[(string) $q['number']])) {
+                    $questionId = $existing[(string) $q['number']];
+                    if ($answer && ! QuestionAnswer::where('question_bank_id', $questionId)->exists()) {
+                        QuestionAnswer::create(['question_bank_id' => $questionId, 'description' => $answer]);
+                        $answered++;
+                    }
                     $skipped++;
                     continue;
                 }
 
                 $question = QuestionBank::create([
-                    'chapter_id' => $chapter->id,
+                    'course_id' => $course->id,
                     'question_categories_id' => $categoryId,
                     'question' => $this->storeImages($q['html']),
                 ]);
 
+                if ($answer) {
+                    QuestionAnswer::create(['question_bank_id' => $question->id, 'description' => $answer]);
+                    $answered++;
+                }
+
                 $link = QuestionableType::create([
-                    'chapter_id' => $chapter->id,
                     'question_id' => $question->id,
-                    'questionable_type' => Topic::class,
-                    'questionable_id' => $topic->id,
+                    'questionable_type' => Course::class,
+                    'questionable_id' => $course->id,
                 ]);
 
                 // The citation's columns are required; a PDF without a readable
@@ -97,7 +109,7 @@ class PastPaperPdfImportController extends Controller
             }
         });
 
-        return response()->json(['imported' => $imported, 'skipped' => $skipped, 'date' => $date]);
+        return response()->json(['imported' => $imported, 'skipped' => $skipped, 'answered' => $answered, 'date' => $date]);
     }
 
     /**

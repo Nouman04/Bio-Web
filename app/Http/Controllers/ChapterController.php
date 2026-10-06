@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attachment;
 use App\Models\Chapter;
 use App\Models\Course;
+use App\Models\QuestionBank;
 use App\Services\AttachmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -85,8 +86,10 @@ class ChapterController extends Controller
         // Every tile's figure, in one query rather than nine.
         $chapterModel->load('image')->loadCount([
             'topics', 'notes', 'summaries', 'diagrams', 'guides',
-            'videoLessons', 'flashcards', 'questionBank', 'quizzes',
+            'videoLessons', 'flashcards', 'quizzes',
         ]);
+        // Counted like the chapter's question bank lists them.
+        $questionCount = QuestionBank::forChapter($chapterModel)->count();
 
         return view('chapters.dashboard', [
             'courseId' => $courseModel,
@@ -109,7 +112,7 @@ class ChapterController extends Controller
                 'guides' => $chapterModel->guides_count,
                 'videos' => $chapterModel->video_lessons_count,
                 'flashcards' => $chapterModel->flashcards_count,
-                'questions' => $chapterModel->question_bank_count,
+                'questions' => $questionCount,
                 'quizzes' => $chapterModel->quizzes_count,
             ],
         ]);
