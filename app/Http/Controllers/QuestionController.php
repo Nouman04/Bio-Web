@@ -106,14 +106,17 @@ class QuestionController extends Controller
     {
         $chain = $this->chain($course, $chapter);
 
+        // Every question and past-paper part that has text is its own row;
+        // the text lives in `questions`.
         $questions = QuestionBank::query()
-            ->with(['chapter:id,title', 'category:id,type', 'answer', 'options'])
-            ->withCount(['questionables', 'assessments']);
+            ->whereHas('text')
+            ->with(['text', 'chapter:id,title', 'category:id,type', 'answer', 'options'])
+            ->withCount(['questionables', 'assessments', 'children']);
 
         // Filters from the filter card above the table.
         $questions->when(
             $request->input('search_term'),
-            fn ($query, $term) => $query->where('question', 'like', "%{$term}%")
+            fn ($query, $term) => $query->whereHas('text', fn ($q) => $q->where('question', 'like', "%{$term}%"))
         );
 
         // Through the chain the chapter is fixed, so both filters are ignored.
@@ -170,7 +173,9 @@ class QuestionController extends Controller
             ->addColumn('meta_cell', fn (QuestionBank $question) => view('questions.partials.meta-cell', compact('question'))->render())
             ->addColumn('usage_cell', fn (QuestionBank $question) => view('questions.partials.usage-cell', compact('question'))->render())
             ->addColumn('action', fn (QuestionBank $question) => view('questions.partials.actions', compact('question'))->render())
-            ->orderColumn('question_cell', 'question $1')
+            // The table's "question" column: the text lives in `questions`.
+            ->orderColumn('question', '(select question from questions where questions.question_bank_id = question_bank.id) $1')
+            ->filterColumn('question', fn ($query, $term) => $query->whereHas('text', fn ($q) => $q->where('question', 'like', "%{$term}%")))
             ->rawColumns(['question_cell', 'answer_cell', 'meta_cell', 'usage_cell', 'action'])
             ->only(['question_cell', 'answer_cell', 'meta_cell', 'usage_cell', 'action'])
             ->toJson();
@@ -213,12 +218,19 @@ class QuestionController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
+        // Questions and parts that have text; the text lives in `questions`.
         $questions = QuestionBank::query()
-            ->when($request->input('q'), fn ($query, $term) => $query->where('question', 'like', "%{$term}%"))
-            // Building through a chapter chain: only that chapter's questions.
-            ->when($request->input('chapter'), fn ($query, $uuid) => $query->whereRelation('chapter', 'uuid', $uuid))
-            // Building for a course: only the questions in its chapters.
-            ->when($request->input('course'), fn ($query, $uuid) => $query->whereRelation('chapter.course', 'uuid', $uuid))
+            ->whereHas('text')
+            ->with('text')
+            ->when($request->input('q'), fn ($query, $term) => $query->whereHas('text', fn ($q) => $q->where('question', 'like', "%{$term}%")))
+            // Building through a chapter chain: that chapter's questions,
+            // including ones with a part tagged to it.
+            ->when(
+                $request->input('chapter') ? Chapter::where('uuid', $request->input('chapter'))->first() : null,
+                fn ($query, $chapter) => $query->forChapter($chapter)
+            )
+            // Building for a course: only that course's questions.
+            ->when($request->input('course'), fn ($query, $uuid) => $query->whereRelation('course', 'uuid', $uuid))
             // A theory or MCQ quiz only offers questions of that kind.
             ->when(
                 in_array($request->input('type'), ['theory', 'mcqs'], true),
@@ -340,15 +352,31 @@ class QuestionController extends Controller
             'options' => ['nullable', 'array'],
             'options.*' => ['nullable', 'string', 'max:1000'],
             'correct_option' => ['nullable', 'integer', 'min:0'],
+            // A past-paper part's marks; only parts that carry marks send it.
+            'marks' => ['nullable', 'numeric', 'min:0', 'max:999'],
         ]);
 
         $this->validateChoices($data);
 
         DB::transaction(function () use ($question, $data) {
-            $question->update([
+            $html = $data['question'];
+            $changes = [];
+
+            // A part's marks: the figure the worksheet adds up, and the "[n]"
+            // printed after it, kept the same.
+            if (isset($data['marks']) && $data['marks'] !== '') {
+                $marks = rtrim(rtrim(number_format((float) $data['marks'], 1, '.', ''), '0'), '.');
+                $changes['marks'] = (float) $data['marks'];
+                $html = preg_replace('/\[\d+(\.\d+)?\](?=\s*<\/strong>\s*<\/p>\s*$)/', "[{$marks}]", $html, 1, $replaced);
+                if (! $replaced) {
+                    $html .= "<p class=\"ql-align-right\"><strong>[{$marks}]</strong></p>";
+                }
+            }
+
+            $question->update($changes + [
                 'chapter_id' => $data['chapter_id'] ?? null,
                 'question_categories_id' => $data['question_categories_id'],
-                'question' => $data['question'],
+                'question' => $html,
                 'difficulty_level' => $data['difficulty_level'] ?? null,
             ]);
 

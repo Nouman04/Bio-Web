@@ -360,6 +360,14 @@
                     <label class="text-xs font-semibold text-on-surface-variant dark:text-slate-400">Question</label>
                     <textarea id="edit-question-text" name="question" data-quill data-quill-height="140px" data-quill-max-height="320px" placeholder="Type the question…"></textarea>
                 </div>
+
+                {{-- A past-paper part's own marks, printed as its "[n]". Shown
+                     only for parts that carry marks. --}}
+                <label id="edit-question-marks-wrap" class="hidden items-center gap-2 text-xs font-semibold text-on-surface-variant dark:text-slate-400">
+                    Marks
+                    <input id="edit-question-marks" type="number" name="marks" min="0" step="0.5" disabled
+                        class="w-24 bg-surface-container-low dark:bg-slate-900 border border-outline-variant rounded-xl py-2 px-3 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                </label>
                 {{-- Chapter, type and difficulty come before the answer, since
                      the type decides what the answer looks like --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -615,6 +623,14 @@
             });
 
             QuestionForm.applyAnswerMode(form);
+
+            // A past-paper part's marks; disabled (not sent) for anything else.
+            const hasMarks = trigger.dataset.hasMarks === '1';
+            const marks = document.getElementById('edit-question-marks');
+            document.getElementById('edit-question-marks-wrap').classList.toggle('hidden', !hasMarks);
+            document.getElementById('edit-question-marks-wrap').classList.toggle('flex', hasMarks);
+            marks.disabled = !hasMarks;
+            marks.value = hasMarks && trigger.dataset.marks !== '' ? Number(trigger.dataset.marks) : '';
 
             document.getElementById('edit-question-modal-container').classList.remove('hidden');
         }

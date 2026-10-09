@@ -134,8 +134,9 @@ class SearchController extends Controller
                 ]
             ),
             'questions' => $this->hits(
-                QuestionBank::query()->with('chapter:id,title'),
-                'question', $term,
+                QuestionBank::query()->with(['chapter:id,title', 'text']),
+                // The text lives in `questions`.
+                \Illuminate\Support\Facades\DB::raw('(select question from questions where questions.question_bank_id = question_bank.id)'), $term,
                 fn (QuestionBank $q) => [
                     'title' => $q->plain_question,
                     'meta' => $q->chapter?->title ?: 'Question bank',
@@ -260,7 +261,7 @@ class SearchController extends Controller
      * Runs one group's query and shapes its rows. Hits without a URL are
      * dropped — there would be nowhere to send the reader.
      */
-    private function hits($query, string $column, string $term, callable $shape): array
+    private function hits($query, $column, string $term, callable $shape): array
     {
         if ($term === '') {
             return [];

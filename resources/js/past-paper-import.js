@@ -108,7 +108,12 @@ form?.addEventListener('submit', async e => {
                 body: {
                     filename: qp.name,
                     cover,
-                    questions: questions.map(q => ({ ...q, answer: answers[q.number] ?? null })),
+                    // The parts only: the joined `html` would send every figure twice.
+                    questions: questions.map(q => ({
+                        number: q.number,
+                        marks: q.marks,
+                        nodes: q.nodes.map(n => ({ ...n, answer: answers[n.ref] ?? null })),
+                    })),
                 },
             });
             saved += body.imported;

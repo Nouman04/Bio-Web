@@ -7,6 +7,8 @@
         'title' => $option->title,
         'correct' => $answer && $answer->question_option_id === $option->id,
     ])->values();
+    // A past-paper part with nothing under it carries marks, edited here.
+    $hasMarks = $question->part_ref && ! ($question->children_count ?? $question->children()->count());
 @endphp
 <div class="relative inline-block text-left action-dropdown">
     <button type="button" class="action-dropdown-trigger w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant dark:text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Actions">
@@ -23,6 +25,8 @@
                 data-question="{{ $question->question }}"
                 data-answer="{{ $answer?->description }}"
                 data-options="{{ $options->toJson() }}"
+                data-has-marks="{{ $hasMarks ? 1 : 0 }}"
+                data-marks="{{ $question->marks }}"
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-on-surface dark:text-slate-200 hover:bg-primary/5 transition-colors">
                 <i class="fa-solid fa-pen w-4 text-on-surface-variant"></i>
                 Edit

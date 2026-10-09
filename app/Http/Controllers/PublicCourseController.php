@@ -253,7 +253,7 @@ class PublicCourseController extends Controller
             ->get()
             ->filter(fn ($assessment) => $assessment->question)
             ->map(fn ($assessment) => [
-                'question' => $assessment->question->question,
+                'question' => $assessment->question->whole_question,
                 'answer' => $this->answerText($assessment->question),
             ])
             ->values();
@@ -433,7 +433,7 @@ class PublicCourseController extends Controller
         return $this->quizLinks($course, $chapter, $quiz, $types)
             ->map(fn ($link) => [
                 'id' => $link->questionBank->id,
-                'text' => $link->questionBank->question,
+                'text' => $link->questionBank->whole_question,
                 'marks' => rtrim(rtrim(number_format((float) $link->marks, 2, '.', ''), '0'), '.'),
                 'difficulty' => $link->questionBank->difficulty_level,
                 'options' => $link->questionBank->options

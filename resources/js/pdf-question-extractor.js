@@ -231,17 +231,28 @@ const CAPTION = /^(Fig(ure)?|Table)\s+\d+(\.\d+)?$/i;
 const SUBPART = /^\(([ivx]+)\)\s*/;
 const MARKS = /\s*(\[(?:Total:\s*)?\d+\])$/;
 
+// Each question comes back as a tree of parts, in paper order:
+//   nodes: [{ ref: '1', parent: null }, { ref: '1(a)', parent: '1' }, { ref: '1(a)(i)', parent: '1(a)' }, ...]
+// Every node holds only its own markup, so joining them in order gives the
+// whole question again (`html`). Leaves carry their "[2]" as `marks`; the
+// question's "[Total: 13]" becomes its `marks` and is not printed.
 function toQuestions(blocks) {
     const questions = [];
-    let q = null, level = 0, prev = null;
+    let q = null, node = null, level = 0, prev = null;
 
-    const push = (html, merge = null) => { q.html.push(html); prev = merge; };
+    const push = (html, merge = null) => { node.html.push(html); prev = merge; };
+    const open = (ref, parent) => {
+        node = { ref, parent: parent?.ref ?? null, html: [], marks: null };
+        q.nodes.push(node);
+        return node;
+    };
 
     for (const b of blocks) {
         const first = b.type === 'line' && b.items[0];
         if (first && /^\d{1,2}$/.test(first.str.trim()) && first.x < 60) {
-            q = { number: +first.str.trim(), html: [] };
+            q = { number: +first.str.trim(), nodes: [], part: null, marks: null };
             questions.push(q);
+            q.root = open(String(q.number), null);
             level = 0;
             b.text = b.text.slice(first.str.trim().length).trim();
             b.qNumber = q.number;
@@ -254,10 +265,19 @@ function toQuestions(blocks) {
         let text = b.text.replace(/\bTick \(3\)/g, 'Tick (✓)'); // ponytail: tick glyph maps to "3" in this font; map the symbol font if other glyphs break
         if (CAPTION.test(text)) { push(`<p class="ql-align-center"><strong>${esc(text)}</strong></p>`); continue; }
 
+        // A line can open several levels at once ("1 (a) (i) State ..."): each
+        // opens its node, and the line's text goes to the deepest one.
+        // ponytail: text between a part's [marks] and the next marker (rare
+        // shared lead-ins) stays on the part before it.
         const markers = b.qNumber ? [String(b.qNumber)] : [];
         for (const [re, lvl] of [[PART, 1], [SUBPART, 2]]) {
             const m = text.match(re);
-            if (m) { markers.push(`(${m[1]})`); level = lvl; text = text.slice(m[0].length); }
+            if (!m) continue;
+            markers.push(`(${m[1]})`);
+            level = lvl;
+            text = text.slice(m[0].length);
+            if (lvl === 1) q.part = open(`${q.number}(${m[1]})`, q.root);
+            else { const parent = q.part ?? q.root; open(`${parent.ref}(${m[1]})`, parent); }
         }
         if (b.qNumber && markers.length === 1) level = 0;
         // Where the words start, so wrapped lines of the same paragraph line up with it.
@@ -271,7 +291,7 @@ function toQuestions(blocks) {
             const canMerge = !markers.length && !isAnswer && prev && !prev.answer
                 && Math.abs(prev.x - x) < 3 && b.base - prev.base < b.h * 1.6;
             if (canMerge) {
-                q.html[q.html.length - 1] = q.html.at(-1).replace(/<\/p>$/, ` ${esc(text)}</p>`);
+                node.html[node.html.length - 1] = node.html.at(-1).replace(/<\/p>$/, ` ${esc(text)}</p>`);
                 prev = { ...prev, base: b.base };
             } else {
                 const head = markers.map(m => `<strong>${m}</strong> `).join('');
@@ -280,13 +300,17 @@ function toQuestions(blocks) {
         } else if (markers.length) {
             push(`<p${indent(level)}>${markers.map(m => `<strong>${m}</strong>`).join(' ')}</p>`);
         }
-        if (marks) push(`<p class="ql-align-right"><strong>${marks[1]}</strong></p>`);
-        if (marks?.[1].startsWith('[Total')) q = null; // the question is over; drop copyright pages etc.
+        if (marks?.[1].startsWith('[Total')) {
+            q.marks = +marks[1].match(/\d+/)[0];
+            q = null; // the question is over; drop copyright pages etc.
+        } else if (marks) {
+            push(`<p class="ql-align-right"><strong>${marks[1]}</strong></p>`);
+            node.marks = (node.marks ?? 0) + +marks[1].match(/\d+/)[0];
+        }
     }
     return questions.map(q => {
-        const html = q.html.join('');
-        const total = html.match(/\[Total:\s*(\d+)\]/);
-        return { number: q.number, html, marks: total ? +total[1] : null };
+        const nodes = q.nodes.map(n => ({ ref: n.ref, parent: n.parent, html: n.html.join(''), marks: n.marks }));
+        return { number: q.number, html: nodes.map(n => n.html).join(''), marks: q.marks, nodes };
     });
 }
 
@@ -306,8 +330,9 @@ export async function readCover(pdf) {
     };
 }
 
-// Mark scheme PDF -> { questionNumber: html }. Cambridge mark schemes are one
-// table, "Question | Answer | Marks | Guidance", a row per part ("1(a)(i)").
+// Mark scheme PDF -> { "1(a)(i)": html }, one entry per part, keyed like the
+// question paper's part refs. Cambridge mark schemes are one table,
+// "Question | Answer | Marks | Guidance", a row per part.
 // The narrow Question and Marks headers give the column edges; pages before
 // the first header (generic marking principles) are skipped.
 // ponytail: text only; figures/tables inside an answer cell come through as plain lines.
@@ -350,7 +375,7 @@ export async function extractAnswers(pdf, { onProgress } = {}) {
     const out = {};
     for (const r of rows) {
         const guidance = r.guidance.length ? `<td><em>${r.guidance.join('<br>')}</em></td>` : '<td></td>';
-        out[r.number] = (out[r.number] ?? '') + `<tr><td><strong>${r.ref}</strong></td><td>${r.answer.join('<br>')}</td><td>${r.marks.join(' ')}</td>${guidance}</tr>`;
+        out[r.ref] = (out[r.ref] ?? '') + `<tr><td><strong>${r.ref}</strong></td><td>${r.answer.join('<br>')}</td><td>${r.marks.join(' ')}</td>${guidance}</tr>`;
     }
     for (const k in out) out[k] = `<table><tbody>${out[k]}</tbody></table>`;
     return out;

@@ -50,7 +50,7 @@ class QuizQuestion extends Model
     {
         return [
             'id' => $this->id,
-            'question' => $this->questionBank?->question,
+            'question' => $this->questionBank?->whole_question,
         ];
     }
 }

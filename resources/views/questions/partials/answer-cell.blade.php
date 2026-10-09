@@ -1,7 +1,6 @@
 {{-- Answer column --}}
 @php
-    $answer = $question->answer->first();
-    $text = $answer?->description ?: $answer?->expected_answer;
+    $text = $question->answer->map(fn ($a) => $a->description ?: $a->expected_answer)->filter()->implode(' ');
     $text = html_entity_decode(strip_tags($text ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $text = trim(preg_replace('/\s+/u', ' ', $text));
 @endphp

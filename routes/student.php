@@ -73,7 +73,11 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
     Route::get('/worksheets/options', [StudentWorksheetController::class, 'options'])->name('worksheets.options');
     Route::get('/worksheets/preview', [StudentWorksheetController::class, 'preview'])->name('worksheets.preview');
     Route::post('/worksheets', [StudentWorksheetController::class, 'store'])->name('worksheets.store');
+    // The question paper / mark scheme are built on the queue; the page polls.
+    Route::get('/worksheets/pdf/{pdf}', [StudentWorksheetController::class, 'pdfStatus'])->name('worksheets.pdf.status');
+    Route::get('/worksheets/pdf/{pdf}/download', [StudentWorksheetController::class, 'downloadPdf'])->name('worksheets.pdf.download');
     Route::get('/worksheets/{worksheet}', [StudentWorksheetController::class, 'show'])->name('worksheets.show');
+    Route::post('/worksheets/{worksheet}/pdf/{type}', [StudentWorksheetController::class, 'generatePdf'])->name('worksheets.pdf.generate');
     Route::get('/worksheets/{worksheet}/paper', [StudentWorksheetController::class, 'paper'])->name('worksheets.paper');
     Route::get('/worksheets/{worksheet}/mark-scheme', [StudentWorksheetController::class, 'markScheme'])->name('worksheets.mark-scheme');
     Route::delete('/worksheets/{worksheet}', [StudentWorksheetController::class, 'destroy'])->name('worksheets.destroy');

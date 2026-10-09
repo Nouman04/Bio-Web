@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Worksheet\StoreWorksheetRequest;
+use App\Jobs\GenerateWorksheetPdf;
 use App\Models\Course;
 use App\Models\Worksheet;
+use App\Models\WorksheetPdf;
 use App\Services\WorksheetService;
-use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -118,7 +121,12 @@ class StudentWorksheetController extends Controller
      */
     public function show(Request $request, string $worksheet)
     {
-        return view('student.worksheets.show', $this->worksheets->paperFor($this->find($request, $worksheet)));
+        // Twelve questions a page, like the other student lists; the summary
+        // still covers the whole worksheet, and the PDFs print every question.
+        $paper = $this->worksheets->paperFor($this->find($request, $worksheet), Paginator::resolveCurrentPage());
+        $paper['questions']->withQueryString();
+
+        return view('student.worksheets.show', $paper);
     }
 
     /**
@@ -138,6 +146,57 @@ class StudentWorksheetController extends Controller
         return $this->render($request, $worksheet, 'mark-scheme');
     }
 
+    /**
+     * Starts building the question paper or mark scheme on the queue, or
+     * returns the build already under way. The page then polls pdfStatus().
+     */
+    public function generatePdf(Request $request, string $worksheet, string $type): JsonResponse
+    {
+        abort_unless(in_array($type, WorksheetPdf::TYPES, true), 404);
+        $record = $this->find($request, $worksheet);
+
+        $pdf = WorksheetPdf::where('worksheet_id', $record->id)
+            ->where('type', $type)
+            ->whereIn('status', ['queued', 'running'])
+            ->latest('id')
+            ->first();
+
+        if (! $pdf) {
+            $pdf = WorksheetPdf::create([
+                'worksheet_id' => $record->id,
+                'type' => $type,
+                'status' => 'queued',
+                'progress' => 0,
+                'stage' => 'Waiting to start',
+            ]);
+            GenerateWorksheetPdf::dispatch($pdf->id);
+        }
+
+        return response()->json($this->pdfState($pdf));
+    }
+
+    /**
+     * How far a build has got, and the download link once it is done.
+     */
+    public function pdfStatus(Request $request, string $pdf): JsonResponse
+    {
+        return response()->json($this->pdfState($this->findPdf($request, $pdf)));
+    }
+
+    /**
+     * The finished file.
+     */
+    public function downloadPdf(Request $request, string $pdf)
+    {
+        $record = $this->findPdf($request, $pdf);
+        abort_unless($record->status === 'completed' && $record->path && Storage::disk('local')->exists($record->path), 404);
+
+        $name = Str::slug($record->worksheet->title ?: 'worksheet')
+            . '-' . ($record->type === 'mark-scheme' ? 'mark-scheme' : 'question-paper') . '.pdf';
+
+        return Storage::disk('local')->download($record->path, $name);
+    }
+
     public function destroy(Request $request, string $worksheet): JsonResponse
     {
         $record = $this->find($request, $worksheet);
@@ -154,26 +213,50 @@ class StudentWorksheetController extends Controller
     }
 
     /**
-     * Renders one of the two documents.
-     *
-     * `?preview=1` returns the HTML instead of the PDF, which is how the page
-     * is checked without waiting on wkhtmltopdf.
+     * One of the two documents as HTML (`?preview=1`), which is how the page
+     * is checked without waiting on wkhtmltopdf. The PDF itself is built on
+     * the queue (generatePdf), so without `preview` this goes back to the
+     * worksheet page, where the buttons start it.
      */
     private function render(Request $request, string $worksheet, string $which)
     {
         $record = $this->find($request, $worksheet);
-        $data = $this->worksheets->paperFor($record) + ['scheme' => $which === 'mark-scheme'];
 
-        $view = 'worksheets.pdf.' . $which;
-
-        if ($request->boolean('preview')) {
-            return view($view, $data);
+        if (! $request->boolean('preview')) {
+            return redirect()->route('student.worksheets.show', $record->uuid);
         }
 
-        $name = Str::slug($record->title ?: 'worksheet')
-            . '-' . ($which === 'mark-scheme' ? 'mark-scheme' : 'question-paper') . '.pdf';
+        return view('worksheets.pdf.' . $which, $this->worksheets->paperFor($record) + ['scheme' => $which === 'mark-scheme']);
+    }
 
-        return SnappyPdf::loadView($view, $data)->download($name);
+    /**
+     * What the page needs to draw a build's progress.
+     *
+     * @return array<string, mixed>
+     */
+    private function pdfState(WorksheetPdf $pdf): array
+    {
+        return [
+            'id' => $pdf->uuid,
+            'type' => $pdf->type,
+            'status' => $pdf->status,
+            'progress' => $pdf->progress,
+            'stage' => $pdf->stage,
+            'error' => $pdf->status === 'failed' ? 'The PDF could not be created. Please try again.' : null,
+            'status_url' => route('student.worksheets.pdf.status', $pdf->uuid),
+            'download_url' => $pdf->status === 'completed' ? route('student.worksheets.pdf.download', $pdf->uuid) : null,
+        ];
+    }
+
+    /**
+     * A build of one of this student's own worksheets.
+     */
+    private function findPdf(Request $request, string $uuid): WorksheetPdf
+    {
+        return WorksheetPdf::where('uuid', $uuid)
+            ->whereHas('worksheet', fn ($q) => $q->where('created_by', $request->user()->id))
+            ->with('worksheet')
+            ->firstOrFail();
     }
 
     /**

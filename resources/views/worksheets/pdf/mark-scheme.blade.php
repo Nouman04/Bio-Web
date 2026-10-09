@@ -92,7 +92,8 @@
                 <span class="label">Answer</span>
                 {{ $written ?: 'Not recorded.' }}
                 @if($notes)
-                    <div class="small muted" style="margin-top:4px;">{{ $notes }}</div>
+                    {{-- Answers are editor or mark-scheme markup (tables, per part). --}}
+                    <div class="small question-html" style="margin-top:4px;">{!! \App\Models\QuestionBank::sanitize($notes) !!}</div>
                 @endif
             </div>
         @endif

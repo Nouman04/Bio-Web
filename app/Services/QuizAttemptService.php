@@ -235,7 +235,7 @@ class QuizAttemptService
 
                 return [
                     'answer_id' => $answer?->id,
-                    'question' => $question?->question,
+                    'question' => $question?->whole_question,
                     'is_mcq' => $this->isMcq($link),
                     'marks' => (float) $link->marks,
                     'awarded' => $answer?->marks_awarded !== null ? (float) $answer->marks_awarded : null,

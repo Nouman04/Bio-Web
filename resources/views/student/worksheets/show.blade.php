@@ -61,16 +61,31 @@
                 @endforeach
             </div>
 
-            {{-- The two documents. --}}
-            <div class="flex flex-col gap-2 lg:w-64">
-                <a href="{{ route('student.worksheets.paper', $worksheet->uuid) }}"
-                    class="w-full text-center bg-primary text-on-primary px-5 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-file-pdf text-xs"></i> Question paper
-                </a>
-                <a href="{{ route('student.worksheets.mark-scheme', $worksheet->uuid) }}"
-                    class="w-full text-center bg-tertiary/10 text-tertiary px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-tertiary/20 transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-list-check text-xs"></i> Mark scheme
-                </a>
+            {{-- The two documents, built on the queue: a click starts the
+                 build, the bar under the button follows it, and the file
+                 downloads when it is ready. --}}
+            <div class="flex flex-col gap-3 lg:w-64">
+                @foreach ([
+                    ['paper', 'Question paper', 'fa-file-pdf', 'bg-primary text-on-primary shadow-md hover:shadow-lg'],
+                    ['mark-scheme', 'Mark scheme', 'fa-list-check', 'bg-tertiary/10 text-tertiary hover:bg-tertiary/20'],
+                ] as [$type, $label, $icon, $style])
+                    <div class="flex flex-col gap-1.5" data-pdf="{{ $type }}">
+                        <button type="button" data-url="{{ route('student.worksheets.pdf.generate', [$worksheet->uuid, $type]) }}"
+                            class="pdf-start w-full text-center {{ $style }} px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid {{ $icon }} text-xs"></i> {{ $label }}
+                        </button>
+                        <div class="pdf-progress hidden flex-col gap-1">
+                            <div class="h-1.5 w-full bg-surface-container-high dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="pdf-bar h-full bg-primary rounded-full transition-all duration-500" style="width:0%"></div>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 text-[11px] text-on-surface-variant dark:text-slate-400">
+                                <span class="pdf-stage truncate"></span>
+                                <span class="pdf-percent font-semibold shrink-0"></span>
+                            </div>
+                            <a class="pdf-download hidden text-[11px] font-semibold text-primary hover:underline">Download again</a>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -79,13 +94,14 @@
 {{-- The questions themselves --}}
 <div class="bg-surface-container-lowest dark:bg-slate-800 rounded-2xl border border-outline-variant/30 dark:border-slate-700 shadow-sm divide-y divide-outline-variant/20 dark:divide-slate-700 overflow-hidden">
     <div class="px-6 py-4 bg-surface-container-low/40 dark:bg-slate-900/40">
-        <h3 class="font-bold text-on-surface dark:text-white">{{ $questions->count() }} {{ Str::plural('question', $questions->count()) }}</h3>
+        <h3 class="font-bold text-on-surface dark:text-white">{{ $questions->total() }} {{ Str::plural('question', $questions->total()) }}</h3>
     </div>
 
-    @forelse($questions as $index => $question)
+    @forelse($questions as $question)
         @php $ref = $references[$question->id] ?? null; @endphp
         <div class="px-6 py-4 flex items-start gap-4">
-            <span class="text-primary font-bold text-sm shrink-0 w-6">{{ $index + 1 }}.</span>
+            {{-- Numbered across pages: page 2 starts at 13. --}}
+            <span class="text-primary font-bold text-sm shrink-0 w-6">{{ $questions->firstItem() + $loop->index }}.</span>
             <div class="min-w-0 flex-1">
                 <div class="question-html text-sm text-on-surface dark:text-slate-200">{!! $question->safe_question !!}</div>
                 <p class="text-[11px] text-on-surface-variant dark:text-slate-500 mt-1">
@@ -107,6 +123,12 @@
     @endforelse
 </div>
 
+@if($questions->hasPages())
+    <div class="mt-6">
+        {{ $questions->links() }}
+    </div>
+@endif
+
 @endsection
 
 @push('styles')
@@ -126,4 +148,62 @@
     .question-html ul { list-style: disc; }
     .question-html p { overflow-wrap: anywhere; }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    // Question paper / mark scheme: start the build on the queue, follow its
+    // progress, and download the file when it is ready.
+    document.querySelectorAll('[data-pdf]').forEach(box => {
+        const button = box.querySelector('.pdf-start');
+        const progress = box.querySelector('.pdf-progress');
+        const bar = box.querySelector('.pdf-bar');
+        const stage = box.querySelector('.pdf-stage');
+        const percent = box.querySelector('.pdf-percent');
+        const download = box.querySelector('.pdf-download');
+
+        const draw = state => {
+            progress.classList.replace('hidden', 'flex');
+            bar.style.width = `${state.progress}%`;
+            bar.classList.toggle('bg-error', state.status === 'failed');
+            bar.classList.toggle('bg-primary', state.status !== 'failed');
+            stage.textContent = state.error || state.stage || '';
+            stage.classList.toggle('text-error', state.status === 'failed');
+            percent.textContent = state.status === 'failed' ? '' : `${state.progress}%`;
+            download.classList.toggle('hidden', state.status !== 'completed');
+            if (state.download_url) download.href = state.download_url;
+        };
+
+        const follow = async state => {
+            draw(state);
+            if (state.status === 'completed') {
+                window.location.href = state.download_url;
+                button.disabled = false;
+                return;
+            }
+            if (state.status === 'failed') {
+                button.disabled = false;
+                return;
+            }
+            setTimeout(async () => {
+                try {
+                    follow(await App.request(state.status_url));
+                } catch {
+                    // A dropped poll is retried rather than ending the wait.
+                    follow(state);
+                }
+            }, 1500);
+        };
+
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            try {
+                follow(await App.request(button.dataset.url, { method: 'POST' }));
+            } catch {
+                button.disabled = false;
+                App.toast('error', 'Could not start the PDF. Please try again.');
+            }
+        });
+    });
+</script>
 @endpush

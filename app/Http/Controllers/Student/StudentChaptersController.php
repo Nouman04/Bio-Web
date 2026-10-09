@@ -312,7 +312,7 @@ class StudentChaptersController extends Controller
         $explanation = $clean($answer?->description);
 
         return [
-            'question' => $clean($question->question),
+            'question' => $clean($question->whole_question),
             'answer' => $text ?: 'No answer recorded',
             // The reasoning, but only when it says something the answer did
             // not — it is often the same sentence.

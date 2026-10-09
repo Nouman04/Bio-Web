@@ -197,7 +197,7 @@ class FlashcardController extends Controller
                 ->map(fn (Assessment $assessment) => [
                     'assessment_id' => $assessment->id,
                     'id' => $assessment->question->id,
-                    'text' => $assessment->question->question,
+                    'text' => $assessment->question->whole_question,
                     'meta' => $assessment->question->difficulty_level,
                     'order' => $assessment->order,
                 ])

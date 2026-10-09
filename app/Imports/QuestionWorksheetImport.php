@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Chapter;
+use App\Models\Course;
 use App\Models\QuestionCategory;
 use App\Models\QuestionableType;
 use App\Models\Topic;
@@ -23,7 +24,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
  *     Question | Year | Session | Chapter | Topic | Paper No. | Q No. | Marks | Source PDF
  *
  * Each row becomes a question in the bank, linked to a topic, with a past paper
- * citation built from the year, session, paper number and marks.
+ * citation built from the year, session, paper number and marks - unless the
+ * bank already holds that question (same Source PDF and Q No., or the same
+ * words when those are missing). Then it is only re-filed under the row's
+ * chapter and topic; its text stays as it is, and no second copy is made.
  *
  * A real worksheet runs to thousands of rows, so this reads in chunks and runs
  * on the queue. Within a chunk the three tables are written in bulk rather than
@@ -64,10 +68,13 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
     /** "chapterId|topic title" => id. */
     private array $topics = [];
 
-    /** Signatures of citations already stored. */
+    /** Questions already handled in this file, by key(): one row each. */
     private array $seen = [];
 
     private int $imported = 0;
+
+    /** Rows that matched a question already in the bank and re-filed it. */
+    private int $updated = 0;
 
     private int $skipped = 0;
 
@@ -105,28 +112,21 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
             }
         }
 
-        if ($prepared === []) {
-            $this->flush();
-
-            return;
-        }
-
-        // One query tells us which of these are already stored.
-        $this->preloadSeen($prepared);
-
-        $fresh = [];
-
+        // The same question twice in one file is stored once.
+        $unique = [];
         foreach ($prepared as $row) {
-            if (isset($this->seen[$row['signature']])) {
+            if (isset($this->seen[$row['key']])) {
                 $this->skipped++;
 
                 continue;
             }
-
-            // Guards against the same citation appearing twice in one file.
-            $this->seen[$row['signature']] = true;
-            $fresh[] = $row;
+            $this->seen[$row['key']] = true;
+            $unique[] = $row;
         }
+
+        // Questions already in the bank get this row's chapter and topic, and
+        // keep their text; only the rest are new.
+        $fresh = DB::transaction(fn () => $this->updateExisting($unique));
 
         if ($fresh !== []) {
             DB::transaction(fn () => $this->writeBatch($fresh));
@@ -177,9 +177,15 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
         return [
             'chapter_id' => $chapterId,
             'topic_id' => $topicId,
+            'source' => $source,
+            'question_no' => $questionNo,
             'question' => $question,
             'uuid' => (string) Str::uuid(),
-            'signature' => $this->signature($topicId, $question, $paperNo, $questionNo, $source),
+            // What makes two rows the same question: the paper and question
+            // number when the row has them, otherwise the words.
+            'key' => $source !== null && $questionNo !== null
+                ? 'ref|' . mb_strtolower($source) . '|' . $this->ref($questionNo)
+                : 'text|' . $this->textHash($question),
             // A citation needs a date, a paper number and marks. A row carrying
             // only some of that still imports, just uncited.
             'citation' => ($date && $paperNo !== null && is_numeric($marks))
@@ -192,6 +198,154 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
                 ]
                 : null,
         ];
+    }
+
+    /**
+     * Rows for questions already in this course's bank update them instead of
+     * adding a second copy: the question (or part) gets the row's chapter and
+     * topic, and keeps its text. Returns the rows that are new.
+     *
+     * A question is recognised by its Source PDF and Q No.:
+     *
+     *   - a question stored whole (an earlier worksheet import, or a PDF
+     *     question with no parts) with that paper and number;
+     *   - a part of a PDF-imported question: "2(a)(i)" is that part, "2(a)"
+     *     every part with marks under it. A Q No. the PDF's question doesn't
+     *     have is reported, not added as a second copy.
+     *
+     * A row without a Source PDF or Q No. is recognised by its words.
+     */
+    private function updateExisting(array $rows): array
+    {
+        $sources = array_values(array_unique(array_filter(array_column($rows, 'source'))));
+        $course = $this->import->course_id;
+
+        // Every cited question of these PDFs in this course: "source|question no." => row.
+        $cited = $sources === [] ? collect() : DB::table('past_paper_reference as ppr')
+            ->join('questionable_type as qt', 'qt.id', '=', 'ppr.questionable_type_id')
+            ->join('question_bank as qb', 'qb.id', '=', 'qt.question_id')
+            ->whereNull('qb.deleted_at')
+            ->where('qb.course_id', $course)
+            ->whereIn('ppr.source', $sources)
+            ->get(['ppr.source', 'ppr.question_no', 'qb.id as question_id'])
+            ->keyBy(fn ($row) => mb_strtolower($row->source) . '|' . $this->ref($row->question_no));
+
+        // The parts under those questions (up to three levels), grouped by the
+        // question they belong to; a part with nothing under it is a leaf.
+        $parts = collect();
+        $level = $cited->pluck('question_id')->unique()->values();
+        $topOf = $level->combine($level)->all();
+        while ($level->isNotEmpty()) {
+            $children = DB::table('question_bank')->whereNull('deleted_at')->whereIn('parent_id', $level)->get(['id', 'parent_id', 'part_ref']);
+            foreach ($children as $child) {
+                $topOf[$child->id] = $topOf[$child->parent_id];
+            }
+            $parts = $parts->merge($children);
+            $level = $children->pluck('id');
+        }
+        $parentIds = $parts->pluck('parent_id')->flip();
+        $leaves = $parts->filter(fn ($part) => ! $parentIds->has($part->id))->groupBy(fn ($part) => $topOf[$part->id]);
+
+        // Rows without a paper reference: their words, matched in this course.
+        $hashes = collect($rows)->filter(fn ($row) => str_starts_with($row['key'], 'text|'))->map(fn ($row) => substr($row['key'], 5));
+        $byText = $hashes->isEmpty() ? collect() : DB::table('questions')
+            ->join('question_bank as qb', 'qb.id', '=', 'questions.question_bank_id')
+            ->whereNull('qb.deleted_at')
+            ->where('qb.course_id', $course)
+            ->get(['qb.id', 'questions.question'])
+            ->keyBy(fn ($row) => $this->textHash($row->question));
+
+        $new = [];
+
+        foreach ($rows as $row) {
+            if (str_starts_with($row['key'], 'text|')) {
+                $match = $byText->get(substr($row['key'], 5));
+                $match ? $this->retag([$match->id], $row) : $new[] = $row;
+
+                continue;
+            }
+
+            $no = $this->ref($row['question_no']);
+            $source = mb_strtolower($row['source']);
+            $exact = $cited->get($source . '|' . $no);
+
+            // Stored whole: that very question.
+            if ($exact && ! $parentIds->has($exact->question_id)) {
+                $this->retag([$exact->question_id], $row);
+
+                continue;
+            }
+
+            // A part of a PDF-imported question.
+            $question = preg_match('/^\d+/', $no, $m) ? $cited->get($source . '|' . $m[0]) : null;
+            $questionLeaves = $question ? ($leaves[$question->question_id] ?? collect()) : collect();
+
+            if ($questionLeaves->isEmpty()) {
+                $new[] = $row;
+
+                continue;
+            }
+
+            $named = $questionLeaves->filter(fn ($part) => $this->ref($part->part_ref) === $no || str_starts_with($this->ref($part->part_ref), $no . '('));
+
+            if ($named->isEmpty()) {
+                $this->fail("Q No. {$row['question_no']} is not a part of question {$m[0]} imported from {$row['source']}.");
+
+                continue;
+            }
+
+            $this->retag($named->pluck('id')->all(), $row);
+        }
+
+        return $new;
+    }
+
+    /**
+     * Files questions already in the bank under a row's chapter and topic:
+     * the chapter on the question, the topic through its link (moved if it
+     * had one, added if not). The text is left as it is.
+     */
+    private function retag(array $questionIds, array $row): void
+    {
+        DB::table('question_bank')->whereIn('id', $questionIds)->update([
+            'chapter_id' => $row['chapter_id'],
+            'updated_at' => now(),
+        ]);
+
+        foreach ($questionIds as $id) {
+            $link = DB::table('questionable_type')
+                ->where('question_id', $id)
+                ->whereIn('questionable_type', [Topic::class, Course::class])
+                ->orderBy('id')
+                ->first();
+
+            $values = [
+                'questionable_type' => Topic::class,
+                'questionable_id' => $row['topic_id'],
+                'chapter_id' => $row['chapter_id'],
+                'updated_at' => now(),
+            ];
+
+            $link
+                ? DB::table('questionable_type')->where('id', $link->id)->update($values)
+                : DB::table('questionable_type')->insert($values + ['question_id' => $id, 'created_at' => now()]);
+        }
+
+        $this->updated++;
+    }
+
+    /** "3 (b) (ii)" and "3(b)(ii)" are the same part. */
+    private function ref(?string $no): string
+    {
+        return mb_strtolower(preg_replace('/\s+/', '', (string) $no));
+    }
+
+    /** Words compared without markup, spacing or case. */
+    private function textHash(?string $text): string
+    {
+        $words = html_entity_decode(strip_tags((string) $text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return md5(mb_strtolower(trim(preg_replace('/\s+/u', ' ', $words))));
     }
 
     /**
@@ -211,7 +365,6 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
             'course_id' => $this->import->course_id,
             'chapter_id' => $row['chapter_id'],
             'question_categories_id' => $categoryId,
-            'question' => $row['question'],
             'created_at' => $now,
             'updated_at' => $now,
         ], $rows));
@@ -219,6 +372,15 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
         $questionIds = DB::table('question_bank')
             ->whereIn('uuid', array_column($rows, 'uuid'))
             ->pluck('id', 'uuid');
+
+        // The words live in `questions`, one row each.
+        DB::table('questions')->insert(array_map(fn ($row) => [
+            'uuid' => (string) Str::uuid(),
+            'question_bank_id' => $questionIds[$row['uuid']],
+            'question' => $row['question'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $rows));
 
         $links = [];
 
@@ -264,47 +426,6 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
         }
 
         $this->imported += count($rows);
-    }
-
-    /**
-     * Loads the citations already stored for the topics in this chunk, so the
-     * duplicate check can answer from memory.
-     */
-    private function preloadSeen(array $rows): void
-    {
-        $topicIds = array_values(array_unique(array_column($rows, 'topic_id')));
-
-        if ($topicIds === []) {
-            return;
-        }
-
-        DB::table('questionable_type')
-            ->where('questionable_type', Topic::class)
-            ->whereIn('questionable_id', $topicIds)
-            ->join('question_bank', 'question_bank.id', '=', 'questionable_type.question_id')
-            ->leftJoin('past_paper_reference', 'past_paper_reference.questionable_type_id', '=', 'questionable_type.id')
-            ->select([
-                'questionable_type.questionable_id',
-                'question_bank.question',
-                'past_paper_reference.paper_no',
-                'past_paper_reference.question_no',
-                'past_paper_reference.source',
-            ])
-            ->cursor()
-            ->each(function ($row) {
-                $this->seen[$this->signature(
-                    (int) $row->questionable_id,
-                    (string) $row->question,
-                    $row->paper_no,
-                    $row->question_no,
-                    $row->source
-                )] = true;
-            });
-    }
-
-    private function signature(int $topicId, string $question, ?string $paperNo, ?string $questionNo, ?string $source): string
-    {
-        return $topicId . '|' . md5($question) . '|' . $paperNo . '|' . $questionNo . '|' . $source;
     }
 
     /**
@@ -422,7 +543,8 @@ class QuestionWorksheetImport implements ToCollection, WithChunkReading, WithHea
     {
         $this->import->forceFill([
             'status' => 'running',
-            'imported_rows' => $this->imported,
+            // New questions plus existing ones re-filed under this file's chapter and topic.
+            'imported_rows' => $this->imported + $this->updated,
             'skipped_rows' => $this->skipped,
             'created_topics' => $this->createdTopics,
             'created_chapters' => $this->createdChapters,
