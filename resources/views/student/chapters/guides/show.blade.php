@@ -66,7 +66,7 @@
         <div class="soft-card p-6 md:p-10 rounded-xl hover-lift">
             <x-module-progress :record="$guide">
                 @if(filled($content))
-                    <div class="guide-body space-y-6 text-base text-on-surface leading-relaxed
+                    <div class="guide-body rich-content space-y-6 text-base text-on-surface leading-relaxed
                         [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:mt-8 [&_h1]:mb-4
                         [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-4
                         [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-3

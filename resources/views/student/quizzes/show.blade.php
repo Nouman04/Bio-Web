@@ -75,7 +75,7 @@
                     <div class="flex items-start justify-between gap-4 mb-4">
                         <h2 class="text-on-surface font-semibold text-base">
                             <span class="text-primary">{{ $index + 1 }}.</span>
-                            <span class="[&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $question?->whole_question !!}</span>
+                            <span class="rich-content [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $question?->whole_question !!}</span>
                         </h2>
                         @unless($quiz->isSelfMarked())
                             <span class="text-xs font-semibold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-full shrink-0">

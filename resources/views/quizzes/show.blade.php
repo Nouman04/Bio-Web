@@ -41,7 +41,7 @@
                     <div class="p-6 border-b border-outline-variant/30 dark:border-slate-700">
                         <h3 class="text-base font-bold text-on-surface dark:text-white">Description</h3>
                     </div>
-                    <div class="p-6 prose max-w-none text-sm text-on-surface dark:text-slate-200 leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-primary">
+                    <div class="p-6 prose rich-content max-w-none text-sm text-on-surface dark:text-slate-200 leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-primary">
                         {!! $quiz->description !!}
                     </div>
                 </div>

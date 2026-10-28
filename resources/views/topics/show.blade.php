@@ -28,7 +28,7 @@
                 <div class="p-6 border-b border-outline-variant/30 dark:border-slate-700">
                     <h3 class="text-base font-bold text-on-surface dark:text-white">Content</h3>
                 </div>
-                <div class="p-6 prose max-w-none text-sm text-on-surface dark:text-slate-200 leading-relaxed [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_a]:text-primary [&_img]:rounded-xl">
+                <div class="p-6 prose rich-content max-w-none text-sm text-on-surface dark:text-slate-200 leading-relaxed [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_a]:text-primary [&_img]:rounded-xl">
                     {!! $topic->content ?: '<p class="text-outline">No content.</p>' !!}
                 </div>
             </div>

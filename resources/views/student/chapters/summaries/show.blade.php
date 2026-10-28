@@ -77,7 +77,7 @@
                      so the manual tick is available. See ProgressService. --}}
                 <x-module-progress :record="$summary">
                     @if(filled($summary->content))
-                        <div class="prose prose-slate max-w-none text-base text-on-surface-variant leading-relaxed
+                        <div class="prose prose-slate rich-content max-w-none text-base text-on-surface-variant leading-relaxed
                             [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-on-surface [&_h1]:mt-8 [&_h1]:mb-4
                             [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-on-surface [&_h2]:mt-8 [&_h2]:mb-4
                             [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-on-surface [&_h3]:mt-6 [&_h3]:mb-3

@@ -154,7 +154,7 @@
                 <div class="flex items-start justify-between gap-4 mb-3">
                     <h2 class="text-on-surface font-semibold text-base flex items-start gap-1.5 min-w-0">
                         <span class="text-primary shrink-0">{{ $index + 1 }}.</span>
-                        <span class="min-w-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['question'] !!}</span>
+                        <span class="rich-content min-w-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['question'] !!}</span>
                     </h2>
                     <span class="text-xs font-semibold px-2 py-1 rounded-full shrink-0 tabular-nums
                         {{ $unmarked ? 'bg-surface-container-high text-on-surface-variant' : ($row['correct'] ? 'bg-tertiary/10 text-tertiary' : 'bg-error/10 text-error') }}">
@@ -209,7 +209,7 @@
                         @if($row['expected'])
                             <div class="mt-3 p-3 rounded-xl bg-tertiary/5 border-l-4 border-tertiary">
                                 <div class="text-xs font-semibold uppercase tracking-wide text-tertiary mb-1">Expected answer</div>
-                                <div class="text-sm text-on-surface [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['expected'] !!}</div>
+                                <div class="rich-content text-sm text-on-surface [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-primary [&_a]:underline [&_img]:rounded-lg [&_img]:max-w-full">{!! $row['expected'] !!}</div>
                             </div>
                         @else
                             <div class="mt-3 p-3 rounded-xl bg-surface-container-high/60 border-l-4 border-outline-variant">

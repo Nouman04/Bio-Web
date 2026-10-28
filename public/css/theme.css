@@ -396,3 +396,16 @@
 }
 .password-meter-rule.is-met { color: rgb(var(--c-tertiary)); }
 .password-meter-rule.is-met::before { background: rgb(var(--c-tertiary)); }
+
+/*
+ * Pasted rich text in the dark.
+ *
+ * Content pasted into the editor from Word, Docs or ChatGPT keeps inline
+ * `style="color: rgb(0, 0, 0)"` spans, which beat every class and leave black
+ * text on the navy cards. Inside rendered content (and the editor itself) the
+ * inline colour is dropped so the text follows its container.
+ */
+.dark .rich-content [style*="color"],
+.dark .rich-content font[color],
+.dark .ql-editor [style*="color"],
+.dark .ql-editor font[color] { color: inherit !important; }

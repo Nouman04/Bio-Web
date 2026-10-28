@@ -82,7 +82,7 @@
             <!-- Description Section -->
             <div class="glass-panel rounded-xl p-6 glass-panel-hover">
                 <h3 class="text-xl font-semibold mb-4 border-b border-surface-variant/50 pb-2">Description</h3>
-                <div class="prose prose-sm max-w-none text-on-surface-variant space-y-4
+                <div class="prose prose-sm rich-content max-w-none text-on-surface-variant space-y-4
                     [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1
                     [&_a]:text-primary [&_img]:rounded-lg">
                     @if(filled($diagram->content))

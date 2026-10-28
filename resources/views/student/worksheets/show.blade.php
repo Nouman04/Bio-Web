@@ -103,7 +103,7 @@
             {{-- Numbered across pages: page 2 starts at 13. --}}
             <span class="text-primary font-bold text-sm shrink-0 w-6">{{ $questions->firstItem() + $loop->index }}.</span>
             <div class="min-w-0 flex-1">
-                <div class="question-html text-sm text-on-surface dark:text-slate-200">{!! $question->safe_question !!}</div>
+                <div class="question-html rich-content text-sm text-on-surface dark:text-slate-200">{!! $question->safe_question !!}</div>
                 <p class="text-[11px] text-on-surface-variant dark:text-slate-500 mt-1">
                     {{ $question->category?->type === 'mcqs' ? 'Multiple choice' : 'Theory' }}
                     @if($question->difficulty_level) &middot; {{ $question->difficulty_level }} @endif
