@@ -149,8 +149,10 @@ window.App = (function () {
     function showFieldErrors(form, errors) {
         Object.entries(errors).forEach(([field, messages]) => {
             // Laravel returns dotted keys for nested input names.
-            const name = field.replace(/\.(\d+)/g, '[$1]');
-            const input = form.querySelector(`[name="${name}"], [name="${name}[]"]`);
+            const name = field.replace(/\.([^.]+)/g, '[$1]');
+            // An array field (e.g. options) only has named children, so fall back to its first one.
+            const input = form.querySelector(`[name="${name}"], [name="${name}[]"]`)
+                ?? form.querySelector(`[name^="${name}["]`);
             if (!input) return;
 
             input.classList.add('app-field-invalid');
